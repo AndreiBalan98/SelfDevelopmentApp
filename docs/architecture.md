@@ -111,6 +111,26 @@ three months, and no script on the page can read it.
 Changing `SESSION_SECRET` in Vercel invalidates every session everywhere at once.
 That's the emergency log-out, and it's why there isn't a button for one.
 
+### Changing or recovering the PIN
+
+There's no screen for this, on purpose. Run this in the project folder — it doesn't
+show the PIN as you type it, and the PIN never reaches your shell history:
+
+```
+read -s -p "PIN: " PIN; echo; PIN="$PIN" node -e "const c=require('crypto');const s=c.randomBytes(16);console.log(s.toString('hex')+':'+c.scryptSync(process.env.PIN,s,64).toString('hex'))"; unset PIN
+```
+
+Put the line it prints into `PIN_HASH`, in `.env.local` and in Vercel, and redeploy.
+It must be six digits — the login screen accepts nothing else.
+
+`SESSION_SECRET` is just noise, regenerated with:
+
+```
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+Both are worth keeping in a password manager alongside the database password.
+
 ## The database
 
 Nine tables. Three groups:
