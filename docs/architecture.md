@@ -30,6 +30,8 @@ app/                 every screen, and the server code behind it
 public/              files served as-is at fixed URLs
   icon-192.png       icons the manifest points at; they need stable paths, which
   icon-512.png       the ones in app/ don't have
+supabase/
+  migrations/        SQL you run by hand in the Supabase editor, numbered in order
 docs/                the plan, this map, and the progress board
 package.json         the list of libraries the app depends on
 next.config.ts       Next.js settings — empty, nothing needed yet
@@ -51,6 +53,47 @@ rebuilt from `package.json`, and the third would be secrets.
 Right now every page is static, so this is fast and free. Once screens read from the
 database they stop being static and get rendered per request instead — that's a
 normal and expected change, not a regression.
+
+## The database
+
+Nine tables. Three groups:
+
+**Food** — `products` (what you buy) feed into `recipes` (what you cook) and into
+`meals` (what you ate). A meal is just a container; its lines point either at a
+product with a quantity, or at a recipe with a number of servings. Nothing about a
+meal's calories or price is stored — it's added up from the lines every time a screen
+is drawn.
+
+**Days** — `sleep`, `weight` and `smoking` are flat, one row per day, with the date
+marked unique. That uniqueness is doing real work: it's what makes double-logging the
+same day impossible rather than merely unlikely.
+
+**Settings** — one row that can never become two.
+
+### What the database refuses to do
+
+Three of the honesty rules in Part 4 of the plan aren't left to the app to remember.
+They're built into the tables, so a bug in a form can't get round them:
+
+- **Deleting a product or recipe you've actually used is refused.** Not deleted-with-
+  its-meals, not silently emptied — refused, with an error. Deleting an unused one is
+  fine. Deleting a meal is always fine and takes only that meal's own lines with it.
+- **A meal line is either a product or a recipe.** Never both, never neither.
+- **The same day can't be logged twice** for sleep, weight or smoking.
+
+Correcting a price or a nutrition value is deliberately not possible by editing. You
+make a new product, mark the old one retired, and point it at the replacement — which
+is also how the app knows what a kilo of oats has cost you over two years.
+
+### Who can read it
+
+Row Level Security is switched on for every table, with no access rules written at
+all. In Postgres that means the public roles can read and write nothing — there's no
+rule to get wrong, because there are no rules.
+
+The app gets in using a separate key that skips those checks entirely, and that key
+only ever exists on the server. Your phone never holds it. So if the database URL
+leaks, it's worth nothing to whoever finds it.
 
 ## Choices worth knowing about
 
