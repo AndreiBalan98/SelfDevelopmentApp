@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+/* Dark by default. There is no light theme — the app is only ever used on a
+   phone, usually at night. */
+:root {
+  --background: #0b0d10;
+  --surface: #14181d;
+  --border: #242a31;
+  --foreground: #e8eaed;
+  --muted: #8b949e;
+  --accent: #4ea1ff;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --font-sans: var(--font-geist-sans);
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
