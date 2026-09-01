@@ -4,22 +4,22 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Phase 3 — the JSON export. Written, not yet approved.** Code is done, builds and
-lints clean, and the logic has been tested against a real throwaway Postgres. It has
-not run against Supabase, and Andrei has not tested it on the phone. Not done until
-he has.
+Nothing in progress. Phase 3 is finished and approved.
+
+**Next session starts by proposing phase 4 — weight, the first real screen.** Propose
+the approach with recommendations and alternatives, then wait. See Next.
 
 ## Waiting on me (Andrei)
 
-1. **Run migration `0003_last_export_at.sql`** in the Supabase SQL editor. One
-   column on `settings`. Nothing works until this is in.
-2. **Optionally run `supabase/sample-data/seed.sql`** if you want the export to
-   carry something. `wipe.sql` next to it removes it again.
-3. **Commit, push, and test on the phone.**
-4. **Approve**, or ask for changes.
+Nothing.
 
 ## Done
 
+- 2026-09-01 — Phase 3 complete: the JSON export. One button, every row in the
+  database, delivered through the iOS share sheet with a download fallback. The home
+  screen shows how long it's been, from `last_export_at` on `settings`. Migration
+  0003 run. Sample data for development is two SQL scripts run by hand, deliberately
+  not anything the app does. Tested and approved.
 - 2026-09-01 — Phase 2 complete: the PIN gate. Six digits, scrypt hash in an
   environment variable, signed three-month cookie, database-backed lockout after five
   failures, failing closed if the database is unreachable. Gate lives in `proxy.ts`.
@@ -32,9 +32,26 @@ he has.
 
 ## Next
 
-**Phase 4 — weight.** The first real screen. Three things already flagged as due here:
-run `wipe.sql` before logging anything real, delete the temporary `/check` page, and
-give TypeScript the shape of the database so column names are checked (see Deferred).
+**Phase 4 — weight.** The first real screen, and the one that proves the whole chain
+end to end on a table where a mistake costs nothing. One number a day.
+
+Decisions to put to Andrei before writing any of it — recommendation, alternatives
+and costs for each, as always:
+
+- **What the screen holds**: today's entry plus a list of recent ones, versus
+  splitting adding and reviewing across two screens.
+- **How you get to it.** The home screen is still a placeholder with one link on it.
+  A proper bottom tab bar is the iOS-native answer but is premature with two screens;
+  worth deciding now whether to do it once, later, or grow into it.
+- **What happens when a day is already logged.** The database refuses a second row
+  for the same date, so the form has to either overwrite or send you to the existing
+  entry. Part 4 rule 5 says everything is editable, which points one way.
+- **Whether to hand-write the database types**, since generating them needs the
+  Supabase CLI and that's off limits (see Deferred).
+
+Three things already flagged as due in this phase: run `wipe.sql` before logging
+anything real, delete the temporary `/check` page, and give TypeScript the shape of
+the database so column names are checked.
 
 Then phase 5 (nutrition), 6 (sleep and smoking), 7 (charts and stats), 8 (gym).
 
@@ -54,7 +71,7 @@ For a session picking this up cold, after reading the plan and this file:
   with the scripts in `supabase/sample-data/`; the app never creates data by itself.
 - Four environment variables, in `.env.local` and in Vercel: `SUPABASE_URL`,
   `SUPABASE_SECRET_KEY`, `PIN_HASH`, `SESSION_SECRET`.
-- Migrations `0001` and `0002` have been run; `0003` is waiting. A new migration means a new
+- Migrations `0001`, `0002` and `0003` have all been run. A new migration means a new
   numbered file in `supabase/migrations/` for Andrei to paste in himself.
 
 Worth knowing about how this has gone so far: four mistakes were caught only because
