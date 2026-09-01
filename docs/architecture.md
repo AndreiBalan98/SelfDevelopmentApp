@@ -19,11 +19,17 @@ running on Vercel. Not built yet — this is the shape the next steps fill in.
 
 ```
 app/                 every screen, and the server code behind it
-  layout.tsx         the frame every page sits inside: fonts, colours, page title
+  layout.tsx         the frame every page sits inside: fonts, colours, page title,
+                     and the tags that make iOS treat this as an installed app
   globals.css        the colour palette and base styling for the whole app
   page.tsx           the home screen
-  favicon.ico        placeholder, replaced in step 2
-public/              files served as-is (icons, manifest — arriving in step 2)
+  manifest.ts        the app's name, colours and icons, for the home screen
+  icon.png           browser tab icon
+  apple-icon.png     the home screen icon on iOS
+  favicon.ico        the old-fashioned browser tab icon, for anything that wants it
+public/              files served as-is at fixed URLs
+  icon-192.png       icons the manifest points at; they need stable paths, which
+  icon-512.png       the ones in app/ don't have
 docs/                the plan, this map, and the progress board
 package.json         the list of libraries the app depends on
 next.config.ts       Next.js settings — empty, nothing needed yet
@@ -57,3 +63,8 @@ than in separate stylesheets. It means one file to look at per screen instead of
 
 **No service worker.** Deliberate — see Part 6 of the plan. It's the main cause of
 iOS home-screen apps serving a stale version after a deploy.
+
+**How the home screen app works without one.** Three things and nothing more: a
+manifest naming the app, an icon iOS can use, and a tag telling iOS to hide Safari's
+address bar. There's no caching layer and no offline mode — every launch loads fresh
+from Vercel, which is exactly what stops the stale-version problem.

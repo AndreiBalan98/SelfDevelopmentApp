@@ -10,6 +10,18 @@ const geistSans = Geist({
 export const metadata: Metadata = {
   title: "Life Tracker",
   description: "Personal tracking for nutrition, weight, sleep and smoking.",
+  // Makes it launch from the home screen without Safari's address bar and
+  // tab bar, and sets the label shown under the icon.
+  appleWebApp: {
+    capable: true,
+    title: "Life",
+    statusBarStyle: "black",
+  },
+  // Next.js only emits the modern, unprefixed version of the tag above.
+  // Older iOS versions read the Apple-prefixed one, so it goes in by hand.
+  other: {
+    "apple-mobile-web-app-capable": "yes",
+  },
 };
 
 export const viewport: Viewport = {

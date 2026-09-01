@@ -28,4 +28,7 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
+  /* Keeps content clear of the iPhone's home indicator bar when the app is
+     running from the home screen. Zero in a normal browser tab. */
+  padding-bottom: env(safe-area-inset-bottom);
 }
