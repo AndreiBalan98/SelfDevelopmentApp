@@ -13,7 +13,20 @@ Phone (Safari)  →  Vercel  →  Next.js server code  →  Supabase Postgres
 ```
 
 The phone never holds a database key. Every read and write goes through server code
-running on Vercel. Not built yet — this is the shape the next steps fill in.
+running on Vercel.
+
+**Where the key lives.** One file, `lib/supabase.ts`. Nothing else in the app opens a
+database connection, and that file refuses to load at all if it ever finds itself
+running in a browser. The key comes from an environment variable — `.env.local` on
+the laptop, Vercel's settings in production — and is never written down in the repo.
+
+**How a write happens.** You tap a button on a page. That page hands the work to a
+*server action*: a function that looks like it's called from the phone but actually
+runs on Vercel. The action talks to the database and sends back only the result. The
+browser never sees the key, the connection, or the query — only the answer.
+
+This is verified rather than assumed: a request to the database with no key attached
+comes back `401 Unauthorized`, so the project URL on its own is worth nothing.
 
 ## What's in the repo today
 
@@ -23,6 +36,8 @@ app/                 every screen, and the server code behind it
                      and the tags that make iOS treat this as an installed app
   globals.css        the colour palette and base styling for the whole app
   page.tsx           the home screen
+  check/             temporary: proves the database connection works. Deleted in
+                     phase 4 when the real weight screen replaces it.
   manifest.ts        the app's name, colours and icons, for the home screen
   icon.png           browser tab icon
   apple-icon.png     the home screen icon on iOS
@@ -30,6 +45,8 @@ app/                 every screen, and the server code behind it
 public/              files served as-is at fixed URLs
   icon-192.png       icons the manifest points at; they need stable paths, which
   icon-512.png       the ones in app/ don't have
+lib/
+  supabase.ts        the only file that holds the database key
 supabase/
   migrations/        SQL you run by hand in the Supabase editor, numbered in order
 docs/                the plan, this map, and the progress board
