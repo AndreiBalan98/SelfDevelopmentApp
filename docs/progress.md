@@ -4,24 +4,31 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Phase 5 step 1 — products. Written, not yet approved.** Builds and lints clean; the
-actions have been tested against a real throwaway Postgres (42 checks, including the
-replace flow and its rollback). Not tested on the phone. Not done until Andrei has.
+Nothing in progress. Phase 5 step 1 (products) is finished, tested on the phone and
+approved. Session ended the evening of 2026-09-02; everything through step 1 is
+committed and pushed, and the working tree was clean.
+
+**The next session starts by proposing phase 5 step 2 — recipes.** Do not start
+building it. Propose the approach with a recommendation, the alternatives and what
+each costs, then wait. The decisions that need putting to Andrei are listed under
+Next.
 
 ## Waiting on me (Andrei)
 
-1. **Commit, push, and test on the phone.** No migration — nothing about the schema
-   changed.
-2. **Approve**, or ask for changes. Then step 2, recipes.
+Nothing. No SQL to run, no environment variables to add, no decisions owed. Migrations
+0001–0003 are all in, and no migration is pending.
 
 ## Done
 
+- 2026-09-02 — Phase 5 step 1 complete: products. List with search and a retired
+  toggle, add, edit, retire, delete, and retire-and-replace. The form follows
+  EU-label order and shows price per 100 live. What you may change depends on
+  whether the product has been used. Tested on the phone and approved.
 - 2026-09-01 — Phase 4 complete: weight. Pick a day, type a number, save; the last
   fortnight underneath, each editable and deletable. Logging a day twice updates it
   rather than failing. Home screen became a list of destinations, `/check` deleted,
   and `lib/types.ts` now gives TypeScript the shape of the database. Tested on the
   phone and approved.
-
 - 2026-09-01 — Phase 3 complete: the JSON export. One button, every row in the
   database, delivered through the iOS share sheet with a download fallback. The home
   screen shows how long it's been, from `last_export_at` on `settings`. Migration
@@ -42,15 +49,50 @@ replace flow and its rollback). Not tested on the phone. Not done until Andrei h
 **Phase 5 — nutrition.** By far the biggest phase, so it is broken into five steps,
 each approved on the phone before the next starts:
 
-1. **Products** — list, search, add, edit, retire-and-replace.
+1. ~~**Products**~~ — done and approved 2026-09-02.
 2. **Recipes** — list, add, lines from products, cooked weight. Brings in
-   `lib/nutrition.ts`, where all the arithmetic will live.
+   `lib/nutrition.ts`, where all the arithmetic will live. **← next**
 3. **Meals** — logging what you ate, from products and recipe servings.
 4. **Today** — daily totals and progress against targets.
 5. **Repeat** — copying a past meal onto today, following `replaced_by`.
 
-Step 1 is written and waiting on the phone. Step 2 (recipes) is next, and brings in
-`lib/nutrition.ts` — the first place the arithmetic lands.
+### Step 2 — what to put to Andrei before writing anything
+
+Recommendation, alternatives and costs for each, as always. Nothing here has been
+decided yet:
+
+- **How ingredient lines get added.** A search-and-add list inside the recipe screen,
+  versus a separate "add ingredient" screen. Note the iOS constraint from Part 6: a
+  form split across screens can lose half-entered work when the app is relaunched,
+  which is what ruled out a wizard for the product form.
+- **When a new recipe is saved.** A recipe needs its lines to mean anything, but
+  `recipes` and `recipe_items` are separate writes with no transaction available.
+  Either save the recipe first and add lines to it afterwards, or hold the whole
+  thing in the browser and write it in one go with a tidy-up if the second write
+  fails. This is the first place the no-transaction limitation really bites.
+- **What the recipe screen shows once it has lines.** Raw weight is calculated from
+  the lines (1 ml counts as 1 g), `cooked_weight` is typed in after weighing the pan,
+  and the difference is the shrinkage. Decide whether shrinkage is shown as a
+  percentage, a weight, or both, and whether per-serving nutrition and cost sit on
+  the same screen.
+- **Retiring and replacing a recipe.** Part 4 rule 2 says a logged recipe is frozen,
+  exactly like a product. The open question is whether Replace copies the lines too
+  (it should) and what happens when a line points at a product that has since been
+  retired — follow `replaced_by` to the current version, or copy the line as it
+  stands. These give different answers and the choice should be deliberate.
+- **Whether retired products can be added to a new recipe.** The plan hides retired
+  products when logging; building a recipe is arguably the same situation.
+
+### Settled already, so don't re-ask
+
+- The arithmetic lives in `lib/nutrition.ts` as pure functions that take rows and
+  return numbers — no database access, so it can be checked directly.
+- Missing nutrition values are summed as if zero, and totals are shown as plain
+  numbers. The plan accepts the consequence: a fibre or sugar total can read lower
+  than what was really eaten. Calories are never affected, because calories are
+  required on every product.
+- 1 ml counts as 1 g when a recipe's raw weight is added up. No densities are stored.
+- A recipe contains products only. A recipe can never contain another recipe.
 
 Two things that shape the whole phase and are worth keeping in view:
 
@@ -78,27 +120,61 @@ For a session picking this up cold, after reading the plan and this file:
   been deleted.
 - Everything except `/login`, the icons and the manifest is behind the PIN — including
   `/api/export`, which is the URL that hands over the whole database.
-- The database has ten tables: the nine in the plan plus `login_attempts`. All empty
-  except `settings`, which holds its single row. Sample data goes in and out by hand
-  with the scripts in `supabase/sample-data/`; the app never creates data by itself.
+- The database has ten tables: the nine in the plan plus `login_attempts`. Sample data
+  goes in and out by hand with the scripts in `supabase/sample-data/`; the app never
+  creates data by itself. **What's actually in it is unknown to this file** — Andrei
+  tested the product screens on 2026-09-02, so there may be real products, sample
+  data, both, or neither. Ask rather than assume; `wipe.sql` only ever removes rows
+  named "Sample …" or noted "sample data", so real entries are safe from it either
+  way.
+- The last commit was `3abc93f`, "Phase 5 step 1: products". `git log` is readable and
+  is the fastest way to confirm what actually shipped.
 - Four environment variables, in `.env.local` and in Vercel: `SUPABASE_URL`,
   `SUPABASE_SECRET_KEY`, `PIN_HASH`, `SESSION_SECRET`.
 - Migrations `0001`, `0002` and `0003` have all been run. A new migration means a new
   numbered file in `supabase/migrations/` for Andrei to paste in himself.
 
-Worth knowing about how this has gone so far: four mistakes were caught only because
-things were tested rather than assumed — a batch of constraint tests that silently
-proved nothing, a login flow that would have let anyone in with the lockout switched
-off if the database were unreachable, an export that would have saved the login page
-as your backup once the session expired, and a wipe script catching the wrong
-Postgres error code. Test against the real thing before reporting a step as done.
+- Git: Andrei runs every git command. Reading history (`git log`, `git status`,
+  `git show`) is fine and useful; anything that writes is not.
 
-**How to test database code without touching Supabase.** Phase 3 ran the real
-`lib/backup.ts` against a throwaway local Postgres — loaded with the actual
-migrations — by compiling it to JavaScript and swapping `lib/supabase.ts` for a small
-stand-in that speaks SQL. The `.sql` scripts were run against the same database
-directly. That catches constraint and ordering bugs for real, in a scratchpad,
-without going near Andrei's project. Worth repeating for anything that writes.
+Worth knowing about how this has gone so far: **six** mistakes were caught only
+because things were tested rather than assumed — a batch of constraint tests that
+silently proved nothing; a login flow that would have let anyone in with the lockout
+switched off if the database were unreachable; an export that would have saved the
+login page as your backup once the session expired; a wipe script catching the wrong
+Postgres error code; a `Database` type that silently switched off all table-name
+checking; and a product replacement that reported success while leaving an orphan.
+Every one of them looked fine. Test against the real thing before reporting a step as
+done.
+
+### How to test database code without touching Supabase
+
+This has now caught a bug in every phase it's been used on, so it's worth doing again
+rather than reinventing. All of it happens in the session scratchpad and is deleted
+afterwards; Supabase is never involved. Part 7 of the plan rules out tests *in the
+repo*, and this respects that — nothing is committed.
+
+1. `initdb` a throwaway cluster in the scratchpad and start it on `127.0.0.1:55433`.
+   A Unix socket path inside the scratchpad is too long for Postgres, so listen on a
+   port instead.
+2. Create a database, `alter database … set timezone='UTC'` to match Supabase, and
+   run `supabase/migrations/000*.sql` into it. The `revoke … from anon` lines fail
+   locally because those Supabase roles don't exist — that's expected and harmless.
+3. Compile the real modules with
+   `npx tsc <files> --outDir <scratch> --module commonjs --target es2022 --moduleResolution node --skipLibCheck --esModuleInterop`.
+   The `@/…` import errors are expected; the JavaScript is still emitted.
+4. `sed` the emitted `@/lib/supabase` imports to a hand-written stand-in that speaks
+   SQL to that Postgres through the `pg` driver, implementing only the slice of
+   supabase-js the app uses. Set the driver's `date`/`time`/`timestamp` parsers to
+   return raw strings, because that's what PostgREST does.
+5. Server actions also import `next/cache` and `next/navigation`. Stub them via
+   `Module._resolveFilename`; make `redirect()` throw a marker so the success path is
+   observable.
+6. Run the checks, then stop the cluster and delete the data directory.
+
+Two traps this setup has already exposed, both worth re-checking in any new code: an
+`update` that matches no rows is **not** an error, and `on delete restrict` raises
+`restrict_violation` (23001), not `foreign_key_violation` (23503).
 
 ## Decisions made while building
 
@@ -173,3 +249,9 @@ without going near Andrei's project. Worth repeating for anything that writes.
 - `lib/types.ts` is written by hand and does not update itself. Every migration from
   now on has to change it too, or it starts lying. Worth reconsidering the Supabase
   CLI if that ever slips.
+- Product search uses SQL `ilike`, so a `%` or `_` typed into the search box acts as a
+  wildcard rather than a literal character. Harmless today; escape the term if it ever
+  reads as a bug.
+- There is no confirmation step on any Delete button — a product, a weigh-in. They're
+  single-user actions on recoverable data, and the database refuses the dangerous
+  ones outright. Revisit if something is ever lost by a mis-tap.
