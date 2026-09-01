@@ -36,6 +36,7 @@ app/                 every screen, and the server code behind it
                      and the tags that make iOS treat this as an installed app
   globals.css        the colour palette and base styling for the whole app
   page.tsx           the home screen
+  login/             the PIN screen
   check/             temporary: proves the database connection works. Deleted in
                      phase 4 when the real weight screen replaces it.
   manifest.ts        the app's name, colours and icons, for the home screen
@@ -45,8 +46,11 @@ app/                 every screen, and the server code behind it
 public/              files served as-is at fixed URLs
   icon-192.png       icons the manifest points at; they need stable paths, which
   icon-512.png       the ones in app/ don't have
+proxy.ts             the PIN gate — runs before every request
 lib/
   supabase.ts        the only file that holds the database key
+  session.ts         issues and checks the cookie that proves you're logged in
+  pin.ts             checks a typed PIN against the hash in PIN_HASH
 supabase/
   migrations/        SQL you run by hand in the Supabase editor, numbered in order
 docs/                the plan, this map, and the progress board
@@ -70,6 +74,42 @@ rebuilt from `package.json`, and the third would be secrets.
 Right now every page is static, so this is fast and free. Once screens read from the
 database they stop being static and get rendered per request instead — that's a
 normal and expected change, not a regression.
+
+## The PIN gate
+
+One file, `proxy.ts`, runs before every request that reaches the app. If the request
+doesn't carry a valid session, it never reaches the page — it's sent to the PIN
+screen instead. Because the check sits there rather than inside each page, every
+screen built from now on is protected without anyone having to remember to protect
+it. That includes the JSON export in phase 3, which is the one URL that would hand
+over everything.
+
+Three things are deliberately left reachable without the PIN: the app icons and the
+manifest. iOS fetches those the moment you add the app to your home screen, which is
+necessarily before you've logged in, and they reveal nothing.
+
+**The PIN itself is never stored.** What's stored, in an environment variable, is a
+scrypt hash — a one-way scramble that can't be turned back into the number. When you
+type the PIN, the server scrambles your guess the same way and compares the results.
+Each guess deliberately costs about 80ms of server time.
+
+**Guessing is capped.** Six digits is only a million combinations, which a determined
+attacker could work through if allowed to try freely. Five wrong PINs inside fifteen
+minutes and login refuses until the oldest of those failures ages out. The count
+lives in the database so it holds no matter how many copies of the app Vercel is
+running. Only the *time* of each failure is recorded — never the PIN typed, never an
+IP address.
+
+If the database can't be reached, login refuses rather than letting you in with the
+lockout quietly disabled.
+
+**Staying logged in.** On success the server hands the browser a cookie that is
+simply an expiry date plus a signature of that date. Edit the date and the signature
+stops matching, so a browser can't extend its own session or invent one. It lasts
+three months, and no script on the page can read it.
+
+Changing `SESSION_SECRET` in Vercel invalidates every session everywhere at once.
+That's the emergency log-out, and it's why there isn't a button for one.
 
 ## The database
 
