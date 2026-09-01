@@ -37,6 +37,8 @@ app/                 every screen, and the server code behind it
   globals.css        the colour palette and base styling for the whole app
   page.tsx           the home screen
   login/             the PIN screen
+  export/            the backup screen
+  api/export/        the URL that builds the backup file itself
   check/             temporary: proves the database connection works. Deleted in
                      phase 4 when the real weight screen replaces it.
   manifest.ts        the app's name, colours and icons, for the home screen
@@ -51,8 +53,12 @@ lib/
   supabase.ts        the only file that holds the database key
   session.ts         issues and checks the cookie that proves you're logged in
   pin.ts             checks a typed PIN against the hash in PIN_HASH
+  day.ts             every date, worked out in Europe/Bucharest
+  backup.ts          reads every table into one file; tracks when you last did
 supabase/
   migrations/        SQL you run by hand in the Supabase editor, numbered in order
+  sample-data/       seed.sql and wipe.sql — invented data for developing
+                     against. Not migrations; run only when you want them.
 docs/                the plan, this map, and the progress board
 package.json         the list of libraries the app depends on
 next.config.ts       Next.js settings — empty, nothing needed yet
@@ -131,6 +137,14 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 Both are worth keeping in a password manager alongside the database password.
 
+## Dates
+
+Every date in the app goes through `lib/day.ts`, and every one of them is worked out
+in Europe/Bucharest. Doing it in UTC instead would shift entries by an hour twice a
+year and quietly corrupt anything near midnight — and the 04:00 cutoff that decides
+which day a late meal counts towards sits right in that danger zone. Nothing should
+build a date any other way.
+
 ## The database
 
 Nine tables. Three groups:
@@ -171,6 +185,67 @@ rule to get wrong, because there are no rules.
 The app gets in using a separate key that skips those checks entirely, and that key
 only ever exists on the server. Your phone never holds it. So if the database URL
 leaks, it's worth nothing to whoever finds it.
+
+## The backup
+
+Supabase's free plan keeps no snapshots of anything. If a table is wiped, the data
+is gone permanently. The file this produces is the only copy of your history that
+exists anywhere else, which is why it was built third, before any screen that
+creates data worth losing.
+
+**What it does.** One button reads every row out of all nine tables and hands you a
+single file, `life-tracker-2026-09-01.json`. On the phone that opens the iOS share
+sheet — Save to Files, AirDrop to the laptop, mail it to yourself. In a desktop
+browser, where there is no share sheet, it downloads instead.
+
+`login_attempts` is deliberately left out. It's a list of timestamps the lockout
+uses and nothing more: worthless in a backup, and nothing you'd want restored.
+
+The tables are written in the order a restore would have to put them back — a thing
+always appears after whatever it points at — so the file can be turned back into
+rows without untangling anything first. There is no import screen; restoring today
+means working from this file by hand.
+
+**It's all or nothing.** If any single table can't be read, the whole export fails
+rather than handing you a file with a table quietly missing. A backup that looks
+complete and isn't is worse than no backup.
+
+**The reminder.** `settings.last_export_at` records when you last exported, and the
+home screen reads it: quiet under a week, amber at a week, red at a fortnight. It
+lives in the database rather than on the phone because iOS wipes a home-screen
+app's stored data after roughly a week of not opening it — exactly when the
+reminder would need to be shouting.
+
+It records that the file was *handed to you*, not that you saved it. Tap export,
+then cancel the share sheet, and the clock still resets.
+
+## Sample data, for developing against
+
+Screens are hard to build against an empty database, so there is a pair of SQL
+scripts in `supabase/sample-data/`. They are **not** migrations: they change no
+structure, they're numbered nowhere, and they run only when you decide to run them.
+
+- `seed.sql` creates a week of invented history — products, a recipe, meals, sleep,
+  weigh-ins, cigarettes — dated relative to the day you run it, so the screens always
+  look current.
+- `wipe.sql` removes exactly what `seed.sql` made, and nothing else.
+
+Deliberately kept out of the app. The app has no idea any of this exists, which means
+the code behaves identically whether it's drawing invented data or real data — there
+is no "if the database is empty" branch anywhere to get it wrong.
+
+Everything the seed makes is marked so the wipe can find it and only it: products and
+recipes are named "Sample …", every other row is noted "sample data".
+
+The invented week is awkward on purpose, because tidy data proves nothing: a retired
+product pointing at the one that replaced it, eggs measured in pieces, milk measured
+in millilitres, a 02:20 snack that counts towards the previous day, and a skipped
+weigh-in for the chart to interpolate across.
+
+**Run `wipe.sql` before you start logging for real.** If you've already logged
+something that uses a sample product, the wipe refuses and rolls itself back rather
+than cascading — the deletion rule doing its job — and tells you what to delete
+first.
 
 ## Choices worth knowing about
 

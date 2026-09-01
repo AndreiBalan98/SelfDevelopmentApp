@@ -9,6 +9,10 @@
   --foreground: #e8eaed;
   --muted: #8b949e;
   --accent: #4ea1ff;
+  /* Only ever used to say a backup is overdue. Nothing in this app scolds you
+     about what you ate. */
+  --warn: #e0a33e;
+  --danger: #e5675f;
 }
 
 @theme inline {
@@ -18,6 +22,8 @@
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
   --font-sans: var(--font-geist-sans);
 }
 

@@ -4,18 +4,19 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-Nothing in progress. Phase 2 (the PIN gate) is finished and working. Session ended
-2026-09-01 at Andrei's request; phase 3 has not been started and no approach for it
-has been proposed yet.
-
-**Next session starts by proposing phase 3 — the JSON export.** Do not start building
-it. Propose, then wait. See Next.
+**Phase 3 — the JSON export. Written, not yet approved.** Code is done, builds and
+lints clean, and the logic has been tested against a real throwaway Postgres. It has
+not run against Supabase, and Andrei has not tested it on the phone. Not done until
+he has.
 
 ## Waiting on me (Andrei)
 
-Nothing. Phase 2 is committed and pushed, migration 0002 has been run, all four
-environment variables exist in `.env.local` and Vercel, and logging in on the phone
-works.
+1. **Run migration `0003_last_export_at.sql`** in the Supabase SQL editor. One
+   column on `settings`. Nothing works until this is in.
+2. **Optionally run `supabase/sample-data/seed.sql`** if you want the export to
+   carry something. `wipe.sql` next to it removes it again.
+3. **Commit, push, and test on the phone.**
+4. **Approve**, or ask for changes.
 
 ## Done
 
@@ -31,26 +32,9 @@ works.
 
 ## Next
 
-**Phase 3 — JSON export.** One endpoint that hands over every row in the database as
-a file, plus a "last export was X days ago" reminder. It matters because the Supabase
-free tier keeps no backups at all: this is the only safety net the app will ever
-have. It sits behind the PIN automatically now, which is why the gate came first.
-
-Decisions to put to Andrei before writing any of it — recommendation, alternatives
-and costs for each, as always:
-
-- **How the file is delivered.** A download link versus showing the JSON on screen to
-  copy. Note that iOS home-screen apps handle downloads awkwardly, so this needs
-  thinking about rather than assuming.
-- **Where the "X days ago" comes from.** Nothing currently records that an export
-  happened. Options: a new one-row table, a column on `settings`, or a timestamp kept
-  on the phone. Each has a different failure mode — worth laying out, and it decides
-  whether phase 3 needs a third `.sql` file.
-- **Where the reminder appears**, given the home screen is still empty.
-
-**Phase 4 — weight.** The first real screen. Two things already flagged as due here:
-delete the temporary `/check` page, and give TypeScript the shape of the database so
-column names are checked (see Deferred).
+**Phase 4 — weight.** The first real screen. Three things already flagged as due here:
+run `wipe.sql` before logging anything real, delete the temporary `/check` page, and
+give TypeScript the shape of the database so column names are checked (see Deferred).
 
 Then phase 5 (nutrition), 6 (sleep and smoking), 7 (charts and stats), 8 (gym).
 
@@ -60,21 +44,32 @@ For a session picking this up cold, after reading the plan and this file:
 
 - The app is Next.js 16 at the repo root, deployed on Vercel, tested by Andrei on an
   iPhone home screen. `npm run build` and `npm run lint` both pass.
-- Screens so far: `/login` (the PIN screen) and `/` (a placeholder that just says the
-  skeleton is running). `/check` is a temporary database-connection test page.
-- Everything except `/login`, the icons and the manifest is behind the PIN.
+- Screens so far: `/login` (the PIN screen), `/` (a placeholder, now also showing when
+  you last backed up) and `/export` (the backup screen). `/check` is a temporary
+  database-connection test page.
+- Everything except `/login`, the icons and the manifest is behind the PIN — including
+  `/api/export`, which is the URL that hands over the whole database.
 - The database has ten tables: the nine in the plan plus `login_attempts`. All empty
-  except `settings`, which holds its single row. No real data has been logged yet.
+  except `settings`, which holds its single row. Sample data goes in and out by hand
+  with the scripts in `supabase/sample-data/`; the app never creates data by itself.
 - Four environment variables, in `.env.local` and in Vercel: `SUPABASE_URL`,
   `SUPABASE_SECRET_KEY`, `PIN_HASH`, `SESSION_SECRET`.
-- Migrations `0001` and `0002` have both been run. A new migration means a new
+- Migrations `0001` and `0002` have been run; `0003` is waiting. A new migration means a new
   numbered file in `supabase/migrations/` for Andrei to paste in himself.
 
-Worth knowing about how this has gone so far: two mistakes were caught only because
+Worth knowing about how this has gone so far: four mistakes were caught only because
 things were tested rather than assumed — a batch of constraint tests that silently
-proved nothing, and a login flow that would have let anyone in with the lockout
-switched off if the database were unreachable. Test against the real thing before
-reporting a step as done.
+proved nothing, a login flow that would have let anyone in with the lockout switched
+off if the database were unreachable, an export that would have saved the login page
+as your backup once the session expired, and a wipe script catching the wrong
+Postgres error code. Test against the real thing before reporting a step as done.
+
+**How to test database code without touching Supabase.** Phase 3 ran the real
+`lib/backup.ts` against a throwaway local Postgres — loaded with the actual
+migrations — by compiling it to JavaScript and swapping `lib/supabase.ts` for a small
+stand-in that speaks SQL. The `.sql` scripts were run against the same database
+directly. That catches constraint and ordering bugs for real, in a scratchpad,
+without going near Andrei's project. Worth repeating for anything that writes.
 
 ## Decisions made while building
 
@@ -107,6 +102,17 @@ reporting a step as done.
 2026-09-01 — Meal lines record what you actually typed: a number plus whether it meant grams/ml or pieces. Storing "2 pieces" rather than the converted "120 g" means the line still reads "2 eggs" in a year.
 2026-09-01 — Every table carries a `created_at`. It's never shown anywhere; it exists so that if the data ever looks wrong, there's a record of when each row appeared.
 2026-09-01 — The schema was tested by running it against a real throwaway Postgres locally and attempting to break each rule in Part 4. All nine tables, the deletion refusals, the one-row settings table, the duplicate-day blocks and the RLS lockdown were confirmed. The test database was deleted afterwards; Supabase was never touched.
+2026-09-01 — The backup file reaches the phone through the iOS share sheet, falling back to a plain download where there isn't one. Downloads inside a home-screen app are unpredictable, which is the wrong behaviour for the one feature whose job is making sure the file really got saved.
+2026-09-01 — "Backed up X days ago" comes from a new `last_export_at` column on `settings`, not from the phone. iOS wipes a home-screen app's stored data after about a week of not opening it — precisely when the reminder would matter.
+2026-09-01 — That timestamp records that the file was handed over, not that it was saved. Cancel the share sheet and the clock still resets. Accepted knowingly; the alternative depends on a success signal iOS reports unreliably.
+2026-09-01 — The reminder is a line on the home screen linking to `/export`, which holds the button. Quiet under 7 days, amber at 7, red at 14.
+2026-09-01 — The export is all-or-nothing: if one table can't be read the whole thing fails, rather than handing over a file with a table silently missing.
+2026-09-01 — `login_attempts` is left out of the backup. Timestamps for the lockout, worthless to restore.
+2026-09-01 — Tables are written in restore order, so the file can be turned back into rows top to bottom. There is deliberately no import screen yet — Andrei was told, and left it alone.
+2026-09-01 — Sample data is a pair of SQL scripts in `supabase/sample-data/` (`seed.sql`, `wipe.sql`) that Andrei runs when he wants them — **not** anything the app does. A first attempt had the export button seed an empty database itself; Andrei rejected it as messy and was right. The app now has no idea sample data exists, so the code behaves identically against invented and real data, with no "if the database is empty" branch to get wrong. Anything similar in future goes in SQL, not in the app.
+2026-09-01 — `wipe.sql` refuses and rolls back if something real already uses a sample product, rather than cascading. Note for later: `on delete restrict` raises `restrict_violation` (23001), not `foreign_key_violation` (23503) — caught by testing, not by reading.
+2026-09-01 — `lib/day.ts` is the only place dates are built, always in Europe/Bucharest.
+2026-09-01 — Two colours added to `globals.css`, `--warn` and `--danger`, used only to say a backup is overdue. Nothing in this app is ever red about what you ate.
 2026-09-01 — Icon files are split by job: `app/icon.png` and `app/apple-icon.png` for the browser and iOS (Next.js writes the link tags automatically), `public/icon-192.png` and `public/icon-512.png` for the manifest, which needs fixed paths.
 
 ## Deferred
@@ -117,4 +123,15 @@ reporting a step as done.
 - `/check` is now behind the PIN like everything else. Still gets deleted in phase 4 when the real weight screen replaces it.
 - The icons and the manifest are deliberately reachable without the PIN. iOS fetches them when you add the app to the home screen, before there's any way to have logged in. They give nothing away.
 - A custom lock-screen-style keypad for the PIN. The plain field works; revisit only if it annoys you in daily use.
+- No import or restore screen. Restoring from a backup today means working from the
+  JSON by hand. Andrei was told and chose to leave it; the file is shaped so an
+  importer would be straightforward to add later.
+- The export writes to the database on a GET request — it sets `last_export_at`.
+  Nothing links to that URL, so nothing can trigger it by prefetching. Worth
+  remembering if a link to it is ever added.
+- A tested Europe/Bucharest wall-clock-to-timestamp helper (`localTimestamp`,
+  `shiftDays`) was written for the rejected sample-data code and removed with it,
+  rather than left in as dead code. Phase 5 needs it back for meal times. Test it
+  against both daylight-saving changes and against a 02:20 meal, which is where it
+  goes wrong.
 - TypeScript doesn't yet know the shape of the database — table and column names aren't checked when writing queries. Worth generating properly when the first real screen lands in phase 4, not for a throwaway check page.
