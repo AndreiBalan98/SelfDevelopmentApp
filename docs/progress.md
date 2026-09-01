@@ -4,17 +4,22 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Phase 4 — weight. Written, not yet approved.** Builds and lints clean, and the save
-and delete logic has been tested against a real throwaway Postgres. Not tested on the
-phone. Not done until Andrei has.
+**Phase 5 — nutrition. Proposed, not started.** The phase breakdown and the decisions
+for step 1 (products) have been put to Andrei. Nothing is built until he answers.
 
 ## Waiting on me (Andrei)
 
-1. **Commit, push, and test on the phone.** No migration this time — nothing about
-   the schema changed.
-2. **Approve**, or ask for changes.
+The step-1 decisions listed under Next: the shape of the product form, whether to
+show price-per-100 as you type, how retiring and replacing works, and how the list is
+searched.
 
 ## Done
+
+- 2026-09-01 — Phase 4 complete: weight. Pick a day, type a number, save; the last
+  fortnight underneath, each editable and deletable. Logging a day twice updates it
+  rather than failing. Home screen became a list of destinations, `/check` deleted,
+  and `lib/types.ts` now gives TypeScript the shape of the database. Tested on the
+  phone and approved.
 
 - 2026-09-01 — Phase 3 complete: the JSON export. One button, every row in the
   database, delivered through the iOS share sheet with a download fallback. The home
@@ -33,21 +38,37 @@ phone. Not done until Andrei has.
 
 ## Next
 
-**Phase 5 — nutrition.** By far the biggest phase: products, then recipes, then meals,
-then the Today screen, then the repeat button. Most of the app's screens and all of
-its arithmetic live here, and it's the first place a quiet calculation bug would
-corrupt data rather than just look wrong.
+**Phase 5 — nutrition.** By far the biggest phase, so it is broken into five steps,
+each approved on the phone before the next starts:
 
-Two things to settle before starting, beyond the usual screen decisions:
+1. **Products** — list, search, add, edit, retire-and-replace.
+2. **Recipes** — list, add, lines from products, cooked weight. Brings in
+   `lib/nutrition.ts`, where all the arithmetic will live.
+3. **Meals** — logging what you ate, from products and recipe servings.
+4. **Today** — daily totals and progress against targets.
+5. **Repeat** — copying a past meal onto today, following `replaced_by`.
 
-- **How retiring and replacing a product actually feels in the hand.** Part 4 rule 1
-  is the honesty rule the whole app rests on, and if replacing a product is slower
-  than editing one, the rule loses. This is a UX problem with data consequences, not
-  a form.
-- **Where the arithmetic lives and how it gets checked.** Per-serving nutrition,
-  shrinkage, 1 ml as 1 g, piece conversion, totals with missing values. Nothing is
-  stored, so every screen recomputes — which is right, but it means one wrong helper
-  is wrong everywhere.
+Decisions currently with Andrei, for step 1 only:
+
+- **The shape of the product form** — one long form in EU-label order, versus a
+  wizard or a collapsible nutrition section.
+- **Whether to show price-per-100 live as you type**, as a typo check.
+- **How retiring and replacing works** — a Replace button that pre-fills a copy,
+  versus doing it by hand. Editing allowed freely on an unused product, name-only
+  once it has been used.
+- **How the list is searched**, and whether retired products are hidden behind a
+  toggle.
+
+Two things that shape the whole phase and are worth keeping in view:
+
+- **Replacing a product must be faster than editing one.** Part 4 rule 1 is the
+  honesty rule the whole app rests on; if the correct path is the slower one, the
+  rule quietly stops holding. A UX problem with data consequences, not a form.
+- **The arithmetic is the risk, not the screens.** Per-serving nutrition, shrinkage,
+  1 ml as 1 g, piece conversion, totals with missing values. Nothing derived is
+  stored, so one wrong helper is wrong on every screen and in every week of history
+  at once — and it looks fine. Part 7 of the plan rules out tests in the repo, so it
+  gets verified in the scratchpad and thrown away, as in phases 3 and 4.
 
 `lib/day.ts` needs `localTimestamp` back for meal times (see Deferred).
 
