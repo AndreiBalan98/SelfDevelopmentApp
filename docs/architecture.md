@@ -35,12 +35,11 @@ app/                 every screen, and the server code behind it
   layout.tsx         the frame every page sits inside: fonts, colours, page title,
                      and the tags that make iOS treat this as an installed app
   globals.css        the colour palette and base styling for the whole app
-  page.tsx           the home screen
+  page.tsx           the home screen: one line per destination
   login/             the PIN screen
+  weight/            logging a weigh-in, and the last fortnight of them
   export/            the backup screen
   api/export/        the URL that builds the backup file itself
-  check/             temporary: proves the database connection works. Deleted in
-                     phase 4 when the real weight screen replaces it.
   manifest.ts        the app's name, colours and icons, for the home screen
   icon.png           browser tab icon
   apple-icon.png     the home screen icon on iOS
@@ -55,6 +54,8 @@ lib/
   pin.ts             checks a typed PIN against the hash in PIN_HASH
   day.ts             every date, worked out in Europe/Bucharest
   backup.ts          reads every table into one file; tracks when you last did
+  types.ts           the shape of the database, so typos are caught while
+                     writing rather than on your phone. Updated by hand.
 supabase/
   migrations/        SQL you run by hand in the Supabase editor, numbered in order
   sample-data/       seed.sql and wipe.sql — invented data for developing
@@ -136,6 +137,38 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 Both are worth keeping in a password manager alongside the database password.
+
+## Weight
+
+The first real screen, and the pattern the rest will follow. You pick a day, type a
+number, press Save. Underneath, the last fortnight, each one tappable to change or
+delete, with the difference from the entry before it in the right-hand column.
+
+**Logging a day twice updates it rather than failing.** The database refuses two rows
+for the same date — that's what stops accidental double-logging — so the screen reads
+what's already there, fills the field with it, and the button says Update instead of
+Save. Nothing points at a weigh-in, so changing one rewrites no history; this is the
+"everything is editable" rule from Part 4, and it's why weight is safe to build first.
+
+Changing the date reloads the screen for that date, so the field always shows what
+was actually logged rather than a number left over from the day you were just
+looking at.
+
+Refused, with a message rather than a crash: a future date, an empty or nonsensical
+weight, zero, and negatives. A comma is read as a decimal point, because the iPhone
+number pad offers one. Anything past two decimals is rounded, because that's what the
+column holds — so what you see saved is what was stored.
+
+## Knowing the database's shape
+
+`lib/types.ts` describes every table and column to TypeScript. Without it nothing
+checks that `kg` is a real column or that `wieght` isn't a table, and a typo becomes
+an error on your phone instead of a red line while writing.
+
+The usual way to produce that file is the Supabase CLI, which is off limits here, so
+it's written by hand — which means **it has to be updated by hand whenever a
+migration changes a column.** A stale version is worse than none, because it lies
+confidently.
 
 ## Dates
 

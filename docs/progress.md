@@ -4,14 +4,15 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-Nothing in progress. Phase 3 is finished and approved.
-
-**Next session starts by proposing phase 4 — weight, the first real screen.** Propose
-the approach with recommendations and alternatives, then wait. See Next.
+**Phase 4 — weight. Written, not yet approved.** Builds and lints clean, and the save
+and delete logic has been tested against a real throwaway Postgres. Not tested on the
+phone. Not done until Andrei has.
 
 ## Waiting on me (Andrei)
 
-Nothing.
+1. **Commit, push, and test on the phone.** No migration this time — nothing about
+   the schema changed.
+2. **Approve**, or ask for changes.
 
 ## Done
 
@@ -32,28 +33,25 @@ Nothing.
 
 ## Next
 
-**Phase 4 — weight.** The first real screen, and the one that proves the whole chain
-end to end on a table where a mistake costs nothing. One number a day.
+**Phase 5 — nutrition.** By far the biggest phase: products, then recipes, then meals,
+then the Today screen, then the repeat button. Most of the app's screens and all of
+its arithmetic live here, and it's the first place a quiet calculation bug would
+corrupt data rather than just look wrong.
 
-Decisions to put to Andrei before writing any of it — recommendation, alternatives
-and costs for each, as always:
+Two things to settle before starting, beyond the usual screen decisions:
 
-- **What the screen holds**: today's entry plus a list of recent ones, versus
-  splitting adding and reviewing across two screens.
-- **How you get to it.** The home screen is still a placeholder with one link on it.
-  A proper bottom tab bar is the iOS-native answer but is premature with two screens;
-  worth deciding now whether to do it once, later, or grow into it.
-- **What happens when a day is already logged.** The database refuses a second row
-  for the same date, so the form has to either overwrite or send you to the existing
-  entry. Part 4 rule 5 says everything is editable, which points one way.
-- **Whether to hand-write the database types**, since generating them needs the
-  Supabase CLI and that's off limits (see Deferred).
+- **How retiring and replacing a product actually feels in the hand.** Part 4 rule 1
+  is the honesty rule the whole app rests on, and if replacing a product is slower
+  than editing one, the rule loses. This is a UX problem with data consequences, not
+  a form.
+- **Where the arithmetic lives and how it gets checked.** Per-serving nutrition,
+  shrinkage, 1 ml as 1 g, piece conversion, totals with missing values. Nothing is
+  stored, so every screen recomputes — which is right, but it means one wrong helper
+  is wrong everywhere.
 
-Three things already flagged as due in this phase: run `wipe.sql` before logging
-anything real, delete the temporary `/check` page, and give TypeScript the shape of
-the database so column names are checked.
+`lib/day.ts` needs `localTimestamp` back for meal times (see Deferred).
 
-Then phase 5 (nutrition), 6 (sleep and smoking), 7 (charts and stats), 8 (gym).
+Then phase 6 (sleep and smoking), 7 (charts and stats), 8 (gym).
 
 ## Where things stand technically
 
@@ -61,9 +59,8 @@ For a session picking this up cold, after reading the plan and this file:
 
 - The app is Next.js 16 at the repo root, deployed on Vercel, tested by Andrei on an
   iPhone home screen. `npm run build` and `npm run lint` both pass.
-- Screens so far: `/login` (the PIN screen), `/` (a placeholder, now also showing when
-  you last backed up) and `/export` (the backup screen). `/check` is a temporary
-  database-connection test page.
+- Screens so far: `/login` (the PIN screen), `/` (a list of destinations), `/weight`
+  and `/export`. The temporary `/check` page has been deleted.
 - Everything except `/login`, the icons and the manifest is behind the PIN — including
   `/api/export`, which is the URL that hands over the whole database.
 - The database has ten tables: the nine in the plan plus `login_attempts`. All empty
@@ -129,6 +126,10 @@ without going near Andrei's project. Worth repeating for anything that writes.
 2026-09-01 — Sample data is a pair of SQL scripts in `supabase/sample-data/` (`seed.sql`, `wipe.sql`) that Andrei runs when he wants them — **not** anything the app does. A first attempt had the export button seed an empty database itself; Andrei rejected it as messy and was right. The app now has no idea sample data exists, so the code behaves identically against invented and real data, with no "if the database is empty" branch to get wrong. Anything similar in future goes in SQL, not in the app.
 2026-09-01 — `wipe.sql` refuses and rolls back if something real already uses a sample product, rather than cascading. Note for later: `on delete restrict` raises `restrict_violation` (23001), not `foreign_key_violation` (23503) — caught by testing, not by reading.
 2026-09-01 — `lib/day.ts` is the only place dates are built, always in Europe/Bucharest.
+2026-09-01 — The weight screen holds the form and the last 14 entries together; logging a day that already exists updates it rather than refusing, and the button reads Update. Safe because nothing points at a weigh-in — unlike products and recipes, which are frozen once used.
+2026-09-01 — Home screen is a plain list of destinations, one line per phase as they land. A bottom tab bar was considered and deliberately deferred until there are four or five real screens (around phase 6) — the tab set will change several times before then.
+2026-09-01 — `lib/types.ts` describes the database to TypeScript, written by hand because the Supabase CLI is off limits. **It must be updated by hand with every migration.** Note: `Views: Record<string, never>` silently disables table-name checking, because an empty Record is keyed by any string — use `{ [_ in never]: never }`. Caught by deliberately typing a wrong table name and finding no error.
+2026-09-01 — Weight input accepts a comma as a decimal point and rounds past two decimals, matching what the column stores. Future dates are refused; past dates are not, because backfill is required everywhere.
 2026-09-01 — Two colours added to `globals.css`, `--warn` and `--danger`, used only to say a backup is overdue. Nothing in this app is ever red about what you ate.
 2026-09-01 — Icon files are split by job: `app/icon.png` and `app/apple-icon.png` for the browser and iOS (Next.js writes the link tags automatically), `public/icon-192.png` and `public/icon-512.png` for the manifest, which needs fixed paths.
 
@@ -137,7 +138,6 @@ without going near Andrei's project. Worth repeating for anything that writes.
 - `AGENTS.md`, which the scaffolder wanted to add, was dropped. `CLAUDE.md` already covers it and two files of instructions would drift apart.
 - The scaffold's demo homepage and its five unused demo images were removed rather than kept.
 - Rubber-band scroll bouncing at the top and bottom of the screen is left as-is. It only looks wrong once there are real scrolling screens; worth revisiting then, not now.
-- `/check` is now behind the PIN like everything else. Still gets deleted in phase 4 when the real weight screen replaces it.
 - The icons and the manifest are deliberately reachable without the PIN. iOS fetches them when you add the app to the home screen, before there's any way to have logged in. They give nothing away.
 - A custom lock-screen-style keypad for the PIN. The plain field works; revisit only if it annoys you in daily use.
 - No import or restore screen. Restoring from a backup today means working from the
@@ -151,4 +151,6 @@ without going near Andrei's project. Worth repeating for anything that writes.
   rather than left in as dead code. Phase 5 needs it back for meal times. Test it
   against both daylight-saving changes and against a 02:20 meal, which is where it
   goes wrong.
-- TypeScript doesn't yet know the shape of the database — table and column names aren't checked when writing queries. Worth generating properly when the first real screen lands in phase 4, not for a throwaway check page.
+- `lib/types.ts` is written by hand and does not update itself. Every migration from
+  now on has to change it too, or it starts lying. Worth reconsidering the Supabase
+  CLI if that ever slips.

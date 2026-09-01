@@ -11,22 +11,29 @@ const LEVEL_COLOUR: Record<BackupLevel, string> = {
   late: "text-danger",
 };
 
+// One line per destination. It grows a line as each phase lands, which is
+// honest about how far along the app is; a tab bar can come when there are
+// enough screens to fill one.
 export default async function Home() {
   const backup = await backupStatus();
 
   return (
-    <main className="flex-1 flex flex-col items-center justify-center gap-3 px-6 text-center">
+    <main className="flex-1 px-5 py-8 mx-auto w-full max-w-md flex flex-col gap-7">
       <h1 className="text-2xl font-semibold tracking-tight">Life Tracker</h1>
-      <p className="text-sm text-muted">
-        Skeleton is running. Nothing to log yet.
-      </p>
 
-      <Link
-        href="/export"
-        className={`mt-4 text-sm underline underline-offset-4 ${LEVEL_COLOUR[backup.level]}`}
-      >
-        {backup.label}
-      </Link>
+      <nav className="rounded-lg border border-border bg-surface divide-y divide-[var(--border)]">
+        <Link href="/weight" className="flex items-baseline justify-between gap-4 px-4 py-3.5">
+          <span>Weight</span>
+          <span className="text-sm text-muted">Log today</span>
+        </Link>
+
+        <Link href="/export" className="flex items-baseline justify-between gap-4 px-4 py-3.5">
+          <span>Backup</span>
+          <span className={`text-sm ${LEVEL_COLOUR[backup.level]}`}>
+            {backup.label}
+          </span>
+        </Link>
+      </nav>
     </main>
   );
 }
