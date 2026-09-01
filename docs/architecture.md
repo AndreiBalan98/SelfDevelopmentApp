@@ -38,6 +38,9 @@ app/                 every screen, and the server code behind it
   page.tsx           the home screen: one line per destination
   login/             the PIN screen
   weight/            logging a weigh-in, and the last fortnight of them
+  products/          what you buy: list and search, add, edit, replace
+    new/             the add form — also the replace form, pre-filled
+    [id]/            one product
   export/            the backup screen
   api/export/        the URL that builds the backup file itself
   manifest.ts        the app's name, colours and icons, for the home screen
@@ -56,6 +59,8 @@ lib/
   backup.ts          reads every table into one file; tracks when you last did
   types.ts           the shape of the database, so typos are caught while
                      writing rather than on your phone. Updated by hand.
+  product-fields.ts  reading a product off a form and checking it, shared by
+                     adding, replacing and editing
 supabase/
   migrations/        SQL you run by hand in the Supabase editor, numbered in order
   sample-data/       seed.sql and wipe.sql — invented data for developing
@@ -158,6 +163,52 @@ Refused, with a message rather than a crash: a future date, an empty or nonsensi
 weight, zero, and negatives. A comma is read as a decimal point, because the iPhone
 number pad offers one. Anything past two decimals is rounded, because that's what the
 column holds — so what you see saved is what was stored.
+
+## Products
+
+What you buy, entered once each. The list searches by name and hides retired
+products behind a toggle — that toggle is also how you read the price history,
+because oats → oats 2 → oats 3 is exactly what a kilo has cost you over time.
+
+**The form follows the packet, not the database.** Energy, fat, of which saturates,
+carbohydrate, of which sugars, fibre, protein, salt — the order printed on an EU
+label, so you can type straight down it without hunting. Anything the label doesn't
+give you is left empty, and empty means "not stated", which is deliberately not the
+same as zero. Calories are the one required figure, because a meal's calorie total
+has to be complete to mean anything.
+
+EU labels give a single "of which sugars" number, so that field is copied straight
+off the packet and the added-sugar field below it is your own estimate from the
+ingredients list — left blank when you can't tell.
+
+As you type the price and package size, the screen shows the price per 100. That is
+the cheapest possible guard against the one mistake that's invisible later: typing
+100 g for a one-kilo bag, which silently corrupts the cost of every meal that product
+ever appears in.
+
+### What you may change, and when
+
+The app decides this for you, by counting how many recipes and meals point at the
+product:
+
+- **Never used** — everything is editable, and it can be deleted. Nothing points at
+  it, so nothing can be corrupted.
+- **Used** — price, quantity and nutrition are frozen. The name stays editable,
+  because it's a label for you and no calculation depends on it.
+
+Frozen doesn't mean stuck. **Replace** opens the add form as a copy of the product,
+with the name already stepped on ("oats" → "oats 2"). Change the price, save, and in
+one action the new product is created, the old one is retired, and the two are
+linked. Every meal you have already logged still points at the old product and keeps
+the numbers it was logged with.
+
+That's the point of the design: replacing is as fast as editing would have been. If
+the honest path were the slower one, the rule would quietly stop holding.
+
+Because this database can't wrap two writes in one transaction, creating the
+replacement and retiring the original are separate steps. If the second doesn't
+happen — including the case where the original was deleted from another screen while
+you were typing — the first is undone and nothing changes.
 
 ## Knowing the database's shape
 

@@ -93,11 +93,28 @@ export type Database = {
           retired?: boolean;
           replaced_by?: Nullable<number>;
         };
+        // Everything is updatable here. Which fields you may *actually* change
+        // is a rule about whether the product has been used yet (Part 4, rule
+        // 1), not something a type can decide — that check lives in the action
+        // that does the saving.
         Update: {
           name?: string;
+          unit?: "g" | "ml";
+          package_price?: number;
+          package_quantity?: number;
+          ingredients_text?: Nullable<string>;
+          piece_grams?: Nullable<number>;
+          calories?: number;
+          protein?: Nullable<number>;
+          carbs?: Nullable<number>;
+          sugars_natural?: Nullable<number>;
+          sugars_added?: Nullable<number>;
+          fibre?: Nullable<number>;
+          fat?: Nullable<number>;
+          saturated_fat?: Nullable<number>;
+          salt?: Nullable<number>;
           retired?: boolean;
           replaced_by?: Nullable<number>;
-          ingredients_text?: Nullable<string>;
         };
         Relationships: [];
       };

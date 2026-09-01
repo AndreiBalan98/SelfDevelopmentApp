@@ -4,14 +4,15 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Phase 5 — nutrition. Proposed, not started.** The phase breakdown and the decisions
-for step 1 (products) have been put to Andrei. Nothing is built until he answers.
+**Phase 5 step 1 — products. Written, not yet approved.** Builds and lints clean; the
+actions have been tested against a real throwaway Postgres (42 checks, including the
+replace flow and its rollback). Not tested on the phone. Not done until Andrei has.
 
 ## Waiting on me (Andrei)
 
-The step-1 decisions listed under Next: the shape of the product form, whether to
-show price-per-100 as you type, how retiring and replacing works, and how the list is
-searched.
+1. **Commit, push, and test on the phone.** No migration — nothing about the schema
+   changed.
+2. **Approve**, or ask for changes. Then step 2, recipes.
 
 ## Done
 
@@ -48,16 +49,8 @@ each approved on the phone before the next starts:
 4. **Today** — daily totals and progress against targets.
 5. **Repeat** — copying a past meal onto today, following `replaced_by`.
 
-Decisions currently with Andrei, for step 1 only:
-
-- **The shape of the product form** — one long form in EU-label order, versus a
-  wizard or a collapsible nutrition section.
-- **Whether to show price-per-100 live as you type**, as a typo check.
-- **How retiring and replacing works** — a Replace button that pre-fills a copy,
-  versus doing it by hand. Editing allowed freely on an unused product, name-only
-  once it has been used.
-- **How the list is searched**, and whether retired products are hidden behind a
-  toggle.
+Step 1 is written and waiting on the phone. Step 2 (recipes) is next, and brings in
+`lib/nutrition.ts` — the first place the arithmetic lands.
 
 Two things that shape the whole phase and are worth keeping in view:
 
@@ -80,8 +73,9 @@ For a session picking this up cold, after reading the plan and this file:
 
 - The app is Next.js 16 at the repo root, deployed on Vercel, tested by Andrei on an
   iPhone home screen. `npm run build` and `npm run lint` both pass.
-- Screens so far: `/login` (the PIN screen), `/` (a list of destinations), `/weight`
-  and `/export`. The temporary `/check` page has been deleted.
+- Screens so far: `/login` (the PIN screen), `/` (a list of destinations), `/weight`,
+  `/products` (list, `new`, `[id]`) and `/export`. The temporary `/check` page has
+  been deleted.
 - Everything except `/login`, the icons and the manifest is behind the PIN — including
   `/api/export`, which is the URL that hands over the whole database.
 - The database has ten tables: the nine in the plan plus `login_attempts`. All empty
@@ -150,6 +144,10 @@ without going near Andrei's project. Worth repeating for anything that writes.
 2026-09-01 — The weight screen holds the form and the last 14 entries together; logging a day that already exists updates it rather than refusing, and the button reads Update. Safe because nothing points at a weigh-in — unlike products and recipes, which are frozen once used.
 2026-09-01 — Home screen is a plain list of destinations, one line per phase as they land. A bottom tab bar was considered and deliberately deferred until there are four or five real screens (around phase 6) — the tab set will change several times before then.
 2026-09-01 — `lib/types.ts` describes the database to TypeScript, written by hand because the Supabase CLI is off limits. **It must be updated by hand with every migration.** Note: `Views: Record<string, never>` silently disables table-name checking, because an empty Record is keyed by any string — use `{ [_ in never]: never }`. Caught by deliberately typing a wrong table name and finding no error.
+2026-09-02 — The product form follows EU-label order (energy, fat, saturates, carbs, sugars, fibre, protein, salt), not database order, so you can type straight down the packet. One long form, not a wizard: iOS drops a home-screen app's state on relaunch, so a form split across screens can lose half your typing.
+2026-09-02 — Price per 100 is shown live under the price and package-size fields. It's the only cheap guard against typing 100 g for a 1 kg bag, which silently corrupts the cost of every meal that product ever appears in.
+2026-09-02 — What you may change is decided by whether the product has been used: unused means fully editable and deletable, used means frozen except the name. Replace opens the add form pre-filled with a copy and steps the name ("oats" → "oats 2"). Replacing has to be as fast as editing, or the honesty rule quietly stops holding.
+2026-09-02 — Creating a replacement and retiring the original are two writes with no transaction available. If the second doesn't happen the first is undone. **Note for any future two-step write: updating a row that doesn't exist is not an error — it silently matches nothing. Ask for the changed rows back with `.select()` and check you got any.** Found by testing, after the action reported success while leaving an orphan.
 2026-09-01 — Weight input accepts a comma as a decimal point and rounds past two decimals, matching what the column stores. Future dates are refused; past dates are not, because backfill is required everywhere.
 2026-09-01 — Two colours added to `globals.css`, `--warn` and `--danger`, used only to say a backup is overdue. Nothing in this app is ever red about what you ate.
 2026-09-01 — Icon files are split by job: `app/icon.png` and `app/apple-icon.png` for the browser and iOS (Next.js writes the link tags automatically), `public/icon-192.png` and `public/icon-512.png` for the manifest, which needs fixed paths.

@@ -27,6 +27,11 @@ export default async function Home() {
           <span className="text-sm text-muted">Log today</span>
         </Link>
 
+        <Link href="/products" className="flex items-baseline justify-between gap-4 px-4 py-3.5">
+          <span>Products</span>
+          <span className="text-sm text-muted">What you buy</span>
+        </Link>
+
         <Link href="/export" className="flex items-baseline justify-between gap-4 px-4 py-3.5">
           <span>Backup</span>
           <span className={`text-sm ${LEVEL_COLOUR[backup.level]}`}>
