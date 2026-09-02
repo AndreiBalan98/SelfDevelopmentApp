@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/supabase";
-import { dayLabel, timeIn, dateIn } from "@/lib/day";
-import { loadCatalogue, mealItems, resolveLines } from "@/lib/meals";
+import { dayFor, dayLabel, timeIn, dateIn } from "@/lib/day";
+import { loadCatalogue, mealItems, resolveLines, whatChanged } from "@/lib/meals";
 import { mealLineCost, mealLineNutrition, mealTotals, round, type Nutrient } from "@/lib/nutrition";
 import { MealDetailsForm } from "./meal-details-form";
 import { FoodSearch } from "./food-search";
@@ -12,6 +12,7 @@ import {
   DeleteMealButton,
   EditMealLine,
 } from "./meal-line-forms";
+import { RepeatButton } from "../repeat-buttons";
 
 export const dynamic = "force-dynamic";
 
@@ -32,11 +33,12 @@ const NUTRITION: Array<{ key: Nutrient; label: string; unit: string; decimals: n
 
 export default async function MealPage({ params, searchParams }: PageProps<"/meals/[id]">) {
   const { id } = await params;
-  const { q } = await searchParams;
+  const { q, from } = await searchParams;
 
   if (!/^\d+$/.test(id)) notFound();
   const mealId = Number(id);
   const search = typeof q === "string" ? q.trim() : "";
+  const copiedFrom = typeof from === "string" && /^\d+$/.test(from) ? Number(from) : null;
 
   const { data: meal, error } = await db()
     .from("meals")
@@ -52,6 +54,13 @@ export default async function MealPage({ params, searchParams }: PageProps<"/mea
   const totals = mealTotals(lines.map((line) => line.line));
 
   const eatenAt = new Date(meal.eaten_at);
+
+  // Just repeated: compare the copy against what it came from, so it can say
+  // which lines followed a retired product or recipe to its replacement.
+  const changes =
+    copiedFrom === null
+      ? { moved: [], stillRetired: [] }
+      : whatChanged(await mealItems([copiedFrom]), items, catalogue);
 
   // Products and recipes come back in one list. Retired ones are left out —
   // including when backfilling a past day, which is deliberate: if you want the
@@ -79,6 +88,31 @@ export default async function MealPage({ params, searchParams }: PageProps<"/mea
           {dayLabel(meal.day)}
         </Link>
       </header>
+
+      {copiedFrom !== null && (
+        <div className="rounded-lg border border-border bg-surface p-3 text-sm text-muted flex flex-col gap-1">
+          <p>Copied from an earlier meal. Change the amounts if they were different.</p>
+
+          {changes.moved.length > 0 && (
+            <>
+              <p className="text-foreground">
+                {changes.moved.length === 1 ? "One line has" : `${changes.moved.length} lines have`}{" "}
+                moved to what replaced them:
+              </p>
+              {changes.moved.map((line) => (
+                <p key={line}>{line}</p>
+              ))}
+            </>
+          )}
+
+          {changes.stillRetired.length > 0 && (
+            <p>
+              {changes.stillRetired.join(", ")} — retired, with nothing replacing it, so
+              it was copied as it was.
+            </p>
+          )}
+        </div>
+      )}
 
       <section className="flex flex-col gap-2">
         <h2 className="text-sm font-medium text-muted">What was in it</h2>
@@ -192,6 +226,7 @@ export default async function MealPage({ params, searchParams }: PageProps<"/mea
       </section>
 
       <div className="flex flex-col gap-3 border-t border-border pt-6">
+        {lines.length > 0 && <RepeatButton sourceId={mealId} day={dayFor(new Date())} />}
         <DeleteMealButton id={mealId} day={meal.day} />
       </div>
     </main>

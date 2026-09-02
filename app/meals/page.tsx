@@ -1,14 +1,17 @@
 import Link from "next/link";
 import { db } from "@/lib/supabase";
 import { dayFor, dayLabel, shiftDays, timeIn } from "@/lib/day";
-import { linesForMeals } from "@/lib/meals";
+import { linesForMeals, recentMeals } from "@/lib/meals";
 import { mealTotals, round, type Nutrient } from "@/lib/nutrition";
 import { readTargets } from "@/lib/settings";
 import { DayPicker } from "./day-picker";
 import { AddMealButton } from "./add-meal-button";
 import { DayTotals } from "./day-totals";
+import { RepeatRow } from "./repeat-buttons";
 
 export const dynamic = "force-dynamic";
+
+const RECENT = 10;
 
 // The full breakdown at the bottom, in the order an EU label prints it.
 const NUTRITION: Array<{ key: Nutrient; label: string; unit: string; decimals: number }> = [
@@ -39,9 +42,10 @@ export default async function MealsPage({ searchParams }: PageProps<"/meals">) {
     .order("eaten_at", { ascending: true });
 
   const meals = data ?? [];
-  const [lines, targets] = await Promise.all([
+  const [lines, targets, recent] = await Promise.all([
     linesForMeals(meals.map((meal) => meal.id)),
     readTargets(),
+    recentMeals(RECENT),
   ]);
 
   // The day, added up from every line of every meal on it. Nothing about this
@@ -147,6 +151,33 @@ export default async function MealsPage({ searchParams }: PageProps<"/meals">) {
       )}
 
       <AddMealButton day={selected} />
+
+      {recent.length > 0 && (
+        <section className="flex flex-col gap-2">
+          <h2 className="text-sm font-medium text-muted">Repeat something recent</h2>
+
+          <ul className="rounded-lg border border-border bg-surface divide-y divide-[var(--border)]">
+            {recent.map((meal) => (
+              <li key={meal.id}>
+                <RepeatRow
+                  sourceId={meal.id}
+                  day={selected}
+                  names={meal.names}
+                  type={meal.type}
+                  calories={round(meal.calories, 0)}
+                  cost={meal.cost}
+                />
+              </li>
+            ))}
+          </ul>
+
+          <p className="text-xs text-muted">
+            The last few things you ate, most recent first, with identical ones shown
+            once. Repeating copies what was in it onto this day, and opens it so you can
+            change the amounts.
+          </p>
+        </section>
+      )}
 
       {meals.length > 0 && (
         <section className="flex flex-col gap-2">

@@ -4,25 +4,42 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-Nothing in progress. Phase 5 step 4 (Today) is finished, tested on the phone and
-approved on 2026-09-02.
+Nothing in progress. **Phase 5 — nutrition — is complete**, all five steps tested on
+the phone and approved on 2026-09-02.
 
-**The next session starts by proposing phase 5 step 5 — Repeat**, the last step of the
-phase. Do not start building it. Propose the approach with a recommendation, the
-alternatives and what each costs, then wait. The decisions that need putting to Andrei
-are listed under Next.
+**The next session starts by proposing phase 6 — sleep and smoking.** Do not start
+building it. Propose the approach with a recommendation, the alternatives and what each
+costs, then wait. The decisions that need putting to Andrei are listed under Next; the
+one that actually shapes the phase is how to backfill a month of cigarette history
+without thirty separate saves.
 
 ## Waiting on me (Andrei)
 
-Nothing blocking. One thing worth doing when convenient: **the targets are still the
-sample ones** from `seed.sql` — 2200 kcal, 150 g protein, 30 g fibre, 40 g added sugar,
-45 a day. Replace them with your own on the Targets screen whenever you like.
+Two things, neither blocking:
 
-No SQL to run, no environment variables to add, no decisions owed. Migrations 0001–0003
-are all in, and no migration is pending.
+1. **The targets are still the sample ones** from `seed.sql` — 2200 kcal, 150 g protein,
+   30 g fibre, 40 g added sugar, 45 a day. Replace them with your own on the Targets
+   screen.
+2. **Sample data is still in the database.** Now that the whole food half of the app is
+   real, `supabase/sample-data/wipe.sql` is worth running before logging properly — and
+   note it will refuse if anything real already uses a sample product, which is it doing
+   its job rather than a fault.
+
+No SQL required, no environment variables to add, no decisions owed. Migrations
+0001–0003 are all in, and no migration is pending.
 
 ## Done
 
+- 2026-09-02 — **Phase 5 complete: nutrition.** Products, recipes, meals, the day's
+  totals against targets, and repeat. All five steps tested on the phone and approved.
+  The honesty rules in Part 4 hold throughout: nothing that has been used can be
+  edited, nothing derived is stored, and retiring and replacing is always faster than
+  editing would have been.
+- 2026-09-02 — Phase 5 step 5 complete: repeat. A button on any past meal, and a
+  "Repeat something recent" list on the day screen with identical meals collapsed.
+  Copies the lines and the meal/snack type but not the note or score, follows retired
+  products and recipes to their current version, and says which lines moved. Tested on
+  the phone and approved.
 - 2026-09-02 — Phase 5 step 4 complete: the day's totals and targets. Calories as a
   headline with a bar, then protein, fibre, added sugar and spend, then the full nine
   figures below the meals. Works for any day, not just today. A target that isn't set
@@ -69,66 +86,64 @@ are all in, and no migration is pending.
   environment variable, signed three-month cookie, database-backed lockout after five
   failures, failing closed if the database is unreachable. Gate lives in `proxy.ts`.
   Tested on the phone and confirmed working.
-- 2026-09-01 — Phase 1 complete. Skeleton, PWA and database, all tested on the phone and approved.
-- 2026-09-01 — Phase 1 step 3b: `lib/supabase.ts` and the `/check` screen. Reading, writing and the 401-without-a-key check all verified against the real project. Tested on the phone, approved.
-- 2026-09-01 — Phase 1 step 3a: database schema, all tables except gym, RLS on. SQL run in Supabase, nine tables confirmed.
-- 2026-09-01 — Phase 1 step 2: PWA icon set, manifest, iOS home-screen support. Tested on the phone, approved.
-- 2026-09-01 — Phase 1 step 1: Next.js skeleton, dark theme, `progress.md` and `architecture.md`. Tested on the phone, approved.
+- 2026-09-01 — Phase 1 complete, in four steps: Next.js skeleton and dark theme; the
+  PWA icon set and manifest for the iOS home screen; the database schema, all tables
+  except gym with RLS on, run by hand in Supabase; and `lib/supabase.ts`, verified
+  against the real project including the 401-without-a-key check. All tested on the
+  phone and approved.
 
 ## Next
 
-**Phase 5 — nutrition.** By far the biggest phase, so it is broken into five steps,
-each approved on the phone before the next starts:
+**Phase 6 — sleep and smoking.** Then 7 (charts, stats, gamification, TDEE), then 8
+(gym). Phase 5 is finished; its five steps are in Done.
 
-1. ~~**Products**~~ — done and approved 2026-09-02.
-2. ~~**Recipes**~~ — done and approved 2026-09-02.
-3. ~~**Meals**~~ — done and approved 2026-09-02.
-4. ~~**Today**~~ — done and approved 2026-09-02.
-5. **Repeat** — copying a past meal onto today, following `replaced_by`. **← next**
+### Phase 6 — what to put to Andrei before writing anything
 
-### Step 5 — what to put to Andrei before writing anything
+Sleep and smoking. Both are flat one-row-per-day tables like weight, so the shape is
+already proven; the interesting part is the backfilling. Nothing decided:
 
-Nothing here has been decided. Recommendation, alternatives and costs for each, as
-always. This is the last step of phase 5:
-
-- **Where Repeat is started from.** A button on a past meal that copies it onto today,
-  or a "repeat something" list on the day screen showing what you eat most. These are
-  different features wearing the same name and the second is much more useful daily.
-- **What a copy takes with it.** The lines certainly. Whether the note, the score and
-  the meal/snack type come across is a real choice — a score is a judgement about one
-  particular plate of food.
-- **Which day and time a copy lands on.** The same rules as adding a meal presumably:
-  the day being looked at, and now or midday. Worth stating rather than assuming.
-- **Following `replaced_by`.** The plan is explicit that a copied line pointing at a
-  retired product or recipe follows the chain to the current version — that machinery
-  already exists in `lib/replacements.ts` and `linesForCopy`. The open question is
-  whether the screen says which lines moved, as the recipe replace screen does.
+- **Roughly a month of cigarette history to enter.** Part 4 rule 6 is explicit that
+  smoking needs a fast way to log several days in a row. A day-at-a-time form like
+  weight's would be about thirty separate saves. Worth designing something better and
+  putting the options up.
+- **Sleep is two times and a quality score**, with the date being the *wake-up* date and
+  bedtime usually the evening before. Whether bedtime is typed as a time or picked
+  relative to the wake-up changes how fiddly it is at 07:00.
+- **Whether these get their own screens or share one.** They're logged at opposite ends
+  of the day — sleep in the morning, cigarettes at night.
+- **What the smoking screen shows back.** The plan wants the daily count plus 4-day and
+  7-day moving averages, but the charts themselves are phase 7. Where the line falls
+  between "a number and a trend" and "a chart" is worth agreeing before building.
 
 ### Settled already, so don't re-ask
 
-- The arithmetic lives in `lib/nutrition.ts` as pure functions that take rows and
-  return numbers — no database access, so it can be checked directly.
+These came out of phase 5 and hold from here on:
+
+- All arithmetic lives in `lib/` as pure functions that take rows and return numbers,
+  with no database access, so it can be checked on its own. `nutrition.ts` for food,
+  `targets.ts` for progress, `day.ts` for anything with a date in it.
 - Missing nutrition values are summed as if zero, and totals are shown as plain
   numbers. The plan accepts the consequence: a fibre or sugar total can read lower
   than what was really eaten. Calories are never affected, because calories are
   required on every product.
 - 1 ml counts as 1 g when a recipe's raw weight is added up. No densities are stored.
 - A recipe contains products only. A recipe can never contain another recipe.
+- Every date and time goes through `lib/day.ts`, in Europe/Bucharest. Nothing anywhere
+  else builds one.
+- Nothing in the app is ever red or amber about what was logged. Amber and red are for
+  an overdue backup, and nothing else.
 
-Two things that shape the whole phase and are worth keeping in view:
+Two things that shaped phase 5 and are worth keeping in view:
 
-- **Replacing a product must be faster than editing one.** Part 4 rule 1 is the
-  honesty rule the whole app rests on; if the correct path is the slower one, the
-  rule quietly stops holding. A UX problem with data consequences, not a form.
-- **The arithmetic is the risk, not the screens.** Per-serving nutrition, shrinkage,
-  1 ml as 1 g, piece conversion, totals with missing values. Nothing derived is
-  stored, so one wrong helper is wrong on every screen and in every week of history
-  at once — and it looks fine. Part 7 of the plan rules out tests in the repo, so it
-  gets verified in the scratchpad and thrown away, as in phases 3 and 4.
-
-`lib/day.ts` needs `localTimestamp` back for meal times (see Deferred).
-
-Then phase 6 (sleep and smoking), 7 (charts and stats), 8 (gym).
+- **The honest path has to be the fast one.** Replacing a product is quicker than
+  editing one would have been, deliberately. If the correct path is ever the slower
+  one, the rule it protects quietly stops holding. That's a UX problem with data
+  consequences, not a preference.
+- **The arithmetic is the risk, not the screens.** Nothing derived is stored, so one
+  wrong helper is wrong on every screen and in every week of history at once — and it
+  looks fine. Part 7 of the plan rules out tests in the repo, so it gets verified in
+  the scratchpad against a throwaway Postgres and thrown away. That has now caught a
+  bug in every phase it's been used on.
 
 ## Where things stand technically
 
@@ -150,8 +165,8 @@ For a session picking this up cold, after reading the plan and this file:
 - Nothing in this repo has ever written to Supabase except through the app itself, and
   Claude has never created a row there. Every database check has been run against a
   throwaway Postgres in the session scratchpad.
-- The last commit was `57a2d0a`, "update /docs/progress". `git log` is readable and is
-  the fastest way to confirm what actually shipped.
+- `git log` is readable and is the fastest way to confirm what actually shipped. Phase
+  5 was committed as five steps, one per approved step, plus the two side fixes.
 - Four environment variables, in `.env.local` and in Vercel: `SUPABASE_URL`,
   `SUPABASE_SECRET_KEY`, `PIN_HASH`, `SESSION_SECRET`.
 - Migrations `0001`, `0002` and `0003` have all been run. A new migration means a new
@@ -166,7 +181,7 @@ silently proved nothing; a login flow that would have let anyone in with the loc
 switched off if the database were unreachable; an export that would have saved the
 login page as your backup once the session expired; a wipe script catching the wrong
 Postgres error code; a `Database` type that silently switched off all table-name
-checking; a product replacement that reported success while leaving an orphan; and a
+checking; a product replacement that reported success while leaving an orphan; a
 deletion refusal that blamed the wrong thing, telling you a recipe had been eaten when
 what actually blocked it was an older recipe pointing at it; and a date helper that
 stored every meal logged before the October clock change an hour late. Every one of
@@ -288,6 +303,9 @@ From step 3, on dates specifically:
 2026-09-02 — Backfilled meals get **midday** on the day being looked at, not the current clock time. Logging yesterday's dinner at 01:30 tonight would otherwise land before the 04:00 rule and count towards the day before yesterday. Logging as you eat still gets the real time.
 2026-09-02 — Under the "counts towards" field, the meal screen says what the 04:00 rule makes of the date and time as typed, with a one-tap button to accept it. Makes a 02:20 snack landing on the previous day visible rather than surprising.
 2026-09-02 — A local time that never existed (spring change) resolves to just after the jump; one that happened twice (autumn change) resolves to the second occurrence. Documented rather than accidental — both land the same side of the 04:00 rule, and being the same answer every time is what matters.
+2026-09-02 — Repeat has two entry points: a button on any past meal, and a "Repeat something recent" list on the day screen. The button alone is what the plan literally asks for, but it's only reachable by remembering which day you ate the thing; the list is what makes it a daily feature. Ranked by recency, not frequency — recency is exact, and "how often" needs a definition of "the same meal" that belongs with phase 7's statistics.
+2026-09-02 — A repeat copies the lines and the meal/snack type, but not the note or the score. A score is a judgement about one particular plate of food, and carrying it forward would fill the history with scores that were never given — which matters, because phase 7 reads them.
+2026-09-02 — A repeated line pointing at something retired follows `replaced_by`, and the copy says which lines moved. That notice is worked out by comparing the copy against the meal it came from, because the copy itself points only at the current versions — a moment later the information is gone. Something retired with nothing after it is copied as it stands and called out separately, rather than failing the whole repeat over one line.
 2026-09-02 — The day's totals live at the top of the meals day screen, not on a separate "Today" page, so they work for any day rather than only for today. Backfilling Saturday shows Saturday's totals. A today-only screen would have needed a second copy of the same arithmetic.
 2026-09-02 — The home screen's Meals line shows today's calories rather than a fixed label. One extra query on the home screen, for the number the app is most often opened to check.
 2026-09-02 — `/settings` holds the five targets, all optional and clearable. They live in the database rather than in code because the plan expects them to be revised once TDEE can be estimated — and if changing them meant the Supabase SQL editor, they'd quietly go stale. `day_boundary_hour` is deliberately not on that screen; it changes how past data reads, not what it's measured against.
@@ -310,6 +328,12 @@ From step 3, on dates specifically:
 - The export writes to the database on a GET request — it sets `last_export_at`.
   Nothing links to that URL, so nothing can trigger it by prefetching. Worth
   remembering if a link to it is ever added.
+- The recent list looks back through the last 40 meals to find 10 distinct ones. If a
+  day ever holds more than 40 meals, older distinct ones stop appearing. Not a real
+  situation, but that's why the number is there.
+- Two meals count as identical for that list only if the same things are in them in the
+  same amounts. 150 g of apple and 300 g of apple are two rows, which is right, but it
+  does mean a slightly different portion of the same breakfast won't collapse.
 - Each meal's calories are rounded on its own row, so a day of 171.6 + 727.9 shows as
   172 and 728 with a total of 899, not 900. Rounding the total from the exact figures
   is the correct behaviour; it just looks like an arithmetic slip at a glance.

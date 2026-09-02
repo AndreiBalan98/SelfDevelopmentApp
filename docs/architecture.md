@@ -320,6 +320,35 @@ The box counts pieces by default for any product that says what one piece weighs
 shows the conversion as you type. That figure is the whole reason the product has it.
 Everything else is grams or millilitres, with no toggle to get wrong.
 
+### Repeating a meal
+
+Two ways in. **Repeat this today**, at the bottom of any past meal. And **Repeat
+something recent** on the day screen, under Add a meal: the last few things you ate,
+most recent first, with identical ones shown once so a fortnight of the same breakfast
+takes one row. Either way it copies onto the day you're looking at and opens the new
+meal, because the portion is usually the thing that differs.
+
+Ranked by how recently rather than how often. Recency is exact; "how often" would need
+a definition of "the same meal" that holds up over months, and that belongs with the
+rest of the statistics in phase 7.
+
+**The lines and the meal/snack type come across. The note and the score do not.** A
+score is a judgement about one particular plate of food, and carrying it forward would
+fill the history with scores that were never given — which matters, because phase 7
+reads them.
+
+**A line pointing at something retired follows `replaced_by` to the current version**,
+so a repeat is made of what you'd buy today, and the copy says which lines moved. That
+notice only exists in the moment: the copy itself points only at the current versions,
+so it's worked out by comparing the copy against the meal it came from, and a moment
+later there's nothing left to compare. Something retired with nothing after it is
+copied as it stands and called out separately — you did eat it, and refusing would fail
+the whole repeat over one line.
+
+The old meal is untouched, and still points at what you actually ate. So a repeat of
+last week's porridge can legitimately cost more than the original: it's made of this
+week's oats.
+
 ### The time, and which day it counts towards
 
 `eaten_at` is a full instant; `day` is which day it counts towards. The meal screen

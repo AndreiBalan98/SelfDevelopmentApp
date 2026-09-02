@@ -11,6 +11,7 @@
 import { db } from "@/lib/supabase";
 import {
   divideNutrition,
+  mealTotals,
   recipeTotals,
   type CountableProduct,
   type MealLine,
@@ -102,7 +103,7 @@ export type ResolvedLine = {
   unit: string;
 };
 
-type MealItemRow = {
+export type MealItemRow = {
   id: number;
   meal_id: number;
   product_id: number | null;
@@ -186,6 +187,123 @@ export async function mealItems(mealIds: number[]): Promise<MealItemRow[]> {
     .order("id", { ascending: true });
 
   return (data ?? []) as MealItemRow[];
+}
+
+// Comparing a repeated meal against the one it was copied from, to say which
+// lines followed a retired product or recipe to its replacement.
+//
+// This is the only moment that information still exists: the copy itself points
+// only at the current versions, so a moment later there is nothing to compare.
+export function whatChanged(
+  source: MealItemRow[],
+  copied: MealItemRow[],
+  catalogue: Catalogue,
+): { moved: string[]; stillRetired: string[] } {
+  const moved: string[] = [];
+  const stillRetired: string[] = [];
+
+  // The copy is made line for line in order, so the two line up. If they don't,
+  // the meal has been changed since and there is nothing to report.
+  if (source.length !== copied.length) return { moved, stillRetired };
+
+  source.forEach((was, index) => {
+    const now = copied[index];
+
+    const wasProduct = was.product_id === null ? null : catalogue.productsById.get(was.product_id);
+    const nowProduct = now.product_id === null ? null : catalogue.productsById.get(now.product_id);
+    const wasRecipe = was.recipe_id === null ? null : catalogue.recipesById.get(was.recipe_id);
+    const nowRecipe = now.recipe_id === null ? null : catalogue.recipesById.get(now.recipe_id);
+
+    if (wasProduct && nowProduct && wasProduct.id !== nowProduct.id) {
+      moved.push(`${wasProduct.name} → ${nowProduct.name}`);
+    } else if (nowProduct?.retired) {
+      stillRetired.push(nowProduct.name);
+    }
+
+    if (wasRecipe && nowRecipe && wasRecipe.id !== nowRecipe.id) {
+      moved.push(`${wasRecipe.name} → ${nowRecipe.name}`);
+    } else if (nowRecipe?.retired) {
+      stillRetired.push(nowRecipe.name);
+    }
+  });
+
+  return { moved, stillRetired };
+}
+
+// What you've eaten lately, for repeating.
+//
+// Ranked by how recently rather than how often: recency is exact and needs no
+// guessing about what counts as "the same meal". Identical meals collapse into
+// one row, so a fortnight of the same breakfast doesn't fill the list.
+export type RecentMeal = {
+  id: number;
+  type: "meal" | "snack";
+  day: string;
+  names: string;
+  calories: number;
+  cost: number;
+};
+
+// How many meals to look back through to find the distinct ones.
+const LOOK_BACK = 40;
+
+export async function recentMeals(limit: number): Promise<RecentMeal[]> {
+  const { data: recent } = await db()
+    .from("meals")
+    .select("id, day, type")
+    .order("eaten_at", { ascending: false })
+    .limit(LOOK_BACK);
+
+  const found = recent ?? [];
+  if (found.length === 0) return [];
+
+  const [items, catalogue] = await Promise.all([
+    mealItems(found.map((meal) => meal.id)),
+    loadCatalogue(),
+  ]);
+
+  const byMeal = new Map<number, ResolvedLine[]>();
+  for (const line of resolveLines(items, catalogue)) {
+    const list = byMeal.get(line.mealId) ?? [];
+    list.push(line);
+    byMeal.set(line.mealId, list);
+  }
+
+  const seen = new Set<string>();
+  const results: RecentMeal[] = [];
+
+  for (const meal of found) {
+    const lines = byMeal.get(meal.id) ?? [];
+    // An empty meal is nothing to repeat.
+    if (lines.length === 0) continue;
+
+    const signature = lines
+      .map((line) =>
+        line.kind === "recipe"
+          ? `r:${line.href}:${line.amount}`
+          : `p:${line.href}:${line.amount}:${line.unit}`,
+      )
+      .sort()
+      .join("|");
+
+    if (seen.has(signature)) continue;
+    seen.add(signature);
+
+    const totals = mealTotals(lines.map((line) => line.line));
+
+    results.push({
+      id: meal.id,
+      type: meal.type,
+      day: meal.day,
+      names: lines.map((line) => line.name).join(", "),
+      calories: totals.nutrition.calories,
+      cost: totals.cost,
+    });
+
+    if (results.length === limit) break;
+  }
+
+  return results;
 }
 
 // What the day screen needs: every line of every meal on that day, grouped.
