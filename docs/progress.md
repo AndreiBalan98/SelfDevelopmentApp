@@ -4,20 +4,32 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-Nothing in progress. Phase 5 step 3 (meals) is finished, tested on the phone and
+Nothing in progress. Phase 5 step 4 (Today) is finished, tested on the phone and
 approved on 2026-09-02.
 
-**The next session starts by proposing phase 5 step 4 — Today.** Do not start building
-it. Propose the approach with a recommendation, the alternatives and what each costs,
-then wait. The decisions that need putting to Andrei are listed under Next — note that
-this is the first step that needs a way to *set* the targets, which nothing does yet.
+**The next session starts by proposing phase 5 step 5 — Repeat**, the last step of the
+phase. Do not start building it. Propose the approach with a recommendation, the
+alternatives and what each costs, then wait. The decisions that need putting to Andrei
+are listed under Next.
 
 ## Waiting on me (Andrei)
 
-Nothing. No SQL to run, no environment variables to add, no decisions owed. Migrations
-0001–0003 are all in, and no migration is pending.
+Nothing blocking. One thing worth doing when convenient: **the targets are still the
+sample ones** from `seed.sql` — 2200 kcal, 150 g protein, 30 g fibre, 40 g added sugar,
+45 a day. Replace them with your own on the Targets screen whenever you like.
+
+No SQL to run, no environment variables to add, no decisions owed. Migrations 0001–0003
+are all in, and no migration is pending.
 
 ## Done
+
+- 2026-09-02 — Phase 5 step 4 complete: the day's totals and targets. Calories as a
+  headline with a bar, then protein, fibre, added sugar and spend, then the full nine
+  figures below the meals. Works for any day, not just today. A target that isn't set
+  shows the number with no bar. New `/settings` screen holds the five targets, all
+  optional and clearable. The home screen's Meals line shows today's calories. Every
+  bar is the same colour — nothing here is ever red about what you ate. Tested on the
+  phone and approved.
 
 - 2026-09-02 — Phase 5 step 3 complete: meals. One day at a time, with arrows and a
   date box; Add creates the meal and drops you inside it; one search box for products
@@ -71,25 +83,26 @@ each approved on the phone before the next starts:
 1. ~~**Products**~~ — done and approved 2026-09-02.
 2. ~~**Recipes**~~ — done and approved 2026-09-02.
 3. ~~**Meals**~~ — done and approved 2026-09-02.
-4. **Today** — daily totals and progress against targets. **← next**
-5. **Repeat** — copying a past meal onto today, following `replaced_by`.
+4. ~~**Today**~~ — done and approved 2026-09-02.
+5. **Repeat** — copying a past meal onto today, following `replaced_by`. **← next**
 
-### Step 4 — what to put to Andrei before writing anything
+### Step 5 — what to put to Andrei before writing anything
 
 Nothing here has been decided. Recommendation, alternatives and costs for each, as
-always:
+always. This is the last step of phase 5:
 
-- **Where Today lives.** The day screen at `/meals` was built so that step 4 adds
-  totals and progress to it rather than making a second screen. Worth confirming that's
-  still what's wanted, and whether the home screen gets a summary too.
-- **The targets themselves.** `settings` has `calorie_target`, `protein_target`,
-  `added_sugar_max`, `fibre_min` and `daily_budget`, all empty, and there is no screen
-  that sets any of them. Step 4 needs either a settings screen or a decision to put the
-  numbers in by SQL for now.
-- **What a progress bar does when a target is missing**, which today is all of them.
-- **How far the totals go.** Calories and cost are obvious. Whether protein, fibre and
-  added sugar get bars, plain numbers, or nothing is a real choice — the plan is clear
-  that nothing in this app is ever red about what you ate.
+- **Where Repeat is started from.** A button on a past meal that copies it onto today,
+  or a "repeat something" list on the day screen showing what you eat most. These are
+  different features wearing the same name and the second is much more useful daily.
+- **What a copy takes with it.** The lines certainly. Whether the note, the score and
+  the meal/snack type come across is a real choice — a score is a judgement about one
+  particular plate of food.
+- **Which day and time a copy lands on.** The same rules as adding a meal presumably:
+  the day being looked at, and now or midday. Worth stating rather than assuming.
+- **Following `replaced_by`.** The plan is explicit that a copied line pointing at a
+  retired product or recipe follows the chain to the current version — that machinery
+  already exists in `lib/replacements.ts` and `linesForCopy`. The open question is
+  whether the screen says which lines moved, as the recipe replace screen does.
 
 ### Settled already, so don't re-ask
 
@@ -124,8 +137,9 @@ For a session picking this up cold, after reading the plan and this file:
 - The app is Next.js 16 at the repo root, deployed on Vercel, tested by Andrei on an
   iPhone home screen. `npm run build` and `npm run lint` both pass.
 - Screens so far: `/login` (the PIN screen), `/` (a list of destinations), `/weight`,
-  `/products` (list, `new`, `[id]`), `/recipes` (list, `new`, `[id]`), `/meals` (a day,
-  and `[id]`) and `/export`. The temporary `/check` page has been deleted.
+  `/products` (list, `new`, `[id]`), `/recipes` (list, `new`, `[id]`), `/meals` (a day
+  with its totals, and `[id]`), `/settings` (the five targets) and `/export`. The
+  temporary `/check` page has been deleted.
 - Everything except `/login`, the icons and the manifest is behind the PIN — including
   `/api/export`, which is the URL that hands over the whole database.
 - The database has ten tables: the nine in the plan plus `login_attempts`. Sample data
@@ -274,6 +288,11 @@ From step 3, on dates specifically:
 2026-09-02 — Backfilled meals get **midday** on the day being looked at, not the current clock time. Logging yesterday's dinner at 01:30 tonight would otherwise land before the 04:00 rule and count towards the day before yesterday. Logging as you eat still gets the real time.
 2026-09-02 — Under the "counts towards" field, the meal screen says what the 04:00 rule makes of the date and time as typed, with a one-tap button to accept it. Makes a 02:20 snack landing on the previous day visible rather than surprising.
 2026-09-02 — A local time that never existed (spring change) resolves to just after the jump; one that happened twice (autumn change) resolves to the second occurrence. Documented rather than accidental — both land the same side of the 04:00 rule, and being the same answer every time is what matters.
+2026-09-02 — The day's totals live at the top of the meals day screen, not on a separate "Today" page, so they work for any day rather than only for today. Backfilling Saturday shows Saturday's totals. A today-only screen would have needed a second copy of the same arithmetic.
+2026-09-02 — The home screen's Meals line shows today's calories rather than a fixed label. One extra query on the home screen, for the number the app is most often opened to check.
+2026-09-02 — `/settings` holds the five targets, all optional and clearable. They live in the database rather than in code because the plan expects them to be revised once TDEE can be estimated — and if changing them meant the Supabase SQL editor, they'd quietly go stale. `day_boundary_hour` is deliberately not on that screen; it changes how past data reads, not what it's measured against.
+2026-09-02 — Every bar on the day screen is the same colour, including the ones you've gone past. No amber, no red, ever, about what was eaten — Part 5 of the plan rules it out, and amber is reserved for an overdue backup, which is an actual problem. Going over fills the bar and says "past it" in plain text.
+2026-09-02 — A target that isn't set shows the number with no bar and a link to the targets screen, rather than hiding the row. You want to watch a number for a fortnight before deciding what it should be.
 2026-09-02 — Nothing about a meal is ever frozen. Nothing in the database points at a meal, so every line, quantity, time and note stays editable and deletable forever, and deleting a meal takes only its own lines.
 2026-09-02 — `agentRules: false` in `next.config.ts`. `next dev` was appending its own block of instructions to `CLAUDE.md` and re-adding it whenever it was removed; that file is written by hand and says what it needs to say.
 2026-09-01 — Icon files are split by job: `app/icon.png` and `app/apple-icon.png` for the browser and iOS (Next.js writes the link tags automatically), `public/icon-192.png` and `public/icon-512.png` for the manifest, which needs fixed paths.
@@ -291,6 +310,12 @@ From step 3, on dates specifically:
 - The export writes to the database on a GET request — it sets `last_export_at`.
   Nothing links to that URL, so nothing can trigger it by prefetching. Worth
   remembering if a link to it is ever added.
+- Each meal's calories are rounded on its own row, so a day of 171.6 + 727.9 shows as
+  172 and 728 with a total of 899, not 900. Rounding the total from the exact figures
+  is the correct behaviour; it just looks like an arithmetic slip at a glance.
+- The no-target branch of the day screen was checked as logic but never rendered here,
+  because the database has the sample targets set. Clearing a field on the Targets
+  screen is the way to see it.
 - `settings.day_boundary_hour` is not read by anything. The app uses a constant of 4.
   Nothing can change the column yet, so reading it would only be scaffolding — but if a
   settings screen ever lands, `lib/day.ts` is the one place that has to change.

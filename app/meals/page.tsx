@@ -2,11 +2,26 @@ import Link from "next/link";
 import { db } from "@/lib/supabase";
 import { dayFor, dayLabel, shiftDays, timeIn } from "@/lib/day";
 import { linesForMeals } from "@/lib/meals";
-import { mealTotals, round } from "@/lib/nutrition";
+import { mealTotals, round, type Nutrient } from "@/lib/nutrition";
+import { readTargets } from "@/lib/settings";
 import { DayPicker } from "./day-picker";
 import { AddMealButton } from "./add-meal-button";
+import { DayTotals } from "./day-totals";
 
 export const dynamic = "force-dynamic";
+
+// The full breakdown at the bottom, in the order an EU label prints it.
+const NUTRITION: Array<{ key: Nutrient; label: string; unit: string; decimals: number }> = [
+  { key: "calories", label: "Energy", unit: "kcal", decimals: 0 },
+  { key: "fat", label: "Fat", unit: "g", decimals: 1 },
+  { key: "saturated_fat", label: "of which saturates", unit: "g", decimals: 1 },
+  { key: "carbs", label: "Carbohydrate", unit: "g", decimals: 1 },
+  { key: "sugars_natural", label: "of which sugars", unit: "g", decimals: 1 },
+  { key: "sugars_added", label: "of which added", unit: "g", decimals: 1 },
+  { key: "fibre", label: "Fibre", unit: "g", decimals: 1 },
+  { key: "protein", label: "Protein", unit: "g", decimals: 1 },
+  { key: "salt", label: "Salt", unit: "g", decimals: 2 },
+];
 
 export default async function MealsPage({ searchParams }: PageProps<"/meals">) {
   const { day } = await searchParams;
@@ -24,7 +39,16 @@ export default async function MealsPage({ searchParams }: PageProps<"/meals">) {
     .order("eaten_at", { ascending: true });
 
   const meals = data ?? [];
-  const lines = await linesForMeals(meals.map((meal) => meal.id));
+  const [lines, targets] = await Promise.all([
+    linesForMeals(meals.map((meal) => meal.id)),
+    readTargets(),
+  ]);
+
+  // The day, added up from every line of every meal on it. Nothing about this
+  // is stored — it's the meals themselves, totalled when the screen is drawn.
+  const dayTotals = mealTotals(
+    meals.flatMap((meal) => (lines.get(meal.id) ?? []).map((line) => line.line)),
+  );
 
   return (
     <main className="flex-1 px-5 py-8 mx-auto w-full max-w-md flex flex-col gap-6">
@@ -69,6 +93,14 @@ export default async function MealsPage({ searchParams }: PageProps<"/meals">) {
           </Link>
         )}
       </div>
+
+      {!error && (
+        <DayTotals
+          nutrition={dayTotals.nutrition}
+          cost={dayTotals.cost}
+          targets={targets}
+        />
+      )}
 
       {error ? (
         <p className="rounded-lg border border-border bg-surface p-3 text-sm">
@@ -115,6 +147,37 @@ export default async function MealsPage({ searchParams }: PageProps<"/meals">) {
       )}
 
       <AddMealButton day={selected} />
+
+      {meals.length > 0 && (
+        <section className="flex flex-col gap-2">
+          <h2 className="text-sm font-medium text-muted">Everything, for the day</h2>
+
+          <ul className="rounded-lg border border-border bg-surface divide-y divide-[var(--border)]">
+            {NUTRITION.map((row) => (
+              <li
+                key={row.key}
+                className="flex items-baseline justify-between gap-3 px-3 py-2 text-sm"
+              >
+                <span>{row.label}</span>
+                <span className="tabular-nums">
+                  {round(dayTotals.nutrition[row.key], row.decimals)} {row.unit}
+                </span>
+              </li>
+            ))}
+
+            <li className="flex items-baseline justify-between gap-3 px-3 py-2 text-sm">
+              <span>Cost</span>
+              <span className="tabular-nums">{dayTotals.cost.toFixed(2)}</span>
+            </li>
+          </ul>
+
+          <p className="text-xs text-muted">
+            Anything a product doesn&rsquo;t state is added up as zero, so fibre and
+            sugar can read low. Calories never can — they&rsquo;re required on every
+            product.
+          </p>
+        </section>
+      )}
     </main>
   );
 }

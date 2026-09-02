@@ -44,8 +44,9 @@ app/                 every screen, and the server code behind it
   recipes/           what you cook: list and search, add, edit, replace
     new/             the add form — also the replace form, pre-filled
     [id]/            one recipe: its ingredients and what a serving works out at
-  meals/             what you ate: one day at a time
+  meals/             what you ate: one day at a time, with the day's totals
     [id]/            one meal: what was in it, when, and how it was
+  settings/          the five targets a day is measured against
   export/            the backup screen
   api/export/        the URL that builds the backup file itself
   manifest.ts        the app's name, colours and icons, for the home screen
@@ -72,6 +73,8 @@ lib/
                      what one serving of a recipe works out at
   nutrition.ts       all the food arithmetic: scaling a product to a quantity,
                      adding up a recipe, per serving, cost, shrinkage, meals
+  settings.ts        reading the one settings row and the targets on it
+  targets.ts         measuring a day against a target, for the bars
   replacements.ts    following oats → oats 2 → oats 3 to whatever you buy today
 supabase/
   migrations/        SQL you run by hand in the Supabase editor, numbered in order
@@ -331,6 +334,51 @@ direction.
 Underneath the day field, the screen says what the 04:00 rule makes of the date and
 time as they currently stand, and offers to use it — so a 02:20 snack landing on the
 previous day is visible rather than surprising.
+
+## The day's totals, and the targets
+
+At the top of the day screen: calories as a headline with a bar, then protein, fibre,
+added sugar and money as compact rows. At the bottom, below the meals, the full nine
+figures for the day as plain numbers.
+
+It sits on the day screen rather than on a separate "Today" page so that the totals
+work for **any** day. Backfilling Saturday shows Saturday's totals; looking back at
+last week shows last week's. A today-only screen would have needed a second copy of the
+same arithmetic for every other day.
+
+The home screen's Meals line shows the day's calories so far, because that's the number
+the app is most often opened to check.
+
+### The bars
+
+Every bar is the same colour, including the ones you have gone past, and there is no
+amber and no red anywhere on this screen. Part 5 of the plan rules out anything red or
+scolding about what was eaten; amber is reserved for "your backup is overdue", which is
+an actual problem. Going over a target fills the bar and says so in numbers.
+
+The five targets point in three directions and the wording under each bar says which:
+
+- **Budgets** — calories, money: "of 2400 kcal".
+- **Floors** — protein, fibre: "of 140 g at least", and "· there" once reached.
+- **Ceiling** — added sugar: "of 40 g at most", and "· past it" once over.
+
+**A target you haven't set shows the number with no bar** and a quiet link to the
+targets screen. Not a hidden row, and never a bar reading "0% of 0" — you want to watch
+a number for a fortnight before deciding what it ought to be, and hiding it until then
+is backwards.
+
+### Setting them
+
+`/settings` holds the five numbers, all optional, all clearable back to empty. Empty
+means "not decided yet", which is deliberately not the same as zero.
+
+They live in the database rather than in the code because the plan expects them to be
+revised once there's enough weight and food history to estimate a real TDEE — and if
+changing them meant opening the Supabase SQL editor, they would quietly go stale.
+
+`day_boundary_hour` is deliberately not on that screen. It's the one setting that
+changes how data is read rather than what it's measured against, and it deserves its
+own conversation.
 
 ## Dates, and the two mornings a year they go wrong
 
