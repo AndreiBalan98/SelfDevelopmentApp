@@ -47,6 +47,7 @@ app/                 every screen, and the server code behind it
   meals/             what you ate: one day at a time, with the day's totals
     [id]/            one meal: what was in it, when, and how it was
   sleep/             a night: two times, a score, and the last fortnight
+  smoking/           a day's count, the last fortnight, and the two averages
   settings/          the five targets a day is measured against
   export/            the backup screen
   api/export/        the URL that builds the backup file itself
@@ -390,6 +391,27 @@ line under the fields says which it decided.
 
 A night can be logged with only a score, or only a note. There's then nothing to
 measure, and the list shows a dash rather than inventing a length.
+
+## Cigarettes
+
+A day, a count, an optional note, and the last fortnight underneath. The weight
+screen's shape, on purpose: there is no bulk-entry grid and no backfill mode, because a
+month of history is being entered a day at a time.
+
+**Zero is a real entry, and an empty box is not.** The schema is explicit that a day
+with no row means "not logged" while a row holding zero means "smoked nothing", and
+those are different facts. So the field starts empty, never at zero, and saving an empty
+one is refused. If empty quietly meant none, every day you forgot to log would read as a
+perfect day and the averages would be fiction.
+
+Above the list: the **4-day and 7-day averages**, each saying how many days it actually
+had when the window has gaps. Then one flat sentence when the two differ — "The last
+four days are below the week", or above it.
+
+That sentence is the only place in the app that interprets rather than reports, and it
+exists because the plan says the trend is the point rather than the bad days. It stays
+neutral in both directions: no congratulation, no colour, nothing red. The rest of the
+screen is numbers.
 
 ## Averages over days, and the gaps in them
 

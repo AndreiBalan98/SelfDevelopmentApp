@@ -4,31 +4,43 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-Nothing in progress. Phase 6 step 1 (sleep) is finished, tested on the phone and
-approved on 2026-09-02.
+Nothing in progress. **Phase 6 — sleep and smoking — is complete**, both steps tested on
+the phone and approved on 2026-09-02.
 
-**The next session starts by proposing phase 6 step 2 — smoking.** Do not start
-building it. It is a small step and most of it is already decided, including that
-**there is no backfill machinery** — see Next. Put the two remaining choices to Andrei,
-then wait.
+Every table in the plan except gym now has a screen behind it.
+
+**The next session starts by proposing phase 7 — charts, stats, gamification and TDEE.**
+Do not start building it. It is the widest phase so far and should be broken into steps
+the way phase 5 was, so the proposal is partly about what the steps are. Two things have
+to be raised before any of it is built — a charting library, and whether there is enough
+real data yet for TDEE to be honest. Both are under Next.
 
 ## Waiting on me (Andrei)
 
-Nothing blocking. Two things from before:
+Nothing blocking. Three things, and the last two matter more now that phase 7 is next —
+it reads real history, and sample data mixed into it would make every chart and the TDEE
+estimate meaningless.
 
-1. **The targets are still the sample ones** from `seed.sql` — 2200 kcal, 150 g protein,
+1. **Your month of cigarette history**, a day at a time, whenever you get to it.
+2. **Sample data is still in the database.** `supabase/sample-data/wipe.sql` is worth
+   running before logging properly. Note it will refuse if anything real already uses a
+   sample product — that's it doing its job rather than a fault.
+3. **The targets are still the sample ones** from `seed.sql` — 2200 kcal, 150 g protein,
    30 g fibre, 40 g added sugar, 45 a day. Replace them with your own on the Targets
-   screen.
-2. **Sample data is still in the database.** Now that the whole food half of the app is
-   real, `supabase/sample-data/wipe.sql` is worth running before logging properly — and
-   note it will refuse if anything real already uses a sample product, which is it doing
-   its job rather than a fault.
+   screen. `wipe.sql` sets all five back to empty, so do this **after** the wipe rather
+   than before, or you'll type them twice.
 
 No SQL required, no environment variables to add, no decisions owed. Migrations
 0001–0003 are all in, and no migration is pending.
 
 ## Done
 
+- 2026-09-02 — **Phase 6 complete: sleep and smoking.** Both steps tested on the phone
+  and approved. Every table in the plan except gym now has a screen behind it.
+- 2026-09-02 — Phase 6 step 2 complete: cigarettes. A day, a count, a note, the last
+  fortnight, and the 4-day and 7-day averages with one flat sentence about the trend
+  when they differ. Zero is a real entry and an empty box is refused. No backfill
+  machinery, by decision. Tested on the phone and approved.
 - 2026-09-02 — Phase 6 step 1 complete: sleep. Pick the morning, type the two times,
   score it out of ten. The length is worked out live as you type and never stored, and
   crossing midnight is arithmetic rather than a question. The last fortnight underneath,
@@ -99,30 +111,28 @@ No SQL required, no environment variables to add, no decisions owed. Migrations
 
 ## Next
 
-**Phase 6 — sleep and smoking**, in two steps:
+**Phase 7 — charts, stats, gamification and TDEE.** Phase 6 is finished; both its steps
+are in Done.
 
-1. ~~**Sleep**~~ — done and approved 2026-09-02.
-2. **Smoking** — a date, a count, a note, the last fortnight, and the 4-day and 7-day
-   averages above them. **← next**
+By far the widest phase so far, and it should be broken into steps the same way phase 5
+was — the proposal is partly about what those steps are. What's in it, from Part 5 of
+the plan:
 
-### Step 2 — what's already decided
+- Charts: weight over time with the interpolated days marked, cigarettes with the two
+  moving averages, calories against target.
+- The days-logged counter, the calendar heatmap, the logging streak with its grace day,
+  the weekly digest card, milestones, and food spend this month.
+- **The TDEE estimate** — the reason the whole app exists. It needs the 7-day moving
+  average of weight rather than raw values, a window of at least 14 days and ideally
+  21–28, interpolated days excluded, and a confidence range rather than one confident
+  number.
 
-**Andrei asked for no backfill machinery.** A grid of thirty editable days was proposed
-and turned down: he will enter his month of cigarette history one day at a time. So the
-smoking screen is the weight screen's shape exactly — pick a day, type a number, save,
-with the last fortnight underneath. **Do not build anything clever for backfilling, and
-do not re-propose it.**
+Two things to raise before any of it is built: **whether a charting library goes in**
+(it would be the first dependency added since the scaffold, and needs asking), and
+**whether there is enough real data yet** for TDEE to say anything — it wants three to
+four weeks of weight and food, and the real logging is only starting now.
 
-What's left to put to him is small:
-
-- Whether the 4-day and 7-day averages sit above the list or beside each row.
-- Whether the screen says anything about the trend beyond the two numbers. The charts
-  themselves are phase 7.
-
-`averageOver` in `lib/series.ts` already does the arithmetic, gaps included, and is
-tested. The screen only has to call it twice.
-
-Then 7 (charts, stats, gamification, TDEE), then 8 (gym).
+Then 8 (gym).
 
 ### Settled already, so don't re-ask
 
@@ -162,8 +172,8 @@ For a session picking this up cold, after reading the plan and this file:
   iPhone home screen. `npm run build` and `npm run lint` both pass.
 - Screens so far: `/login` (the PIN screen), `/` (a list of destinations), `/weight`,
   `/products` (list, `new`, `[id]`), `/recipes` (list, `new`, `[id]`), `/meals` (a day
-  with its totals, and `[id]`), `/sleep`, `/settings` (the five targets) and `/export`.
-  The temporary `/check` page has been deleted.
+  with its totals, and `[id]`), `/sleep`, `/smoking`, `/settings` (the five targets) and
+  `/export`. The temporary `/check` page has been deleted.
 - Everything except `/login`, the icons and the manifest is behind the PIN — including
   `/api/export`, which is the URL that hands over the whole database.
 - The database has ten tables: the nine in the plan plus `login_attempts`. Sample data
@@ -315,6 +325,8 @@ From step 3, on dates specifically:
 2026-09-02 — Sleep and smoking get separate screens, not a shared one. They're logged at opposite ends of the day — sleep when you wake up, cigarettes when you go to bed — and share a shape and nothing else.
 2026-09-02 — A night's length is never stored. It's worked out from the two times and shown live under the fields, which is what catches a mistyped time while you can still see it. Crossing midnight is arithmetic, not a question: if bedtime is later on the clock than the wake-up, the night crossed midnight. The app never asks which day bedtime was on.
 2026-09-02 — Averages over days count only the days that have an entry, and say how many when the window isn't full ("over the 6 you logged"). A missing day is a day not logged, not a day of zero — filling gaps with zero would flatter a cigarette count, and treating a half-empty window as complete would lie about it. `lib/series.ts`, reused by phase 7 for the 7-day weight average.
+2026-09-02 — On the cigarettes screen a zero is a real entry and an empty box is refused. The schema keeps "not logged" and "smoked nothing" apart deliberately, and the field starts empty rather than at zero so a zero is always something you typed. If empty quietly meant none, every forgotten day would read as a perfect one.
+2026-09-02 — The cigarettes screen carries one interpreted sentence — "The last four days are below the week", or above it — shown only when the two averages differ. It's the only place in the app that interprets rather than reports, it exists because the plan says the trend is the point, and it stays neutral in both directions: no congratulation, no colour.
 2026-09-02 — **No backfill machinery for cigarettes.** A grid of thirty editable days was proposed and Andrei turned it down: he'll enter his month of history one day at a time, and the smoking screen is the weight screen's shape exactly. Don't re-propose it.
 2026-09-02 — Repeat has two entry points: a button on any past meal, and a "Repeat something recent" list on the day screen. The button alone is what the plan literally asks for, but it's only reachable by remembering which day you ate the thing; the list is what makes it a daily feature. Ranked by recency, not frequency — recency is exact, and "how often" needs a definition of "the same meal" that belongs with phase 7's statistics.
 2026-09-02 — A repeat copies the lines and the meal/snack type, but not the note or the score. A score is a judgement about one particular plate of food, and carrying it forward would fill the history with scores that were never given — which matters, because phase 7 reads them.
@@ -353,6 +365,9 @@ From step 3, on dates specifically:
 - The no-target branch of the day screen was checked as logic but never rendered here,
   because the database has the sample targets set. Clearing a field on the Targets
   screen is the way to see it.
+- The cigarettes trend sentence was checked as logic but never rendered here: in the
+  sample data the 4-day and 7-day averages are both exactly 9.3, so it correctly says
+  nothing. It appears as soon as they differ.
 - `settings.day_boundary_hour` is not read by anything. The app uses a constant of 4.
   Nothing can change the column yet, so reading it would only be scaffolding — but if a
   settings screen ever lands, `lib/day.ts` is the one place that has to change.
