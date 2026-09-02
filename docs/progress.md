@@ -4,34 +4,56 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-Nothing in progress. **Phase 6 — sleep and smoking — is complete**, both steps tested on
-the phone and approved on 2026-09-02.
+**Fixing issues raised before phase 7 starts.** Phase 6 is complete and every table in
+the plan except gym has a screen behind it.
 
-Every table in the plan except gym now has a screen behind it.
+Issue 1 — the form rows that ran off the screen sideways — is **fixed, waiting to be
+tested on the phone**.
 
-**The next session starts by proposing phase 7 — charts, stats, gamification and TDEE.**
-Do not start building it. It is the widest phase so far and should be broken into steps
-the way phase 5 was, so the proposal is partly about what the steps are. Two things have
-to be raised before any of it is built — a charting library, and whether there is enough
-real data yet for TDEE to be honest. Both are under Next.
+Issue 2 — what "of which sugars" and "of which added" actually mean — is **a decision
+owed**, written up under Waiting on me. It is not a cosmetic question: the plan and the
+form currently say two different things, and phase 7 is where the difference would start
+producing wrong numbers.
+
+**Phase 7 is not started and should not be started until these are closed.**
 
 ## Waiting on me (Andrei)
 
-Nothing blocking. Three things, and the last two matter more now that phase 7 is next —
-it reads real history, and sample data mixed into it would make every chart and the TDEE
-estimate meaningless.
-
-1. **Your month of cigarette history**, a day at a time, whenever you get to it.
-2. **Sample data is still in the database.** `supabase/sample-data/wipe.sql` is worth
+1. **Test the form-width fix on the phone.** Add a product and add a recipe: the price
+   and size boxes, and the servings and cooked-weight boxes, should sit side by side
+   inside the screen with nothing scrolling sideways. Also open a used product and check
+   the Rename row.
+2. **Decide what the two sugar boxes mean** — see "The sugars decision" below. Nothing
+   else should be built until this is settled.
+3. **Your month of cigarette history**, a day at a time, whenever you get to it.
+4. **Sample data is still in the database.** `supabase/sample-data/wipe.sql` is worth
    running before logging properly. Note it will refuse if anything real already uses a
    sample product — that's it doing its job rather than a fault.
-3. **The targets are still the sample ones** from `seed.sql` — 2200 kcal, 150 g protein,
+5. **The targets are still the sample ones** from `seed.sql` — 2200 kcal, 150 g protein,
    30 g fibre, 40 g added sugar, 45 a day. Replace them with your own on the Targets
    screen. `wipe.sql` sets all five back to empty, so do this **after** the wipe rather
    than before, or you'll type them twice.
 
-No SQL required, no environment variables to add, no decisions owed. Migrations
-0001–0003 are all in, and no migration is pending.
+Migrations 0001–0003 are all in. Whether a 0004 is needed depends on the sugars decision.
+
+### The sugars decision
+
+The plan, the form and the sample data currently disagree about what the two columns
+hold. Nothing displays them added together today, so no screen is wrong yet — but the
+plan says the total is their sum, and phase 7 is where that sum would get written.
+
+- The **plan** (Part 3) says they are two separate parts and the total is their sum.
+- The **form** says "of which sugars — straight off the label", which makes added a
+  portion *inside* that figure, not something to add to it.
+- The **sample data** does both: `Sample milk` follows the form, `Sample chocolate`
+  follows the plan.
+
+Claude's recommendation is the form's reading — the label figure is total sugars, and
+added is your estimate of how much of it is added — because it never asks you to
+subtract while you are copying a packet, and because it is the only reading where
+leaving "added" blank still leaves the total correct. That would mean renaming the
+column and updating one sentence of the plan. Full write-up was given in the session;
+ask for it again if it has scrolled away.
 
 ## Done
 
@@ -338,6 +360,7 @@ From step 3, on dates specifically:
 2026-09-02 — A target that isn't set shows the number with no bar and a link to the targets screen, rather than hiding the row. You want to watch a number for a fortnight before deciding what it should be.
 2026-09-02 — Nothing about a meal is ever frozen. Nothing in the database points at a meal, so every line, quantity, time and note stays editable and deletable forever, and deleting a meal takes only its own lines.
 2026-09-02 — `agentRules: false` in `next.config.ts`. `next dev` was appending its own block of instructions to `CLAUDE.md` and re-adding it whenever it was removed; that file is written by hand and says what it needs to say.
+2026-09-02 — Any row that puts two inputs side by side gets `min-w-0` on each half. A text input carries a built-in width of roughly 20 characters, and a flex column will not shrink below its contents unless told to, so two of them insisted on 478px inside a screen that has at most 408 and as little as 335. Measured in a real browser at every iPhone width rather than eyeballed. Applies to the product form, the recipe form and the rename row; the sleep and meal date/time rows were measured too and fit, so they were left alone.
 2026-09-01 — Icon files are split by job: `app/icon.png` and `app/apple-icon.png` for the browser and iOS (Next.js writes the link tags automatically), `public/icon-192.png` and `public/icon-512.png` for the manifest, which needs fixed paths.
 
 ## Deferred

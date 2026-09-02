@@ -149,8 +149,12 @@ export function ProductForm({ action, defaults = {}, submitLabel, replaces, id }
       <section className="flex flex-col gap-3">
         <h2 className="text-sm font-medium text-muted">What it cost</h2>
 
+        {/* min-w-0 on each half is what stops this row running off the screen.
+            A text input carries its own built-in width of about 20 characters,
+            and a flex column refuses to shrink below its contents unless told
+            to, so two of them side by side ask for more than any phone has. */}
         <div className="flex gap-3">
-          <label className="flex flex-1 flex-col gap-1.5">
+          <label className="flex min-w-0 flex-1 flex-col gap-1.5">
             <span className="text-sm text-muted">Package price</span>
             <input
               name="package_price"
@@ -164,7 +168,7 @@ export function ProductForm({ action, defaults = {}, submitLabel, replaces, id }
             />
           </label>
 
-          <label className="flex flex-1 flex-col gap-1.5">
+          <label className="flex min-w-0 flex-1 flex-col gap-1.5">
             <span className="text-sm text-muted">Package size ({unit})</span>
             <input
               name="package_quantity"

@@ -24,7 +24,9 @@ export function RenameForm({ id, name }: { id: number; name: string }) {
             defaultValue={name}
             required
             autoComplete="off"
-            className="flex-1 rounded-lg border border-border bg-surface px-3 py-2.5
+            // min-w-0 for the same reason as the product form. This row fitted
+            // with about a pixel to spare, which is not a margin worth keeping.
+            className="min-w-0 flex-1 rounded-lg border border-border bg-surface px-3 py-2.5
                        text-base outline-none focus:border-accent"
           />
           <button

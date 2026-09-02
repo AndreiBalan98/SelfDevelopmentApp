@@ -47,8 +47,11 @@ export function RecipeForm({ action, defaults = {}, submitLabel, replaces, id }:
         />
       </label>
 
+      {/* min-w-0 for the same reason as the product form: two text inputs side
+          by side would otherwise insist on their built-in width and push the
+          screen sideways. */}
       <div className="flex gap-3">
-        <label className="flex flex-1 flex-col gap-1.5">
+        <label className="flex min-w-0 flex-1 flex-col gap-1.5">
           <span className="text-sm text-muted">Servings</span>
           <input
             name="servings"
@@ -61,7 +64,7 @@ export function RecipeForm({ action, defaults = {}, submitLabel, replaces, id }:
           />
         </label>
 
-        <label className="flex flex-1 flex-col gap-1.5">
+        <label className="flex min-w-0 flex-1 flex-col gap-1.5">
           <span className="text-sm text-muted">Cooked weight (g)</span>
           <input
             name="cooked_weight"
