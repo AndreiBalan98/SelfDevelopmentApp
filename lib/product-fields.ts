@@ -14,7 +14,10 @@ export type ProductValues = {
   calories: number;
   protein: number | null;
   carbs: number | null;
-  sugars_natural: number | null;
+  // The packet's "of which sugars" line: natural and added together. The next
+  // figure is your estimate of how much of THIS one was added, so the two
+  // overlap and must never be summed.
+  sugars_total: number | null;
   sugars_added: number | null;
   fibre: number | null;
   fat: number | null;
@@ -46,7 +49,7 @@ const NUTRIENTS = [
   "calories",
   "protein",
   "carbs",
-  "sugars_natural",
+  "sugars_total",
   "sugars_added",
   "fibre",
   "fat",
@@ -58,7 +61,7 @@ const LABELS: Record<string, string> = {
   calories: "Calories",
   protein: "Protein",
   carbs: "Carbohydrate",
-  sugars_natural: "Natural sugars",
+  sugars_total: "Total sugars",
   sugars_added: "Added sugars",
   fibre: "Fibre",
   fat: "Fat",
@@ -139,7 +142,7 @@ export function readProduct(
       calories: nutrition.calories,
       protein: nutrition.protein,
       carbs: nutrition.carbs,
-      sugars_natural: nutrition.sugars_natural,
+      sugars_total: nutrition.sugars_total,
       sugars_added: nutrition.sugars_added,
       fibre: nutrition.fibre,
       fat: nutrition.fat,

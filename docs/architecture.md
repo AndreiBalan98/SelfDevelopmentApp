@@ -196,9 +196,17 @@ give you is left empty, and empty means "not stated", which is deliberately not 
 same as zero. Calories are the one required figure, because a meal's calorie total
 has to be complete to mean anything.
 
-EU labels give a single "of which sugars" number, so that field is copied straight
+EU labels give a single "of which sugars" number, so `sugars_total` is copied straight
 off the packet and the added-sugar field below it is your own estimate from the
 ingredients list — left blank when you can't tell.
+
+**The two sugar figures overlap, and nothing ever adds them.** `sugars_added` is a
+part of `sugars_total`, not an amount on top of it, so summing them would count the
+added sugar twice. Natural sugar is the difference, worked out when a screen is drawn
+and never stored. The column was called `sugars_natural` until migration 0004, which
+renamed it — the old name described the opposite of what the form has always asked
+for, and a column name that lies is how a wrong number reaches every screen at once
+while looking fine.
 
 As you type the price and package size, the screen shows the price per 100. That is
 the cheapest possible guard against the one mistake that's invisible later: typing

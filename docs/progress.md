@@ -10,50 +10,38 @@ the plan except gym has a screen behind it.
 Issue 1 — the form rows that ran off the screen sideways — is **fixed, waiting to be
 tested on the phone**.
 
-Issue 2 — what "of which sugars" and "of which added" actually mean — is **a decision
-owed**, written up under Waiting on me. It is not a cosmetic question: the plan and the
-form currently say two different things, and phase 7 is where the difference would start
-producing wrong numbers.
+Issue 2 — what "of which sugars" and "of which added" mean — is **settled and built**,
+waiting on migration 0004 being run and then tested. The two figures overlap: the first
+is the packet's line, the second is your estimate of how much of that same figure is
+added. They are never summed. The column was renamed `sugars_natural` → `sugars_total`
+to stop the name saying the opposite.
 
-**Phase 7 is not started and should not be started until these are closed.**
+**Phase 7 is not started and should not be started until both are closed.**
 
 ## Waiting on me (Andrei)
 
-1. **Test the form-width fix on the phone.** Add a product and add a recipe: the price
+1. **Run migration 0004.** `supabase/migrations/0004_sugars_total.sql`, pasted into the
+   Supabase SQL editor. It renames one column and moves no data. **The app will error on
+   every product, recipe and meal screen until it is run**, because the code now asks
+   for `sugars_total` — so run it before or at the same time as deploying.
+2. **Test the form-width fix on the phone.** Add a product and add a recipe: the price
    and size boxes, and the servings and cooked-weight boxes, should sit side by side
    inside the screen with nothing scrolling sideways. Also open a used product and check
    the Rename row.
-2. **Decide what the two sugar boxes mean** — see "The sugars decision" below. Nothing
-   else should be built until this is settled.
-3. **Your month of cigarette history**, a day at a time, whenever you get to it.
-4. **Sample data is still in the database.** `supabase/sample-data/wipe.sql` is worth
+3. **Check your own products' sugar figures** after the migration. The form has always
+   asked for the packet's figure, so anything you typed should already be right — but if
+   you ever typed a natural-only number, it now reads as a total. A product that has been
+   eaten is frozen, so correcting one means retire-and-replace, not edit.
+4. **Your month of cigarette history**, a day at a time, whenever you get to it.
+5. **Sample data is still in the database.** `supabase/sample-data/wipe.sql` is worth
    running before logging properly. Note it will refuse if anything real already uses a
    sample product — that's it doing its job rather than a fault.
-5. **The targets are still the sample ones** from `seed.sql` — 2200 kcal, 150 g protein,
+6. **The targets are still the sample ones** from `seed.sql` — 2200 kcal, 150 g protein,
    30 g fibre, 40 g added sugar, 45 a day. Replace them with your own on the Targets
    screen. `wipe.sql` sets all five back to empty, so do this **after** the wipe rather
    than before, or you'll type them twice.
 
-Migrations 0001–0003 are all in. Whether a 0004 is needed depends on the sugars decision.
-
-### The sugars decision
-
-The plan, the form and the sample data currently disagree about what the two columns
-hold. Nothing displays them added together today, so no screen is wrong yet — but the
-plan says the total is their sum, and phase 7 is where that sum would get written.
-
-- The **plan** (Part 3) says they are two separate parts and the total is their sum.
-- The **form** says "of which sugars — straight off the label", which makes added a
-  portion *inside* that figure, not something to add to it.
-- The **sample data** does both: `Sample milk` follows the form, `Sample chocolate`
-  follows the plan.
-
-Claude's recommendation is the form's reading — the label figure is total sugars, and
-added is your estimate of how much of it is added — because it never asks you to
-subtract while you are copying a packet, and because it is the only reading where
-leaving "added" blank still leaves the total correct. That would mean renaming the
-column and updating one sentence of the plan. Full write-up was given in the session;
-ask for it again if it has scrolled away.
+Migrations 0001–0003 are in. **0004 is pending and the app needs it.**
 
 ## Done
 
@@ -360,6 +348,8 @@ From step 3, on dates specifically:
 2026-09-02 — A target that isn't set shows the number with no bar and a link to the targets screen, rather than hiding the row. You want to watch a number for a fortnight before deciding what it should be.
 2026-09-02 — Nothing about a meal is ever frozen. Nothing in the database points at a meal, so every line, quantity, time and note stays editable and deletable forever, and deleting a meal takes only its own lines.
 2026-09-02 — `agentRules: false` in `next.config.ts`. `next dev` was appending its own block of instructions to `CLAUDE.md` and re-adding it whenever it was removed; that file is written by hand and says what it needs to say.
+2026-09-02 — **The two sugar figures overlap, and nothing may ever add them.** `sugars_total` is the packet's "of which sugars" line — natural and added together. `sugars_added` is Andrei's estimate of how much of *that same figure* was added. Natural sugar is the difference, computed and never stored. Chosen over the plan's original "two disjoint halves" reading for two reasons: it never asks for a subtraction while copying a packet, which is the phase 5 principle that the honest path has to be the fast one; and it is the only reading where leaving "added" blank still leaves the total correct, instead of silently asserting that all of it was natural. The plan (Part 3) and `architecture.md` were rewritten to match. **Phase 7 must not sum them** — the note is in `lib/nutrition.ts` too.
+2026-09-02 — Migration 0004 renames `products.sugars_natural` to `sugars_total`, along with its check constraint, and puts the meaning in a `comment on column` so it travels with the database. No data moves; the form has always asked for the packet figure, so what is already stored is already a total. The rename was done rather than skipped because the old name described the opposite of what the column holds, and this project has twice been bitten by a name that lied. Verified against a throwaway Postgres: values intact, old column gone, renamed constraint still refusing negatives, every column list the app selects with still resolving, and `seed.sql` and `wipe.sql` both still running clean.
 2026-09-02 — Any row that puts two inputs side by side gets `min-w-0` on each half. A text input carries a built-in width of roughly 20 characters, and a flex column will not shrink below its contents unless told to, so two of them insisted on 478px inside a screen that has at most 408 and as little as 335. Measured in a real browser at every iPhone width rather than eyeballed. Applies to the product form, the recipe form and the rename row; the sleep and meal date/time rows were measured too and fit, so they were left alone.
 2026-09-01 — Icon files are split by job: `app/icon.png` and `app/apple-icon.png` for the browser and iOS (Next.js writes the link tags automatically), `public/icon-192.png` and `public/icon-512.png` for the manifest, which needs fixed paths.
 
@@ -415,3 +405,11 @@ From step 3, on dates specifically:
   at different stages is a real way to write a recipe.
 - The products screen was only checked for the deletion messages, not re-tested end to
   end, when that fix went in. Nothing else in it was touched.
+- **Nothing stops `sugars_added` being typed larger than `sugars_total`**, which is a
+  contradiction now that added is a part of the total. A check constraint or a form
+  check would catch it. Deliberately not added: it wasn't asked for, and it would be a
+  new rule rather than part of the rename. Worth doing if a typo ever slips through.
+- Export files taken **before** migration 0004 carry `sugars_natural`; ones taken after
+  carry `sugars_total`. The export is `select *`, so it followed the rename by itself.
+  There is no import screen, so nothing breaks today — but an old backup restored by
+  hand would need that one key renamed.

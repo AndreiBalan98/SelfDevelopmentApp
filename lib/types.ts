@@ -64,7 +64,7 @@ export type Database = {
           calories: number;
           protein: Nullable<number>;
           carbs: Nullable<number>;
-          sugars_natural: Nullable<number>;
+          sugars_total: Nullable<number>;
           sugars_added: Nullable<number>;
           fibre: Nullable<number>;
           fat: Nullable<number>;
@@ -84,7 +84,7 @@ export type Database = {
           calories: number;
           protein?: Nullable<number>;
           carbs?: Nullable<number>;
-          sugars_natural?: Nullable<number>;
+          sugars_total?: Nullable<number>;
           sugars_added?: Nullable<number>;
           fibre?: Nullable<number>;
           fat?: Nullable<number>;
@@ -107,7 +107,7 @@ export type Database = {
           calories?: number;
           protein?: Nullable<number>;
           carbs?: Nullable<number>;
-          sugars_natural?: Nullable<number>;
+          sugars_total?: Nullable<number>;
           sugars_added?: Nullable<number>;
           fibre?: Nullable<number>;
           fat?: Nullable<number>;

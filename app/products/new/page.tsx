@@ -72,7 +72,7 @@ export default async function NewProductPage({ searchParams }: PageProps<"/produ
                 calories: original.calories,
                 protein: original.protein,
                 carbs: original.carbs,
-                sugars_natural: original.sugars_natural,
+                sugars_total: original.sugars_total,
                 sugars_added: original.sugars_added,
                 fibre: original.fibre,
                 fat: original.fat,

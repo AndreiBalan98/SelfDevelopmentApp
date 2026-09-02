@@ -6,7 +6,7 @@ import { RecipeSearch } from "./recipe-search";
 export const dynamic = "force-dynamic";
 
 const PRODUCT_COLUMNS =
-  "id, package_price, package_quantity, calories, fat, saturated_fat, carbs, sugars_natural, sugars_added, fibre, protein, salt";
+  "id, package_price, package_quantity, calories, fat, saturated_fat, carbs, sugars_total, sugars_added, fibre, protein, salt";
 
 export default async function RecipesPage({ searchParams }: PageProps<"/recipes">) {
   const { q, retired } = await searchParams;

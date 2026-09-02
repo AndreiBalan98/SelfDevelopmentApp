@@ -11,6 +11,12 @@
 //   * A missing nutrition value is summed as zero. It means "the label didn't
 //     say", so a fibre or sugar total can read lower than what was really
 //     eaten. Calories are never affected — they're required on every product.
+//
+// One trap worth knowing before adding anything here: `sugars_total` and
+// `sugars_added` OVERLAP. The first is the packet's "of which sugars" line;
+// the second is an estimate of how much of that same figure was added. Adding
+// them together counts the added sugar twice. Natural sugar, if it is ever
+// wanted, is `sugars_total - sugars_added` — and only where both were given.
 
 import type { Database } from "@/lib/types";
 
@@ -22,7 +28,7 @@ export const NUTRIENTS = [
   "fat",
   "saturated_fat",
   "carbs",
-  "sugars_natural",
+  "sugars_total",
   "sugars_added",
   "fibre",
   "protein",
@@ -45,7 +51,7 @@ export function emptyNutrition(): Nutrition {
     fat: 0,
     saturated_fat: 0,
     carbs: 0,
-    sugars_natural: 0,
+    sugars_total: 0,
     sugars_added: 0,
     fibre: 0,
     protein: 0,

@@ -19,7 +19,7 @@ const NUTRITION: Array<{ key: Nutrient; label: string; unit: string; decimals: n
   { key: "fat", label: "Fat", unit: "g", decimals: 1 },
   { key: "saturated_fat", label: "of which saturates", unit: "g", decimals: 1 },
   { key: "carbs", label: "Carbohydrate", unit: "g", decimals: 1 },
-  { key: "sugars_natural", label: "of which sugars", unit: "g", decimals: 1 },
+  { key: "sugars_total", label: "of which sugars", unit: "g", decimals: 1 },
   { key: "sugars_added", label: "of which added", unit: "g", decimals: 1 },
   { key: "fibre", label: "Fibre", unit: "g", decimals: 1 },
   { key: "protein", label: "Protein", unit: "g", decimals: 1 },

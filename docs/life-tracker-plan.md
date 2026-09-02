@@ -204,11 +204,24 @@ Nutrition per 100 units:
 | field | required? |
 |---|---|
 | `calories` | **required** |
-| `protein` · `carbs` · `sugars_natural` · `sugars_added` · `fibre` · `fat` · `saturated_fat` · `salt` | optional |
+| `protein` · `carbs` · `sugars_total` · `sugars_added` · `fibre` · `fat` · `saturated_fat` · `salt` | optional |
 
-Sugars are two numbers I type myself — natural and added. Total is displayed as their
-sum. Added sugar is never on an EU label; it's my estimate from the ingredients list,
-left blank when I can't tell.
+Sugars are two numbers I type myself, and **they overlap**. `sugars_total` is the
+packet's "of which sugars" line, copied straight across — natural and added together.
+`sugars_added` is my own estimate of how much of *that same figure* was added rather
+than naturally there; it is never on an EU label, and it's left blank when I can't
+tell.
+
+**They are never summed.** Added is a part of the total, not an amount on top of it,
+so adding them would count the added sugar twice. Natural sugar, if it's ever wanted,
+is `sugars_total - sugars_added`, computed and never stored — and only meaningful
+where I filled both in.
+
+This is the reading that keeps the honest path the fast one: I copy one number off the
+packet without doing arithmetic in my head, and leaving the estimate blank still leaves
+the total correct. The alternative — two disjoint halves — would make me subtract at
+the packet every time, and a blank estimate would silently assert that all of it was
+natural.
 
 ## recipes
 

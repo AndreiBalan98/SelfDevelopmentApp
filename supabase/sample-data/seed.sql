@@ -50,7 +50,7 @@ begin
   -- you a price history.
   insert into products
     (name, unit, package_price, package_quantity, ingredients_text,
-     calories, protein, carbs, sugars_natural, sugars_added, fibre, fat,
+     calories, protein, carbs, sugars_total, sugars_added, fibre, fat,
      saturated_fat, salt, retired)
   values
     ('Sample oats', 'g', 6.49, 1000, 'Wholegrain oat flakes.',
@@ -59,7 +59,7 @@ begin
 
   insert into products
     (name, unit, package_price, package_quantity, ingredients_text,
-     calories, protein, carbs, sugars_natural, sugars_added, fibre, fat,
+     calories, protein, carbs, sugars_total, sugars_added, fibre, fat,
      saturated_fat, salt)
   values
     ('Sample oats 2', 'g', 7.29, 1000, 'Wholegrain oat flakes.',
@@ -81,7 +81,7 @@ begin
   -- recipe's raw weight is added up.
   insert into products
     (name, unit, package_price, package_quantity,
-     calories, protein, carbs, sugars_natural, sugars_added, fat,
+     calories, protein, carbs, sugars_total, sugars_added, fat,
      saturated_fat, salt)
   values
     ('Sample milk', 'ml', 5.49, 1000,
@@ -104,16 +104,19 @@ begin
      349, 7.0, 77.5, 1.4, 1.0, 0.3, 0.01)
   returning id into rice;
 
-  -- Carries an added-sugar figure, which no EU label ever gives you. That
-  -- number is your own estimate from the ingredients list.
+  -- The one that shows what the two sugar figures mean. The label says 55.5 g
+  -- of sugars; sugar is the first ingredient, so nearly all of it is added and
+  -- 55.0 is the estimate. The two OVERLAP — added is part of the total, not an
+  -- amount on top of it — which is why 55.5 is under the 59.4 g of carbohydrate
+  -- rather than 110.5 being over it.
   insert into products
     (name, unit, package_price, package_quantity, ingredients_text,
-     calories, protein, carbs, sugars_natural, sugars_added, fibre, fat,
+     calories, protein, carbs, sugars_total, sugars_added, fibre, fat,
      saturated_fat, salt)
   values
     ('Sample chocolate', 'g', 4.29, 90,
      'Sugar, cocoa butter, cocoa mass, milk powder.',
-     534, 7.8, 59.4, 0.5, 55.0, 7.0, 30.0, 18.5, 0.06)
+     534, 7.8, 59.4, 55.5, 55.0, 7.0, 30.0, 18.5, 0.06)
   returning id into choc;
 
   -- -------------------------------------------------------------------------

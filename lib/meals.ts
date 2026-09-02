@@ -20,7 +20,7 @@ import {
 } from "@/lib/nutrition";
 
 const PRODUCT_COLUMNS =
-  "id, name, unit, retired, piece_grams, package_price, package_quantity, calories, fat, saturated_fat, carbs, sugars_natural, sugars_added, fibre, protein, salt";
+  "id, name, unit, retired, piece_grams, package_price, package_quantity, calories, fat, saturated_fat, carbs, sugars_total, sugars_added, fibre, protein, salt";
 
 type ProductRow = CountableProduct & {
   id: number;

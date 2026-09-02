@@ -26,7 +26,7 @@ export const dynamic = "force-dynamic";
 // One string on purpose: supabase-js reads this literally to work out the shape
 // of what comes back, and joining two pieces with + hides it from that check.
 const PRODUCT_COLUMNS =
-  "id, name, unit, retired, piece_grams, package_price, package_quantity, calories, fat, saturated_fat, carbs, sugars_natural, sugars_added, fibre, protein, salt";
+  "id, name, unit, retired, piece_grams, package_price, package_quantity, calories, fat, saturated_fat, carbs, sugars_total, sugars_added, fibre, protein, salt";
 
 // Same order as the product form and an EU label.
 const NUTRITION: Array<{ key: Nutrient; label: string; unit: string; decimals: number }> = [
@@ -34,7 +34,7 @@ const NUTRITION: Array<{ key: Nutrient; label: string; unit: string; decimals: n
   { key: "fat", label: "Fat", unit: "g", decimals: 1 },
   { key: "saturated_fat", label: "of which saturates", unit: "g", decimals: 1 },
   { key: "carbs", label: "Carbohydrate", unit: "g", decimals: 1 },
-  { key: "sugars_natural", label: "of which sugars", unit: "g", decimals: 1 },
+  { key: "sugars_total", label: "of which sugars", unit: "g", decimals: 1 },
   { key: "sugars_added", label: "of which added", unit: "g", decimals: 1 },
   { key: "fibre", label: "Fibre", unit: "g", decimals: 1 },
   { key: "protein", label: "Protein", unit: "g", decimals: 1 },

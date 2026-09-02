@@ -13,7 +13,7 @@ export type ProductDefaults = {
   calories?: number | string | null;
   protein?: number | string | null;
   carbs?: number | string | null;
-  sugars_natural?: number | string | null;
+  sugars_total?: number | string | null;
   sugars_added?: number | string | null;
   fibre?: number | string | null;
   fat?: number | string | null;
@@ -222,18 +222,20 @@ export function ProductForm({ action, defaults = {}, submitLabel, replaces, id }
           <Nutrient name="fat" label="Fat" unit="g" defaultValue={defaults.fat} />
           <Nutrient name="saturated_fat" label="of which saturates" unit="g" defaultValue={defaults.saturated_fat} />
           <Nutrient name="carbs" label="Carbohydrate" unit="g" defaultValue={defaults.carbs} />
+          {/* These two overlap on purpose: the second is a part of the first,
+              not an amount on top of it. Nothing in the app ever adds them. */}
           <Nutrient
-            name="sugars_natural"
+            name="sugars_total"
             label="of which sugars"
             unit="g"
-            hint="Straight off the label"
-            defaultValue={defaults.sugars_natural}
+            hint="Straight off the label — natural and added together"
+            defaultValue={defaults.sugars_total}
           />
           <Nutrient
             name="sugars_added"
             label="of which added"
             unit="g"
-            hint="Your estimate from the ingredients — never on an EU label. Leave empty if you can't tell."
+            hint="How much of the figure above you reckon is added sugar. Never on an EU label — leave empty if you can't tell."
             defaultValue={defaults.sugars_added}
           />
           <Nutrient name="fibre" label="Fibre" unit="g" defaultValue={defaults.fibre} />
