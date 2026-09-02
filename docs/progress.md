@@ -4,26 +4,32 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Phase 5 step 2 — recipes — is built and waiting to be tested on the phone.** It is
-not done until Andrei has tested and approved it. Nothing is committed yet.
+Nothing in progress. Phase 5 step 2 (recipes) is finished, tested on the phone and
+approved on 2026-09-02.
 
-No migration is needed: `recipes` and `recipe_items` came in with 0001.
+**The next session starts by proposing phase 5 step 3 — meals.** Do not start building
+it. Propose the approach with a recommendation, the alternatives and what each costs,
+then wait. The decisions that need putting to Andrei are listed under Next.
 
 ## Waiting on me (Andrei)
 
-**Test recipes on the phone**, then approve or send it back. What to try: open a
-recipe you've eaten (the sample chicken and rice) and check it's frozen but still
-renameable; add a new recipe, put ingredients in it, correct a quantity, remove one,
-type a cooked weight, delete it; and replace one to see the ingredients come across.
-
-Also worth a look while you're there: delete a product that replaced an older one. The
-message that comes back was wrong and has just been fixed.
-
-Nothing else. No SQL to run, no environment variables to add. Migrations 0001–0003 are
-all in, and no migration is pending.
+Nothing. No SQL to run, no environment variables to add, no decisions owed. Migrations
+0001–0003 are all in, and no migration is pending.
 
 ## Done
 
+- 2026-09-02 — Phase 5 step 2 complete: recipes. One screen per recipe — name,
+  servings, cooked weight, then ingredients searched and added underneath. Raw weight,
+  shrinkage in grams and percent, and per-serving nutrition and cost are all worked out
+  live, never stored. Servings and ingredients freeze once a recipe has been eaten;
+  name, notes and cooked weight stay editable forever. Replace copies the ingredients
+  and follows retired products to their current version. Brought in `lib/nutrition.ts`,
+  `lib/recipe-fields.ts` and `lib/replacements.ts`. Tested on the phone and approved.
+- 2026-09-02 — A deletion refused by the database now names the real reason, in both
+  products and recipes. Previously a product or recipe that an older one pointed at as
+  its replacement was wrongly reported as having been used or eaten. Found by testing.
+- 2026-09-02 — `agentRules: false` in `next.config.ts`, so `next dev` stops appending
+  its own instructions to `CLAUDE.md`.
 - 2026-09-02 — Phase 5 step 1 complete: products. List with search and a retired
   toggle, add, edit, retire, delete, and retire-and-replace. The form follows
   EU-label order and shows price per 100 live. What you may change depends on
@@ -54,7 +60,7 @@ all in, and no migration is pending.
 each approved on the phone before the next starts:
 
 1. ~~**Products**~~ — done and approved 2026-09-02.
-2. **Recipes** — built 2026-09-02, waiting on a phone test. Not done until approved.
+2. ~~**Recipes**~~ — done and approved 2026-09-02.
 3. **Meals** — logging what you ate, from products and recipe servings. **← next**
 4. **Today** — daily totals and progress against targets.
 5. **Repeat** — copying a past meal onto today, following `replaced_by`.
@@ -281,10 +287,5 @@ Notes from doing it again in step 2, so the next session doesn't rediscover them
 - The same product can be added to a recipe twice rather than being merged into one
   line. Harmless — the totals add up either way — and two additions of the same thing
   at different stages is a real way to write a recipe.
-- The unused-recipe screens (editing, adding and removing ingredients) were checked as
-  logic against a local Postgres but were never *rendered* in a browser here, because
-  that would have meant creating a recipe in the real database. The eaten-recipe screen
-  was rendered against the real sample data. Andrei's phone test is the first look at
-  the other half.
 - The products screen was only checked for the deletion messages, not re-tested end to
   end, when that fix went in. Nothing else in it was touched.
