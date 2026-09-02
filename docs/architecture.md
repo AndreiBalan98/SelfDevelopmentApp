@@ -46,6 +46,7 @@ app/                 every screen, and the server code behind it
     [id]/            one recipe: its ingredients and what a serving works out at
   meals/             what you ate: one day at a time, with the day's totals
     [id]/            one meal: what was in it, when, and how it was
+  sleep/             a night: two times, a score, and the last fortnight
   settings/          the five targets a day is measured against
   export/            the backup screen
   api/export/        the URL that builds the backup file itself
@@ -75,6 +76,8 @@ lib/
                      adding up a recipe, per serving, cost, shrinkage, meals
   settings.ts        reading the one settings row and the targets on it
   targets.ts         measuring a day against a target, for the bars
+  sleep.ts           how long a night was, including crossing midnight
+  series.ts          averages over a run of days, honest about the gaps
   replacements.ts    following oats → oats 2 → oats 3 to whatever you buy today
 supabase/
   migrations/        SQL you run by hand in the Supabase editor, numbered in order
@@ -363,6 +366,43 @@ direction.
 Underneath the day field, the screen says what the 04:00 rule makes of the date and
 time as they currently stand, and offers to use it — so a 02:20 snack landing on the
 previous day is visible rather than surprising.
+
+## Sleep
+
+Pick the morning you woke up, type the two times, tap a score out of ten, save. The
+last fortnight underneath, each tappable to change and deletable, with the average
+length of the last seven nights above them.
+
+The same shape as weight, and safe for the same reason: nothing in the database points
+at a night, so every entry stays editable and deletable forever. Logging the same night
+twice updates it rather than failing, because the date is unique — that uniqueness is
+what makes double-logging impossible rather than merely unlikely.
+
+**How long the night was is never stored.** It's worked out from the two times every
+time it's shown, and it appears live under the fields as you type. That's what catches
+a mistyped time while you can still see it: "22 h 40 m" is visibly wrong in a way a
+stored number never would be.
+
+**Crossing midnight is arithmetic, not a question.** Bed at 23:30 and up at 07:00 means
+the night crossed midnight; bed at 01:30 and up at 09:00 means it didn't. Both are
+obvious from the two numbers, so the app never asks which day bedtime was on, and the
+line under the fields says which it decided.
+
+A night can be logged with only a score, or only a note. There's then nothing to
+measure, and the list shows a dash rather than inventing a length.
+
+## Averages over days, and the gaps in them
+
+`lib/series.ts` averages a value over a run of days. It's used for the seven-night sleep
+average now, for cigarettes next, and it's the same function phase 7 needs for the
+seven-day weight average that the whole TDEE estimate rests on.
+
+**The honest part is the gaps.** A day with no row is a day that wasn't logged, which is
+deliberately not a day with a value of zero — the schema keeps those apart on purpose.
+So the average covers the days that actually have an entry, and it carries how many
+that was, which the screen says out loud when the window isn't full: "7 h 23 m a night ·
+over the 6 you logged". Filling the gaps with zero would flatter a cigarette count.
+Treating a half-empty window as complete would lie about it.
 
 ## The day's totals, and the targets
 

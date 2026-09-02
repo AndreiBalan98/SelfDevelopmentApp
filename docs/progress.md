@@ -4,18 +4,17 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-Nothing in progress. **Phase 5 — nutrition — is complete**, all five steps tested on
-the phone and approved on 2026-09-02.
+Nothing in progress. Phase 6 step 1 (sleep) is finished, tested on the phone and
+approved on 2026-09-02.
 
-**The next session starts by proposing phase 6 — sleep and smoking.** Do not start
-building it. Propose the approach with a recommendation, the alternatives and what each
-costs, then wait. The decisions that need putting to Andrei are listed under Next; the
-one that actually shapes the phase is how to backfill a month of cigarette history
-without thirty separate saves.
+**The next session starts by proposing phase 6 step 2 — smoking.** Do not start
+building it. It is a small step and most of it is already decided, including that
+**there is no backfill machinery** — see Next. Put the two remaining choices to Andrei,
+then wait.
 
 ## Waiting on me (Andrei)
 
-Two things, neither blocking:
+Nothing blocking. Two things from before:
 
 1. **The targets are still the sample ones** from `seed.sql` — 2200 kcal, 150 g protein,
    30 g fibre, 40 g added sugar, 45 a day. Replace them with your own on the Targets
@@ -30,6 +29,12 @@ No SQL required, no environment variables to add, no decisions owed. Migrations
 
 ## Done
 
+- 2026-09-02 — Phase 6 step 1 complete: sleep. Pick the morning, type the two times,
+  score it out of ten. The length is worked out live as you type and never stored, and
+  crossing midnight is arithmetic rather than a question. The last fortnight underneath,
+  each editable and deletable, with the average over the last seven nights above them —
+  said out loud when the week has gaps. Brought in `lib/sleep.ts` and `lib/series.ts`.
+  Tested on the phone and approved.
 - 2026-09-02 — **Phase 5 complete: nutrition.** Products, recipes, meals, the day's
   totals against targets, and repeat. All five steps tested on the phone and approved.
   The honesty rules in Part 4 hold throughout: nothing that has been used can be
@@ -94,26 +99,30 @@ No SQL required, no environment variables to add, no decisions owed. Migrations
 
 ## Next
 
-**Phase 6 — sleep and smoking.** Then 7 (charts, stats, gamification, TDEE), then 8
-(gym). Phase 5 is finished; its five steps are in Done.
+**Phase 6 — sleep and smoking**, in two steps:
 
-### Phase 6 — what to put to Andrei before writing anything
+1. ~~**Sleep**~~ — done and approved 2026-09-02.
+2. **Smoking** — a date, a count, a note, the last fortnight, and the 4-day and 7-day
+   averages above them. **← next**
 
-Sleep and smoking. Both are flat one-row-per-day tables like weight, so the shape is
-already proven; the interesting part is the backfilling. Nothing decided:
+### Step 2 — what's already decided
 
-- **Roughly a month of cigarette history to enter.** Part 4 rule 6 is explicit that
-  smoking needs a fast way to log several days in a row. A day-at-a-time form like
-  weight's would be about thirty separate saves. Worth designing something better and
-  putting the options up.
-- **Sleep is two times and a quality score**, with the date being the *wake-up* date and
-  bedtime usually the evening before. Whether bedtime is typed as a time or picked
-  relative to the wake-up changes how fiddly it is at 07:00.
-- **Whether these get their own screens or share one.** They're logged at opposite ends
-  of the day — sleep in the morning, cigarettes at night.
-- **What the smoking screen shows back.** The plan wants the daily count plus 4-day and
-  7-day moving averages, but the charts themselves are phase 7. Where the line falls
-  between "a number and a trend" and "a chart" is worth agreeing before building.
+**Andrei asked for no backfill machinery.** A grid of thirty editable days was proposed
+and turned down: he will enter his month of cigarette history one day at a time. So the
+smoking screen is the weight screen's shape exactly — pick a day, type a number, save,
+with the last fortnight underneath. **Do not build anything clever for backfilling, and
+do not re-propose it.**
+
+What's left to put to him is small:
+
+- Whether the 4-day and 7-day averages sit above the list or beside each row.
+- Whether the screen says anything about the trend beyond the two numbers. The charts
+  themselves are phase 7.
+
+`averageOver` in `lib/series.ts` already does the arithmetic, gaps included, and is
+tested. The screen only has to call it twice.
+
+Then 7 (charts, stats, gamification, TDEE), then 8 (gym).
 
 ### Settled already, so don't re-ask
 
@@ -153,8 +162,8 @@ For a session picking this up cold, after reading the plan and this file:
   iPhone home screen. `npm run build` and `npm run lint` both pass.
 - Screens so far: `/login` (the PIN screen), `/` (a list of destinations), `/weight`,
   `/products` (list, `new`, `[id]`), `/recipes` (list, `new`, `[id]`), `/meals` (a day
-  with its totals, and `[id]`), `/settings` (the five targets) and `/export`. The
-  temporary `/check` page has been deleted.
+  with its totals, and `[id]`), `/sleep`, `/settings` (the five targets) and `/export`.
+  The temporary `/check` page has been deleted.
 - Everything except `/login`, the icons and the manifest is behind the PIN — including
   `/api/export`, which is the URL that hands over the whole database.
 - The database has ten tables: the nine in the plan plus `login_attempts`. Sample data
@@ -303,6 +312,10 @@ From step 3, on dates specifically:
 2026-09-02 — Backfilled meals get **midday** on the day being looked at, not the current clock time. Logging yesterday's dinner at 01:30 tonight would otherwise land before the 04:00 rule and count towards the day before yesterday. Logging as you eat still gets the real time.
 2026-09-02 — Under the "counts towards" field, the meal screen says what the 04:00 rule makes of the date and time as typed, with a one-tap button to accept it. Makes a 02:20 snack landing on the previous day visible rather than surprising.
 2026-09-02 — A local time that never existed (spring change) resolves to just after the jump; one that happened twice (autumn change) resolves to the second occurrence. Documented rather than accidental — both land the same side of the 04:00 rule, and being the same answer every time is what matters.
+2026-09-02 — Sleep and smoking get separate screens, not a shared one. They're logged at opposite ends of the day — sleep when you wake up, cigarettes when you go to bed — and share a shape and nothing else.
+2026-09-02 — A night's length is never stored. It's worked out from the two times and shown live under the fields, which is what catches a mistyped time while you can still see it. Crossing midnight is arithmetic, not a question: if bedtime is later on the clock than the wake-up, the night crossed midnight. The app never asks which day bedtime was on.
+2026-09-02 — Averages over days count only the days that have an entry, and say how many when the window isn't full ("over the 6 you logged"). A missing day is a day not logged, not a day of zero — filling gaps with zero would flatter a cigarette count, and treating a half-empty window as complete would lie about it. `lib/series.ts`, reused by phase 7 for the 7-day weight average.
+2026-09-02 — **No backfill machinery for cigarettes.** A grid of thirty editable days was proposed and Andrei turned it down: he'll enter his month of history one day at a time, and the smoking screen is the weight screen's shape exactly. Don't re-propose it.
 2026-09-02 — Repeat has two entry points: a button on any past meal, and a "Repeat something recent" list on the day screen. The button alone is what the plan literally asks for, but it's only reachable by remembering which day you ate the thing; the list is what makes it a daily feature. Ranked by recency, not frequency — recency is exact, and "how often" needs a definition of "the same meal" that belongs with phase 7's statistics.
 2026-09-02 — A repeat copies the lines and the meal/snack type, but not the note or the score. A score is a judgement about one particular plate of food, and carrying it forward would fill the history with scores that were never given — which matters, because phase 7 reads them.
 2026-09-02 — A repeated line pointing at something retired follows `replaced_by`, and the copy says which lines moved. That notice is worked out by comparing the copy against the meal it came from, because the copy itself points only at the current versions — a moment later the information is gone. Something retired with nothing after it is copied as it stands and called out separately, rather than failing the whole repeat over one line.

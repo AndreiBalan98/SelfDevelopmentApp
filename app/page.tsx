@@ -52,6 +52,11 @@ export default async function Home() {
           <span className="text-sm text-muted">Log today</span>
         </Link>
 
+        <Link href="/sleep" className="flex items-baseline justify-between gap-4 px-4 py-3.5">
+          <span>Sleep</span>
+          <span className="text-sm text-muted">Last night</span>
+        </Link>
+
         <Link href="/meals" className="flex items-baseline justify-between gap-4 px-4 py-3.5">
           <span>Meals</span>
           <span className="text-sm text-muted tabular-nums">{meals}</span>
