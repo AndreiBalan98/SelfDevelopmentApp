@@ -135,3 +135,70 @@ export function round(value: number, decimals: number): number {
   const factor = 10 ** decimals;
   return Math.round(value * factor) / factor;
 }
+
+// ---------------------------------------------------------------------------
+// Meals
+// ---------------------------------------------------------------------------
+// A meal line points at either a product or a recipe, never both. A product
+// line records what was typed — a number, and whether it meant the product's
+// own unit or pieces — so it still reads "2 eggs" in a year rather than "120 g".
+
+export type CountableProduct = PricedProduct & { piece_grams: number | null };
+
+// How much of the product a line actually means, in the product's own unit.
+export function amountOf(
+  product: CountableProduct,
+  quantity: number,
+  quantityUnit: "unit" | "piece",
+): number {
+  if (quantityUnit !== "piece") return quantity;
+
+  // Pieces are only ever offered for a product that says how much one weighs,
+  // and a product that has been eaten is frozen, so this can't go missing
+  // underneath a line that used it.
+  return quantity * (product.piece_grams ?? 0);
+}
+
+export type MealLine =
+  | {
+      kind: "product";
+      quantity: number;
+      quantityUnit: "unit" | "piece";
+      product: CountableProduct;
+    }
+  | {
+      kind: "recipe";
+      servings: number;
+      perServing: Nutrition;
+      costPerServing: number;
+    };
+
+export function mealLineNutrition(line: MealLine): Nutrition {
+  if (line.kind === "recipe") {
+    const result = emptyNutrition();
+    for (const nutrient of NUTRIENTS) {
+      result[nutrient] = line.perServing[nutrient] * line.servings;
+    }
+    return result;
+  }
+
+  return nutritionOf(line.product, amountOf(line.product, line.quantity, line.quantityUnit));
+}
+
+export function mealLineCost(line: MealLine): number {
+  if (line.kind === "recipe") return line.costPerServing * line.servings;
+
+  return costOf(line.product, amountOf(line.product, line.quantity, line.quantityUnit));
+}
+
+export function mealTotals(lines: MealLine[]): { nutrition: Nutrition; cost: number } {
+  let nutrition = emptyNutrition();
+  let cost = 0;
+
+  for (const line of lines) {
+    nutrition = addNutrition(nutrition, mealLineNutrition(line));
+    cost += mealLineCost(line);
+  }
+
+  return { nutrition, cost };
+}

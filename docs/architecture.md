@@ -44,6 +44,8 @@ app/                 every screen, and the server code behind it
   recipes/           what you cook: list and search, add, edit, replace
     new/             the add form — also the replace form, pre-filled
     [id]/            one recipe: its ingredients and what a serving works out at
+  meals/             what you ate: one day at a time
+    [id]/            one meal: what was in it, when, and how it was
   export/            the backup screen
   api/export/        the URL that builds the backup file itself
   manifest.ts        the app's name, colours and icons, for the home screen
@@ -65,8 +67,11 @@ lib/
   product-fields.ts  reading a product off a form and checking it, shared by
                      adding, replacing and editing
   recipe-fields.ts   the same, for a recipe
+  meal-fields.ts     the same, for a meal and its lines
+  meals.ts           reading a meal's lines back: what each was, how much, and
+                     what one serving of a recipe works out at
   nutrition.ts       all the food arithmetic: scaling a product to a quantity,
-                     adding up a recipe, per serving, cost, shrinkage
+                     adding up a recipe, per serving, cost, shrinkage, meals
   replacements.ts    following oats → oats 2 → oats 3 to whatever you buy today
 supabase/
   migrations/        SQL you run by hand in the Supabase editor, numbered in order
@@ -281,6 +286,80 @@ writes with no transaction available. If any of them fails, the new recipe is de
 again — which takes its own lines with it — so a failed replacement leaves nothing
 behind.
 
+## Meals
+
+What you ate. The screen shows **one day at a time** — arrows either side, a date box
+for jumping further, and "Back to today". Step 4 puts the day's totals and progress
+against targets on this same screen rather than building a second one.
+
+"Today" here means the day you're currently logging towards, not the calendar date. At
+02:00 you are still filling in yesterday, and the screen agrees with you.
+
+**Add a meal creates it there and then** — time set to now, type "meal", day worked out
+by the 04:00 rule — and drops you straight inside it. There is no form standing between
+you and typing what you ate, because this is the screen used several times a day, often
+while eating. A mis-tap leaves an empty meal on the list, which is one tap to delete.
+
+**One search box for products and recipes together**, recipes marked with a tag and
+their calories a serving. Retired ones are left out, including when backfilling.
+
+**Nothing about a meal is ever frozen.** Products and recipes freeze once something
+points at them; nothing points at a meal, so every line, quantity, time and note stays
+editable and deletable forever. Deleting a meal takes its own lines and nothing else.
+
+### Grams or pieces
+
+A meal line records **what you typed** — a number, and whether it meant the product's
+own unit or pieces — not the converted weight. So a line still reads "2 eggs" in a
+year instead of "120 g".
+
+The box counts pieces by default for any product that says what one piece weighs, and
+shows the conversion as you type. That figure is the whole reason the product has it.
+Everything else is grams or millilitres, with no toggle to get wrong.
+
+### The time, and which day it counts towards
+
+`eaten_at` is a full instant; `day` is which day it counts towards. The meal screen
+shows both, and the day is an ordinary editable field.
+
+When you log as you eat, the time is the real one. **When you backfill, the time is
+midday on the day you're looking at** — deliberately not the current clock time. Log
+yesterday's dinner at 01:30 tonight and the real time would fall before the 04:00 rule
+and count towards the day before yesterday. Midday cannot cross that boundary in either
+direction.
+
+Underneath the day field, the screen says what the 04:00 rule makes of the date and
+time as they currently stand, and offers to use it — so a 02:20 snack landing on the
+previous day is visible rather than surprising.
+
+## Dates, and the two mornings a year they go wrong
+
+`lib/day.ts` is the only place a date or a time is built, and everything in it is
+Europe/Bucharest.
+
+`localTimestamp` turns a date and a time typed on the phone into the exact instant they
+mean. That sounds trivial and isn't. On the last Sunday in March the clocks jump
+03:00 → 04:00, so 03:30 never happens; on the last Sunday in October they go back
+04:00 → 03:00, so 03:30 happens twice. Both sit directly on top of the 04:00 rule that
+decides which day a late meal belongs to.
+
+What it does with each case, deliberately:
+
+- **A time that never existed** lands just after the jump — 03:30 becomes 04:30 —
+  rather than before it.
+- **A time that happened twice** takes the second of the two. Either is defensible;
+  both fall on the same side of the 04:00 rule, and what matters is that it's the same
+  answer every time.
+- **Everything else**, including the hours either side of a change, is exact.
+
+The first version of this got the October morning wrong: every meal logged before the
+change was stored an hour late. It was found by checking every hour of both clock-change
+days against a real clock, not by reading the code, which is the only way that bug was
+ever going to be found.
+
+`settings.day_boundary_hour` exists in the database for making 04:00 changeable later.
+Nothing can change it yet, so the app reads a constant.
+
 ## The food arithmetic
 
 `lib/nutrition.ts` holds every sum in the food half of the app: scaling a product to a
@@ -304,14 +383,6 @@ The usual way to produce that file is the Supabase CLI, which is off limits here
 it's written by hand — which means **it has to be updated by hand whenever a
 migration changes a column.** A stale version is worse than none, because it lies
 confidently.
-
-## Dates
-
-Every date in the app goes through `lib/day.ts`, and every one of them is worked out
-in Europe/Bucharest. Doing it in UTC instead would shift entries by an hour twice a
-year and quietly corrupt anything near midnight — and the 04:00 cutoff that decides
-which day a late meal counts towards sits right in that danger zone. Nothing should
-build a date any other way.
 
 ## The database
 

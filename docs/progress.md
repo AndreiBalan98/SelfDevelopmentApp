@@ -4,17 +4,23 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-Nothing in progress. Phase 5 step 2 (recipes) is finished, tested on the phone and
-approved on 2026-09-02.
+**Phase 5 step 3 — meals — is built and waiting to be tested on the phone.** It is not
+done until Andrei has tested and approved it. Nothing is committed yet.
 
-**The next session starts by proposing phase 5 step 3 — meals.** Do not start building
-it. Propose the approach with a recommendation, the alternatives and what each costs,
-then wait. The decisions that need putting to Andrei are listed under Next.
+No migration is needed: `meals` and `meal_items` came in with 0001.
 
 ## Waiting on me (Andrei)
 
-Nothing. No SQL to run, no environment variables to add, no decisions owed. Migrations
-0001–0003 are all in, and no migration is pending.
+**Test meals on the phone**, then approve or send it back. What to try: open a day from
+the sample week and check the numbers look right; add a meal to today and put a product
+and a recipe in it; log eggs and check it counts pieces by default; correct a quantity,
+remove a line, set a time and score, then delete the meal. Then move back a few days
+with the arrows and backfill one — it should land at midday, not at whatever time it is
+now. If you want the awkward case: set a meal's time to 02:20 and watch what it says
+about which day it counts towards.
+
+Nothing else. No SQL to run, no environment variables to add. Migrations 0001–0003 are
+all in, and no migration is pending.
 
 ## Done
 
@@ -61,28 +67,26 @@ each approved on the phone before the next starts:
 
 1. ~~**Products**~~ — done and approved 2026-09-02.
 2. ~~**Recipes**~~ — done and approved 2026-09-02.
-3. **Meals** — logging what you ate, from products and recipe servings. **← next**
-4. **Today** — daily totals and progress against targets.
+3. **Meals** — built 2026-09-02, waiting on a phone test. Not done until approved.
+4. **Today** — daily totals and progress against targets. **← next**
 5. **Repeat** — copying a past meal onto today, following `replaced_by`.
 
-### Step 3 — what to put to Andrei before writing anything
+### Step 4 — what to put to Andrei before writing anything
 
 Nothing here has been decided. Recommendation, alternatives and costs for each, as
 always:
 
-- **What a meal screen looks like.** A meal is a container with lines, like a recipe,
-  so the same one-screen shape probably applies — but a meal is logged in the moment,
-  several times a day, where a recipe is written down once. Speed matters far more.
-- **How a product line records pieces.** Unlike a recipe line, `meal_items` stores
-  what you typed: a number plus whether it meant grams/ml or pieces. The form has to
-  offer both without slowing the common case down.
-- **The 04:00 cutoff and the time field.** `eaten_at` is a full timestamp and `day` is
-  derived from it, editable. `lib/day.ts` needs `localTimestamp` back for this (see
-  Deferred) and it has to be tested against both daylight-saving changes and a 02:20
-  meal, which is where it goes wrong.
-- **Whether a meal is saved before its lines**, as recipes now are, or held and
-  written in one go. The recipe answer isn't automatically the meal answer: a recipe
-  legitimately sits half-finished for days, a meal does not.
+- **Where Today lives.** The day screen at `/meals` was built so that step 4 adds
+  totals and progress to it rather than making a second screen. Worth confirming that's
+  still what's wanted, and whether the home screen gets a summary too.
+- **The targets themselves.** `settings` has `calorie_target`, `protein_target`,
+  `added_sugar_max`, `fibre_min` and `daily_budget`, all empty, and there is no screen
+  that sets any of them. Step 4 needs either a settings screen or a decision to put the
+  numbers in by SQL for now.
+- **What a progress bar does when a target is missing**, which today is all of them.
+- **How far the totals go.** Calories and cost are obvious. Whether protein, fibre and
+  added sugar get bars, plain numbers, or nothing is a real choice — the plan is clear
+  that nothing in this app is ever red about what you ate.
 
 ### Settled already, so don't re-ask
 
@@ -117,8 +121,8 @@ For a session picking this up cold, after reading the plan and this file:
 - The app is Next.js 16 at the repo root, deployed on Vercel, tested by Andrei on an
   iPhone home screen. `npm run build` and `npm run lint` both pass.
 - Screens so far: `/login` (the PIN screen), `/` (a list of destinations), `/weight`,
-  `/products` (list, `new`, `[id]`), `/recipes` (list, `new`, `[id]`) and `/export`.
-  The temporary `/check` page has been deleted.
+  `/products` (list, `new`, `[id]`), `/recipes` (list, `new`, `[id]`), `/meals` (a day,
+  and `[id]`) and `/export`. The temporary `/check` page has been deleted.
 - Everything except `/login`, the icons and the manifest is behind the PIN — including
   `/api/export`, which is the URL that hands over the whole database.
 - The database has ten tables: the nine in the plan plus `login_attempts`. Sample data
@@ -139,7 +143,7 @@ For a session picking this up cold, after reading the plan and this file:
 - Git: Andrei runs every git command. Reading history (`git log`, `git status`,
   `git show`) is fine and useful; anything that writes is not.
 
-Worth knowing about how this has gone so far: **seven** mistakes were caught only
+Worth knowing about how this has gone so far: **eight** mistakes were caught only
 because things were tested rather than assumed — a batch of constraint tests that
 silently proved nothing; a login flow that would have let anyone in with the lockout
 switched off if the database were unreachable; an export that would have saved the
@@ -147,8 +151,9 @@ login page as your backup once the session expired; a wipe script catching the w
 Postgres error code; a `Database` type that silently switched off all table-name
 checking; a product replacement that reported success while leaving an orphan; and a
 deletion refusal that blamed the wrong thing, telling you a recipe had been eaten when
-what actually blocked it was an older recipe pointing at it. Every one of them looked
-fine. Test against the real thing before reporting a step as done.
+what actually blocked it was an older recipe pointing at it; and a date helper that
+stored every meal logged before the October clock change an hour late. Every one of
+them looked fine. Test against the real thing before reporting a step as done.
 
 ### How to test database code without touching Supabase
 
@@ -190,6 +195,15 @@ Notes from doing it again in step 2, so the next session doesn't rediscover them
 - Two things point at a recipe with `on delete restrict`: `meal_items` and another
   recipe's `replaced_by`. Matching on "foreign key" alone can't tell them apart, so
   the error message has to look at *which* constraint failed.
+
+From step 3, on dates specifically:
+
+- The clock-change checks need no database at all — `lib/day.ts` is pure — so they run
+  in a second and are worth running on any change to it. Check **every hour** of both
+  clock-change days, not a few samples: the bug that shipped into the first version was
+  at 01:20 and 02:20 on the October morning, hours the obvious tests don't cover.
+- The 2026 changes are 29 March and 25 October. Bucharest is UTC+2 in winter, UTC+3 in
+  summer.
 
 ## Decisions made while building
 
@@ -250,6 +264,14 @@ Notes from doing it again in step 2, so the next session doesn't rediscover them
 2026-09-02 — The ingredient search rewrites the URL rather than fetching in the browser, so the server does the searching and a reload doesn't lose your place. Adding an ingredient redirects back to the recipe with the box empty, ready for the next one.
 2026-09-02 — All food arithmetic lives in `lib/nutrition.ts` as pure functions with no database access, and following a replacement chain lives in `lib/replacements.ts`. Both are checkable on their own, which is the point: nothing derived is stored, so one wrong function would be wrong everywhere at once and still look fine.
 2026-09-02 — A deletion refused by the database now says *why*. Several different things point at a product or a recipe with `on delete restrict` — a recipe that uses it, a meal that ate it, and an older version replaced by it — and they need different answers. Found by testing: the first version told you a recipe had been eaten when nobody had eaten it. Fixed in recipes and, at Andrei's request, in products too, where the same wrong message had shipped in step 1.
+2026-09-02 — The meals screen shows one day at a time, and "today" means the day you're currently logging towards rather than the calendar date — at 02:00 you're still filling in yesterday. Step 4 adds totals and progress to this same screen instead of making a second one.
+2026-09-02 — Tapping Add creates the meal immediately, with the time set to now and the day worked out by the 04:00 rule, and drops you inside it. No form between you and typing what you ate; this screen gets used several times a day. Accepted cost: a mis-tap leaves an empty meal, which is one tap to delete.
+2026-09-02 — One search box returns products and recipes together, recipes tagged and showing calories a serving. Deciding which of the two something is before you can look for it is a tap that shouldn't exist.
+2026-09-02 — A meal line stores what was typed, not the conversion: a number plus whether it meant the product's own unit or pieces. The box counts pieces by default for any product that says what one weighs, and shows the grams live. Recipe lines are servings and take halves.
+2026-09-02 — Backfilled meals get **midday** on the day being looked at, not the current clock time. Logging yesterday's dinner at 01:30 tonight would otherwise land before the 04:00 rule and count towards the day before yesterday. Logging as you eat still gets the real time.
+2026-09-02 — Under the "counts towards" field, the meal screen says what the 04:00 rule makes of the date and time as typed, with a one-tap button to accept it. Makes a 02:20 snack landing on the previous day visible rather than surprising.
+2026-09-02 — A local time that never existed (spring change) resolves to just after the jump; one that happened twice (autumn change) resolves to the second occurrence. Documented rather than accidental — both land the same side of the 04:00 rule, and being the same answer every time is what matters.
+2026-09-02 — Nothing about a meal is ever frozen. Nothing in the database points at a meal, so every line, quantity, time and note stays editable and deletable forever, and deleting a meal takes only its own lines.
 2026-09-02 — `agentRules: false` in `next.config.ts`. `next dev` was appending its own block of instructions to `CLAUDE.md` and re-adding it whenever it was removed; that file is written by hand and says what it needs to say.
 2026-09-01 — Icon files are split by job: `app/icon.png` and `app/apple-icon.png` for the browser and iOS (Next.js writes the link tags automatically), `public/icon-192.png` and `public/icon-512.png` for the manifest, which needs fixed paths.
 
@@ -266,11 +288,12 @@ Notes from doing it again in step 2, so the next session doesn't rediscover them
 - The export writes to the database on a GET request — it sets `last_export_at`.
   Nothing links to that URL, so nothing can trigger it by prefetching. Worth
   remembering if a link to it is ever added.
-- A tested Europe/Bucharest wall-clock-to-timestamp helper (`localTimestamp`,
-  `shiftDays`) was written for the rejected sample-data code and removed with it,
-  rather than left in as dead code. Phase 5 needs it back for meal times. Test it
-  against both daylight-saving changes and against a 02:20 meal, which is where it
-  goes wrong.
+- `settings.day_boundary_hour` is not read by anything. The app uses a constant of 4.
+  Nothing can change the column yet, so reading it would only be scaffolding — but if a
+  settings screen ever lands, `lib/day.ts` is the one place that has to change.
+- Meals can be logged on a future day by typing the date into a meal's own form. The day
+  screen won't navigate past today, and backfill has to stay open, so this is left as
+  it is rather than half-blocked.
 - `lib/types.ts` is written by hand and does not update itself. Every migration from
   now on has to change it too, or it starts lying. Worth reconsidering the Supabase
   CLI if that ever slips.
