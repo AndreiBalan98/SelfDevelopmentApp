@@ -4,19 +4,23 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-Nothing in progress. Phase 5 step 1 (products) is finished, tested on the phone and
-approved. Session ended the evening of 2026-09-02; everything through step 1 is
-committed and pushed, and the working tree was clean.
+**Phase 5 step 2 — recipes — is built and waiting to be tested on the phone.** It is
+not done until Andrei has tested and approved it. Nothing is committed yet.
 
-**The next session starts by proposing phase 5 step 2 — recipes.** Do not start
-building it. Propose the approach with a recommendation, the alternatives and what
-each costs, then wait. The decisions that need putting to Andrei are listed under
-Next.
+No migration is needed: `recipes` and `recipe_items` came in with 0001.
 
 ## Waiting on me (Andrei)
 
-Nothing. No SQL to run, no environment variables to add, no decisions owed. Migrations
-0001–0003 are all in, and no migration is pending.
+**Test recipes on the phone**, then approve or send it back. What to try: open a
+recipe you've eaten (the sample chicken and rice) and check it's frozen but still
+renameable; add a new recipe, put ingredients in it, correct a quantity, remove one,
+type a cooked weight, delete it; and replace one to see the ingredients come across.
+
+Also worth a look while you're there: delete a product that replaced an older one. The
+message that comes back was wrong and has just been fixed.
+
+Nothing else. No SQL to run, no environment variables to add. Migrations 0001–0003 are
+all in, and no migration is pending.
 
 ## Done
 
@@ -50,38 +54,29 @@ Nothing. No SQL to run, no environment variables to add, no decisions owed. Migr
 each approved on the phone before the next starts:
 
 1. ~~**Products**~~ — done and approved 2026-09-02.
-2. **Recipes** — list, add, lines from products, cooked weight. Brings in
-   `lib/nutrition.ts`, where all the arithmetic will live. **← next**
-3. **Meals** — logging what you ate, from products and recipe servings.
+2. **Recipes** — built 2026-09-02, waiting on a phone test. Not done until approved.
+3. **Meals** — logging what you ate, from products and recipe servings. **← next**
 4. **Today** — daily totals and progress against targets.
 5. **Repeat** — copying a past meal onto today, following `replaced_by`.
 
-### Step 2 — what to put to Andrei before writing anything
+### Step 3 — what to put to Andrei before writing anything
 
-Recommendation, alternatives and costs for each, as always. Nothing here has been
-decided yet:
+Nothing here has been decided. Recommendation, alternatives and costs for each, as
+always:
 
-- **How ingredient lines get added.** A search-and-add list inside the recipe screen,
-  versus a separate "add ingredient" screen. Note the iOS constraint from Part 6: a
-  form split across screens can lose half-entered work when the app is relaunched,
-  which is what ruled out a wizard for the product form.
-- **When a new recipe is saved.** A recipe needs its lines to mean anything, but
-  `recipes` and `recipe_items` are separate writes with no transaction available.
-  Either save the recipe first and add lines to it afterwards, or hold the whole
-  thing in the browser and write it in one go with a tidy-up if the second write
-  fails. This is the first place the no-transaction limitation really bites.
-- **What the recipe screen shows once it has lines.** Raw weight is calculated from
-  the lines (1 ml counts as 1 g), `cooked_weight` is typed in after weighing the pan,
-  and the difference is the shrinkage. Decide whether shrinkage is shown as a
-  percentage, a weight, or both, and whether per-serving nutrition and cost sit on
-  the same screen.
-- **Retiring and replacing a recipe.** Part 4 rule 2 says a logged recipe is frozen,
-  exactly like a product. The open question is whether Replace copies the lines too
-  (it should) and what happens when a line points at a product that has since been
-  retired — follow `replaced_by` to the current version, or copy the line as it
-  stands. These give different answers and the choice should be deliberate.
-- **Whether retired products can be added to a new recipe.** The plan hides retired
-  products when logging; building a recipe is arguably the same situation.
+- **What a meal screen looks like.** A meal is a container with lines, like a recipe,
+  so the same one-screen shape probably applies — but a meal is logged in the moment,
+  several times a day, where a recipe is written down once. Speed matters far more.
+- **How a product line records pieces.** Unlike a recipe line, `meal_items` stores
+  what you typed: a number plus whether it meant grams/ml or pieces. The form has to
+  offer both without slowing the common case down.
+- **The 04:00 cutoff and the time field.** `eaten_at` is a full timestamp and `day` is
+  derived from it, editable. `lib/day.ts` needs `localTimestamp` back for this (see
+  Deferred) and it has to be tested against both daylight-saving changes and a 02:20
+  meal, which is where it goes wrong.
+- **Whether a meal is saved before its lines**, as recipes now are, or held and
+  written in one go. The recipe answer isn't automatically the meal answer: a recipe
+  legitimately sits half-finished for days, a meal does not.
 
 ### Settled already, so don't re-ask
 
@@ -116,19 +111,20 @@ For a session picking this up cold, after reading the plan and this file:
 - The app is Next.js 16 at the repo root, deployed on Vercel, tested by Andrei on an
   iPhone home screen. `npm run build` and `npm run lint` both pass.
 - Screens so far: `/login` (the PIN screen), `/` (a list of destinations), `/weight`,
-  `/products` (list, `new`, `[id]`) and `/export`. The temporary `/check` page has
-  been deleted.
+  `/products` (list, `new`, `[id]`), `/recipes` (list, `new`, `[id]`) and `/export`.
+  The temporary `/check` page has been deleted.
 - Everything except `/login`, the icons and the manifest is behind the PIN — including
   `/api/export`, which is the URL that hands over the whole database.
 - The database has ten tables: the nine in the plan plus `login_attempts`. Sample data
   goes in and out by hand with the scripts in `supabase/sample-data/`; the app never
-  creates data by itself. **What's actually in it is unknown to this file** — Andrei
-  tested the product screens on 2026-09-02, so there may be real products, sample
-  data, both, or neither. Ask rather than assume; `wipe.sql` only ever removes rows
-  named "Sample …" or noted "sample data", so real entries are safe from it either
-  way.
-- The last commit was `3abc93f`, "Phase 5 step 1: products". `git log` is readable and
-  is the fastest way to confirm what actually shipped.
+  creates data by itself. As of 2026-09-02 it holds **mostly `seed.sql` sample data
+  plus a few things Andrei added himself**, so `wipe.sql` may refuse if something real
+  now uses a sample product — that's it doing its job. Ask rather than assume.
+- Nothing in this repo has ever written to Supabase except through the app itself, and
+  Claude has never created a row there. Every database check has been run against a
+  throwaway Postgres in the session scratchpad.
+- The last commit was `57a2d0a`, "update /docs/progress". `git log` is readable and is
+  the fastest way to confirm what actually shipped.
 - Four environment variables, in `.env.local` and in Vercel: `SUPABASE_URL`,
   `SUPABASE_SECRET_KEY`, `PIN_HASH`, `SESSION_SECRET`.
 - Migrations `0001`, `0002` and `0003` have all been run. A new migration means a new
@@ -137,15 +133,16 @@ For a session picking this up cold, after reading the plan and this file:
 - Git: Andrei runs every git command. Reading history (`git log`, `git status`,
   `git show`) is fine and useful; anything that writes is not.
 
-Worth knowing about how this has gone so far: **six** mistakes were caught only
+Worth knowing about how this has gone so far: **seven** mistakes were caught only
 because things were tested rather than assumed — a batch of constraint tests that
 silently proved nothing; a login flow that would have let anyone in with the lockout
 switched off if the database were unreachable; an export that would have saved the
 login page as your backup once the session expired; a wipe script catching the wrong
 Postgres error code; a `Database` type that silently switched off all table-name
-checking; and a product replacement that reported success while leaving an orphan.
-Every one of them looked fine. Test against the real thing before reporting a step as
-done.
+checking; a product replacement that reported success while leaving an orphan; and a
+deletion refusal that blamed the wrong thing, telling you a recipe had been eaten when
+what actually blocked it was an older recipe pointing at it. Every one of them looked
+fine. Test against the real thing before reporting a step as done.
 
 ### How to test database code without touching Supabase
 
@@ -175,6 +172,18 @@ repo*, and this respects that — nothing is committed.
 Two traps this setup has already exposed, both worth re-checking in any new code: an
 `update` that matches no rows is **not** an error, and `on delete restrict` raises
 `restrict_violation` (23001), not `foreign_key_violation` (23503).
+
+Notes from doing it again in step 2, so the next session doesn't rediscover them:
+
+- The stand-in has to wrap every statement in `with t as (…) select json_agg(t) from t`,
+  not in a plain subquery, or `insert … returning` won't parse.
+- `psql` on its own is enough — no `pg` driver, so nothing gets installed anywhere.
+  `json_agg` renders numerics as JSON numbers, which is what PostgREST does too.
+- Compile with `--strict`, or the standalone `tsc` narrows union types differently
+  from the real build and invents errors that aren't there.
+- Two things point at a recipe with `on delete restrict`: `meal_items` and another
+  recipe's `replaced_by`. Matching on "foreign key" alone can't tell them apart, so
+  the error message has to look at *which* constraint failed.
 
 ## Decisions made while building
 
@@ -226,6 +235,16 @@ Two traps this setup has already exposed, both worth re-checking in any new code
 2026-09-02 — Creating a replacement and retiring the original are two writes with no transaction available. If the second doesn't happen the first is undone. **Note for any future two-step write: updating a row that doesn't exist is not an error — it silently matches nothing. Ask for the changed rows back with `.select()` and check you got any.** Found by testing, after the action reported success while leaving an orphan.
 2026-09-01 — Weight input accepts a comma as a decimal point and rounds past two decimals, matching what the column stores. Future dates are refused; past dates are not, because backfill is required everywhere.
 2026-09-01 — Two colours added to `globals.css`, `--warn` and `--danger`, used only to say a backup is overdue. Nothing in this app is ever red about what you ate.
+2026-09-02 — A recipe is one screen. Name and servings are saved first, then the ingredients are added to the saved recipe underneath: search, type a quantity, Add. Nothing is spread across two screens, because iOS drops a home-screen app's state on relaunch. Accepted cost: a recipe can sit there empty, which the list shows as "no ingredients". That state is honest anyway — the cooked weight can't be filled in until the pan has been weighed, usually a different day.
+2026-09-02 — Shrinkage is shown as grams *and* a percentage. The percentage is what you compare between cooks; the grams are what tell you a figure was mistyped. A pan that got heavier is reported as such rather than hidden — adding water to a stew is real, and so is a typo.
+2026-09-02 — Per-serving nutrition and cost sit on the recipe screen itself, right under the ingredients, because that's the one moment you can still spot a wrong number and fix it. The whole-batch figures are one muted line beneath.
+2026-09-02 — The cooked weight stays editable forever, even on a recipe that's been eaten. A meal records *servings*, so per-serving calories and cost come from the ingredients divided by the servings and the cooked weight is never part of that sum. It only says what a portion weighs. Weighing the pan a week later rewrites no history. Servings and ingredients are frozen once eaten; name and notes are always editable.
+2026-09-02 — Replace copies the ingredients, and any line pointing at a retired product is followed through `replaced_by` to the current version. The replace screen lists which lines moved before you save. Copying retired products across would mean replacing them again immediately; following the chain silently would hide a change in the numbers.
+2026-09-02 — Retired products are hidden from the ingredient search, the same as when logging a meal. A new recipe should be built from what you buy today.
+2026-09-02 — The ingredient search rewrites the URL rather than fetching in the browser, so the server does the searching and a reload doesn't lose your place. Adding an ingredient redirects back to the recipe with the box empty, ready for the next one.
+2026-09-02 — All food arithmetic lives in `lib/nutrition.ts` as pure functions with no database access, and following a replacement chain lives in `lib/replacements.ts`. Both are checkable on their own, which is the point: nothing derived is stored, so one wrong function would be wrong everywhere at once and still look fine.
+2026-09-02 — A deletion refused by the database now says *why*. Several different things point at a product or a recipe with `on delete restrict` — a recipe that uses it, a meal that ate it, and an older version replaced by it — and they need different answers. Found by testing: the first version told you a recipe had been eaten when nobody had eaten it. Fixed in recipes and, at Andrei's request, in products too, where the same wrong message had shipped in step 1.
+2026-09-02 — `agentRules: false` in `next.config.ts`. `next dev` was appending its own block of instructions to `CLAUDE.md` and re-adding it whenever it was removed; that file is written by hand and says what it needs to say.
 2026-09-01 — Icon files are split by job: `app/icon.png` and `app/apple-icon.png` for the browser and iOS (Next.js writes the link tags automatically), `public/icon-192.png` and `public/icon-512.png` for the manifest, which needs fixed paths.
 
 ## Deferred
@@ -252,6 +271,20 @@ Two traps this setup has already exposed, both worth re-checking in any new code
 - Product search uses SQL `ilike`, so a `%` or `_` typed into the search box acts as a
   wildcard rather than a literal character. Harmless today; escape the term if it ever
   reads as a bug.
-- There is no confirmation step on any Delete button — a product, a weigh-in. They're
-  single-user actions on recoverable data, and the database refuses the dangerous
-  ones outright. Revisit if something is ever lost by a mis-tap.
+- There is no confirmation step on any Delete button — a product, a weigh-in, a
+  recipe. They're single-user actions on recoverable data, and the database refuses
+  the dangerous ones outright. Revisit if something is ever lost by a mis-tap.
+- A recipe ingredient is typed in grams or millilitres, never in pieces. `recipe_items`
+  has no `quantity_unit` column, so three eggs has to be typed as 180 g. The search
+  result shows "one piece is 60 g" as a reminder. Meals are different — `meal_items`
+  does store what you typed. Revisit only if it annoys you; it would need a migration.
+- The same product can be added to a recipe twice rather than being merged into one
+  line. Harmless — the totals add up either way — and two additions of the same thing
+  at different stages is a real way to write a recipe.
+- The unused-recipe screens (editing, adding and removing ingredients) were checked as
+  logic against a local Postgres but were never *rendered* in a browser here, because
+  that would have meant creating a recipe in the real database. The eaten-recipe screen
+  was rendered against the real sample data. Andrei's phone test is the first look at
+  the other half.
+- The products screen was only checked for the deletion messages, not re-tested end to
+  end, when that fix went in. Nothing else in it was touched.

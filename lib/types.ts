@@ -138,8 +138,15 @@ export type Database = {
           retired?: boolean;
           replaced_by?: Nullable<number>;
         };
+        // As with products, *which* of these you may actually change is a rule
+        // about whether the recipe has been eaten yet (Part 4, rule 2), not
+        // something a type can decide — that check lives in the action that
+        // does the saving. cooked_weight is the exception: nothing calculates
+        // from it, so it stays editable forever.
         Update: {
           name?: string;
+          servings?: number;
+          cooked_weight?: Nullable<number>;
           notes?: Nullable<string>;
           retired?: boolean;
           replaced_by?: Nullable<number>;

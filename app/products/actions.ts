@@ -157,15 +157,28 @@ export async function deleteProduct(
   const { error } = await db().from("products").delete().eq("id", id);
 
   if (error) {
-    // The database refuses to delete anything that's been used, rather than
-    // taking the meals with it.
-    if (/foreign key|restrict/i.test(error.message)) {
+    // The database refuses to delete a product anything else points at, rather
+    // than taking that other thing with it.
+    //
+    // Three different things can point at a product, and they need different
+    // answers. Saying "you've used this" about a product nothing has used sends
+    // you looking in the wrong place entirely.
+    if (/recipe_items|meal_items/i.test(error.message)) {
       return {
         ok: false,
         message:
           "This product has been used, so it can't be deleted — that would change meals you've already logged. Retire it instead.",
       };
     }
+
+    if (/replaced_by/i.test(error.message)) {
+      return {
+        ok: false,
+        message:
+          "An older product was replaced by this one and still points at it, so deleting it would break that link. Retire it instead.",
+      };
+    }
+
     return { ok: false, message: `Could not delete: ${error.message}` };
   }
 

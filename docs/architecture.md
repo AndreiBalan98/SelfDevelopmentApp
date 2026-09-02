@@ -41,6 +41,9 @@ app/                 every screen, and the server code behind it
   products/          what you buy: list and search, add, edit, replace
     new/             the add form — also the replace form, pre-filled
     [id]/            one product
+  recipes/           what you cook: list and search, add, edit, replace
+    new/             the add form — also the replace form, pre-filled
+    [id]/            one recipe: its ingredients and what a serving works out at
   export/            the backup screen
   api/export/        the URL that builds the backup file itself
   manifest.ts        the app's name, colours and icons, for the home screen
@@ -61,6 +64,10 @@ lib/
                      writing rather than on your phone. Updated by hand.
   product-fields.ts  reading a product off a form and checking it, shared by
                      adding, replacing and editing
+  recipe-fields.ts   the same, for a recipe
+  nutrition.ts       all the food arithmetic: scaling a product to a quantity,
+                     adding up a recipe, per serving, cost, shrinkage
+  replacements.ts    following oats → oats 2 → oats 3 to whatever you buy today
 supabase/
   migrations/        SQL you run by hand in the Supabase editor, numbered in order
   sample-data/       seed.sql and wipe.sql — invented data for developing
@@ -209,6 +216,83 @@ Because this database can't wrap two writes in one transaction, creating the
 replacement and retiring the original are separate steps. If the second doesn't
 happen — including the case where the original was deleted from another screen while
 you were typing — the first is undone and nothing changes.
+
+## Recipes
+
+What you cook, built out of products. A recipe is a name, how many servings it makes,
+what the pan weighed afterwards, and a list of ingredients.
+
+**It's one screen.** Name and servings go in first, and the ingredients are added to
+the saved recipe underneath — search, type a quantity, Add. Nothing is spread across
+two screens, because iOS throws away a home-screen app's state when it relaunches and
+a half-built recipe would go with it.
+
+That does mean a recipe can sit there for a while with nothing in it. That's visible
+on the list, which says "no ingredients", and it's the honest state anyway: the cooked
+weight can't be filled in until the pan has been weighed, which is usually a different
+day.
+
+**Retired products are left out of the search.** A new recipe should be built from
+what you buy today. If you want the old one deliberately, it's still there in the
+products list.
+
+### What the screen works out for you
+
+Nothing here is stored. All of it is recalculated every time the screen is drawn, so
+it can never go stale:
+
+- **Raw weight** — the ingredients added up, with 1 ml counted as 1 g. No densities
+  are stored anywhere.
+- **Shrinkage** — cooked weight minus raw weight, shown both as grams and as a
+  percentage. The percentage is what you compare between cooks; the grams are what
+  tell you a number was mistyped. A pan that got *heavier* is reported as such rather
+  than hidden, because adding water to a stew is a real thing and so is a typo.
+- **Per serving** — the nine nutrition figures and the cost, divided by the servings.
+  With a cooked weight it also says roughly what one serving weighs, which is what you
+  actually need when you're dividing the pan up.
+
+Missing nutrition values are added up as zero, so a fibre or salt total can read lower
+than what's really in the pan. Calories never can, because calories are required on
+every product.
+
+### What you may change, and when
+
+Same rule as products, counted the same way — how many meals point at the recipe:
+
+- **Not eaten yet** — everything is editable, ingredients included, and it can be
+  deleted.
+- **Eaten** — servings and ingredients are frozen. Changing them would rewrite every
+  meal already logged.
+
+Three things stay editable forever: the name, the notes, and **the cooked weight**.
+The first two are labels. The cooked weight is the interesting one — a meal records a
+number of *servings*, so the calories and cost of a portion come from the ingredients
+divided by the servings, and the cooked weight is never part of that sum. It only says
+what a portion weighs. So weighing the pan a week later, or correcting a mistyped
+figure, rewrites no history.
+
+**Replace** works exactly like it does for products, and it brings the ingredients
+across. Where a line points at a product that has since been retired, it follows the
+`replaced_by` chain and uses the current version — and the replace screen lists which
+lines moved before you save, because that's where the numbers change under you.
+
+Creating the recipe, copying its lines and retiring the old one are three separate
+writes with no transaction available. If any of them fails, the new recipe is deleted
+again — which takes its own lines with it — so a failed replacement leaves nothing
+behind.
+
+## The food arithmetic
+
+`lib/nutrition.ts` holds every sum in the food half of the app: scaling a product to a
+quantity, adding up a recipe, dividing by servings, cost, shrinkage. Meals and the
+Today screen will use the same functions.
+
+It's kept separate from the screens on purpose. Nothing derived is ever stored, so one
+wrong function here would be wrong on every screen and in every week of history at
+once — and it would look completely fine. Keeping the sums in one file with no
+database access means they can be checked directly, which is how they were checked:
+against a throwaway Postgres in a scratch folder, thrown away afterwards, with the app
+run against the real numbers to confirm the screen agrees.
 
 ## Knowing the database's shape
 
