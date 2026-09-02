@@ -4,25 +4,28 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Phase 5 step 3 — meals — is built and waiting to be tested on the phone.** It is not
-done until Andrei has tested and approved it. Nothing is committed yet.
+Nothing in progress. Phase 5 step 3 (meals) is finished, tested on the phone and
+approved on 2026-09-02.
 
-No migration is needed: `meals` and `meal_items` came in with 0001.
+**The next session starts by proposing phase 5 step 4 — Today.** Do not start building
+it. Propose the approach with a recommendation, the alternatives and what each costs,
+then wait. The decisions that need putting to Andrei are listed under Next — note that
+this is the first step that needs a way to *set* the targets, which nothing does yet.
 
 ## Waiting on me (Andrei)
 
-**Test meals on the phone**, then approve or send it back. What to try: open a day from
-the sample week and check the numbers look right; add a meal to today and put a product
-and a recipe in it; log eggs and check it counts pieces by default; correct a quantity,
-remove a line, set a time and score, then delete the meal. Then move back a few days
-with the arrows and backfill one — it should land at midday, not at whatever time it is
-now. If you want the awkward case: set a meal's time to 02:20 and watch what it says
-about which day it counts towards.
-
-Nothing else. No SQL to run, no environment variables to add. Migrations 0001–0003 are
-all in, and no migration is pending.
+Nothing. No SQL to run, no environment variables to add, no decisions owed. Migrations
+0001–0003 are all in, and no migration is pending.
 
 ## Done
+
+- 2026-09-02 — Phase 5 step 3 complete: meals. One day at a time, with arrows and a
+  date box; Add creates the meal and drops you inside it; one search box for products
+  and recipes together; pieces counted by default where a product says what one weighs;
+  per-line and whole-meal nutrition and cost; time, day, type, note and score, all
+  editable forever. Backfilled meals land at midday so they can't fall the wrong side
+  of the 04:00 rule. `lib/day.ts` gained `localTimestamp` and the rest of the local-time
+  helpers. Tested on the phone and approved.
 
 - 2026-09-02 — Phase 5 step 2 complete: recipes. One screen per recipe — name,
   servings, cooked weight, then ingredients searched and added underneath. Raw weight,
@@ -67,7 +70,7 @@ each approved on the phone before the next starts:
 
 1. ~~**Products**~~ — done and approved 2026-09-02.
 2. ~~**Recipes**~~ — done and approved 2026-09-02.
-3. **Meals** — built 2026-09-02, waiting on a phone test. Not done until approved.
+3. ~~**Meals**~~ — done and approved 2026-09-02.
 4. **Today** — daily totals and progress against targets. **← next**
 5. **Repeat** — copying a past meal onto today, following `replaced_by`.
 
