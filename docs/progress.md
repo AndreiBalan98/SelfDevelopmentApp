@@ -4,23 +4,77 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Nothing in progress.** Phases 1–6 are complete, every table in the plan except gym has
-a screen behind it, and both issues raised before phase 7 are closed. The app has been in
-real daily use for a week.
+**Phase 7 is on hold while the plan for it is rewritten.** Phases 1–6 are complete, every
+table in the plan except gym has a screen behind it, and both pre-phase-7 issues are
+closed. The app has been in real daily use since about 2026-09-01.
 
-**Phase 7 is next and has not been started.** It needs two decisions from Andrei first —
-see Next.
+**Nothing is being built.** No code, no library chosen, no step started, until the rewrite
+below is finished and Andrei says start. Phase 7 as currently written in the plan is
+**not** the phase that will be built.
+
+### The rewrite, and how it runs
+
+A week of real use has given Andrei his own list of what he wants the app to do next.
+That list is the starting point, and phase 7 gets merged into it — not the other way
+round. In his words: he'll say exactly what he wants from here on, and the plan changes
+to match.
+
+**As of 2026-09-09 he is still writing that list.** He said it was taking longer than he
+expected. **The next session starts by waiting for it.** Do not propose phase 7 work, do
+not propose steps, do not ask which chart to build first — he knows the process and will
+open with the list.
+
+The process, agreed on 2026-09-08 and confirmed by him:
+
+1. He gives **the whole list at once**. Claude acts on none of it yet.
+2. Then **one item at a time, in conversation**. For each: what it overlaps with in the
+   current phase 7, what it replaces, what it would leave orphaned. He decides
+   keep / change / remove. One decision, then the next. Slow and explicit is the point —
+   he asked for it that way.
+3. The result is a **rewritten phase 7 in Part 5 of `life-tracker-plan.md`**. The plan is
+   the source of truth, so it gets edited to match what he actually wants rather than
+   appended to.
+
+**Phase 8 (gym) is explicitly out of scope for this rewrite** — his words: "let phase 8
+aside, it's for the future, not now." Don't touch it, don't design it, don't raise it.
+
+**The rule about forgetting.** He is worried something in phase 7 that he still wants will
+be lost because he didn't think to mention it. So nothing in phase 7 disappears silently.
+Every item below has to be explicitly accounted for — kept, changed, or removed **by his
+decision** — and a removal is written into the plan or into Deferred with its reason, so a
+later session can't quietly resurrect it or quietly drop it. If something he describes
+overlaps an existing item, say so rather than building both.
+
+The full checklist that must be accounted for, from Part 5 of the plan as it stands:
+
+- Weight chart over time, with interpolated days marked
+- Cigarettes chart, with the 4-day and 7-day moving averages
+- Calories against target, charted
+- Days-logged counter (only goes up)
+- Calendar heatmap, a dot per day coloured by how completely it was logged
+- Logging streak with a grace day — on *logging*, never on hitting a target
+- Weekly digest card: average sleep, cigarette trend, food spend, average calories
+- Milestones ("lowest weight in three months", "first week under 40 cigarettes")
+- Food spend this month
+- **The TDEE estimate**, with its constraints: 7-day moving average of weight, window of
+  at least 14 days and ideally 21–28, interpolated days excluded, confidence range rather
+  than one number
+
+Two decisions were outstanding before this started and are now **folded into the rewrite**
+rather than answered first — they only make sense once the shape of the phase is known:
+whether a **charting library** goes in (it would be the first dependency since the
+scaffold, so it needs asking properly), and **how the phase breaks into steps**, the way
+phase 5 was five steps. Raise both *after* the list is settled, not before.
 
 ## Waiting on me (Andrei)
 
-1. **Your month of cigarette history**, a day at a time, whenever you get to it.
-2. **Two decisions before phase 7 starts**: whether a charting library goes in, and how
-   phase 7 is broken into steps. Both are in Next.
-3. **Sample data and targets — status unknown to Claude.** As of 2026-09-02 the database
-   still held `seed.sql` sample data and the sample targets. A week of real logging has
-   happened since; whether `wipe.sql` was ever run, and whether the five targets are your
-   own numbers now, has not been confirmed. Worth checking on the Targets screen and in
-   the products list. Ask rather than assume in a future session.
+1. **The list.** Everything he wants the app to do from here on, in one go. Being written
+   as of 2026-09-09. **Everything else waits on this.**
+2. **Your month of cigarette history**, a day at a time, whenever you get to it.
+3. **Whether the five targets are set.** The database was wiped before real logging
+   started, and `wipe.sql` leaves all five empty — so unless they've been typed on the
+   Targets screen since, they are still blank. The day screen shows numbers with no bars
+   in that state, and several phase 7 items read them. Worth a look.
 
 Migrations 0001–0004 have all been run.
 
@@ -107,30 +161,17 @@ Migrations 0001–0004 have all been run.
 
 ## Next
 
-**Phase 7 — charts, stats, gamification and TDEE.** Phase 6 is finished; both its steps
-are in Done.
+**Rewrite phase 7, then build it.** The rewrite and how it runs are described in Now —
+read that section rather than this one, because phase 7 as written in the plan is not
+what will be built. The next session opens by waiting for Andrei's list.
 
-By far the widest phase so far, and it should be broken into steps the same way phase 5
-was — the proposal is partly about what those steps are. What's in it, from Part 5 of
-the plan:
+One piece of context that will matter when TDEE comes up in that conversation: it wants
+three to four weeks of weight and food, and as of 2026-09-09 there is roughly one week of
+real logging. The charts and the counters work on a week; TDEE does not. That's an
+argument for where it sits in the order, not for dropping it — it's the reason the app
+exists.
 
-- Charts: weight over time with the interpolated days marked, cigarettes with the two
-  moving averages, calories against target.
-- The days-logged counter, the calendar heatmap, the logging streak with its grace day,
-  the weekly digest card, milestones, and food spend this month.
-- **The TDEE estimate** — the reason the whole app exists. It needs the 7-day moving
-  average of weight rather than raw values, a window of at least 14 days and ideally
-  21–28, interpolated days excluded, and a confidence range rather than one confident
-  number.
-
-Two things to raise before any of it is built: **whether a charting library goes in**
-(it would be the first dependency added since the scaffold, and needs asking), and
-**whether there is enough real data yet** for TDEE to say anything — it wants three to
-four weeks of weight and food, and as of 2026-09-08 there is roughly one week of real
-logging. The charts and the counters work on a week; TDEE does not, so it may be worth
-building last in the phase rather than first.
-
-Then 8 (gym).
+Then 8 (gym), which is deliberately parked and not part of this rewrite.
 
 ### Settled already, so don't re-ask
 
@@ -176,10 +217,9 @@ For a session picking this up cold, after reading the plan and this file:
   `/api/export`, which is the URL that hands over the whole database.
 - The database has ten tables: the nine in the plan plus `login_attempts`. Sample data
   goes in and out by hand with the scripts in `supabase/sample-data/`; the app never
-  creates data by itself. As of 2026-09-08 it holds **a week of real logging**, on top of
-  whatever remains of the `seed.sql` sample data — whether the wipe was ever run has not
-  been confirmed, so `wipe.sql` may now refuse because something real uses a sample
-  product. That's it doing its job. Ask rather than assume.
+  creates data by itself. **The sample data is gone** — Andrei ran `wipe.sql` before he
+  started logging properly, so as of 2026-09-09 the database holds about a week of real
+  data and nothing invented. Anything phase 7 reads is now his own.
 - Nothing in this repo has ever written to Supabase except through the app itself, and
   Claude has never created a row there. Every database check has been run against a
   throwaway Postgres in the session scratchpad.
@@ -340,6 +380,15 @@ From step 3, on dates specifically:
 2026-09-02 — **The two sugar figures overlap, and nothing may ever add them.** `sugars_total` is the packet's "of which sugars" line — natural and added together. `sugars_added` is Andrei's estimate of how much of *that same figure* was added. Natural sugar is the difference, computed and never stored. Chosen over the plan's original "two disjoint halves" reading for two reasons: it never asks for a subtraction while copying a packet, which is the phase 5 principle that the honest path has to be the fast one; and it is the only reading where leaving "added" blank still leaves the total correct, instead of silently asserting that all of it was natural. The plan (Part 3) and `architecture.md` were rewritten to match. **Phase 7 must not sum them** — the note is in `lib/nutrition.ts` too.
 2026-09-02 — Migration 0004 renames `products.sugars_natural` to `sugars_total`, along with its check constraint, and puts the meaning in a `comment on column` so it travels with the database. No data moves; the form has always asked for the packet figure, so what is already stored is already a total. The rename was done rather than skipped because the old name described the opposite of what the column holds, and this project has twice been bitten by a name that lied. Verified against a throwaway Postgres: values intact, old column gone, renamed constraint still refusing negatives, every column list the app selects with still resolving, and `seed.sql` and `wipe.sql` both still running clean.
 2026-09-02 — Any row that puts two inputs side by side gets `min-w-0` on each half. A text input carries a built-in width of roughly 20 characters, and a flex column will not shrink below its contents unless told to, so two of them insisted on 478px inside a screen that has at most 408 and as little as 335. Measured in a real browser at every iPhone width rather than eyeballed. Applies to the product form, the recipe form and the rename row; the sleep and meal date/time rows were measured too and fit, so they were left alone.
+2026-09-09 — **Phase 7 is rewritten from Andrei's own list before it is built.** A week of
+real use produced a list of what he wants next, and the plan changes to match rather than
+the list being fitted into the plan. Agreed process: the whole list at once, then one item
+at a time in conversation, each compared against the existing phase 7 and decided
+keep/change/remove, ending in a rewritten phase 7 in Part 5. He asked for it slowly and
+explicitly, decision after decision, and specifically asked that nothing already in phase
+7 be lost just because he forgot to mention it — so every existing item is accounted for
+by an explicit decision, and removals are written down with their reason. Phase 8 is out
+of scope for the rewrite.
 2026-09-01 — Icon files are split by job: `app/icon.png` and `app/apple-icon.png` for the browser and iOS (Next.js writes the link tags automatically), `public/icon-192.png` and `public/icon-512.png` for the manifest, which needs fixed paths.
 
 ## Deferred
