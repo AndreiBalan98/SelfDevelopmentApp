@@ -4,46 +4,32 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Fixing issues raised before phase 7 starts.** Phase 6 is complete and every table in
-the plan except gym has a screen behind it.
+**Nothing in progress.** Phases 1–6 are complete, every table in the plan except gym has
+a screen behind it, and both issues raised before phase 7 are closed. The app has been in
+real daily use for a week.
 
-Issue 1 — the form rows that ran off the screen sideways — is **fixed, waiting to be
-tested on the phone**.
-
-Issue 2 — what "of which sugars" and "of which added" mean — is **settled and built**,
-waiting on migration 0004 being run and then tested. The two figures overlap: the first
-is the packet's line, the second is your estimate of how much of that same figure is
-added. They are never summed. The column was renamed `sugars_natural` → `sugars_total`
-to stop the name saying the opposite.
-
-**Phase 7 is not started and should not be started until both are closed.**
+**Phase 7 is next and has not been started.** It needs two decisions from Andrei first —
+see Next.
 
 ## Waiting on me (Andrei)
 
-1. **Run migration 0004.** `supabase/migrations/0004_sugars_total.sql`, pasted into the
-   Supabase SQL editor. It renames one column and moves no data. **The app will error on
-   every product, recipe and meal screen until it is run**, because the code now asks
-   for `sugars_total` — so run it before or at the same time as deploying.
-2. **Test the form-width fix on the phone.** Add a product and add a recipe: the price
-   and size boxes, and the servings and cooked-weight boxes, should sit side by side
-   inside the screen with nothing scrolling sideways. Also open a used product and check
-   the Rename row.
-3. **Check your own products' sugar figures** after the migration. The form has always
-   asked for the packet's figure, so anything you typed should already be right — but if
-   you ever typed a natural-only number, it now reads as a total. A product that has been
-   eaten is frozen, so correcting one means retire-and-replace, not edit.
-4. **Your month of cigarette history**, a day at a time, whenever you get to it.
-5. **Sample data is still in the database.** `supabase/sample-data/wipe.sql` is worth
-   running before logging properly. Note it will refuse if anything real already uses a
-   sample product — that's it doing its job rather than a fault.
-6. **The targets are still the sample ones** from `seed.sql` — 2200 kcal, 150 g protein,
-   30 g fibre, 40 g added sugar, 45 a day. Replace them with your own on the Targets
-   screen. `wipe.sql` sets all five back to empty, so do this **after** the wipe rather
-   than before, or you'll type them twice.
+1. **Your month of cigarette history**, a day at a time, whenever you get to it.
+2. **Two decisions before phase 7 starts**: whether a charting library goes in, and how
+   phase 7 is broken into steps. Both are in Next.
+3. **Sample data and targets — status unknown to Claude.** As of 2026-09-02 the database
+   still held `seed.sql` sample data and the sample targets. A week of real logging has
+   happened since; whether `wipe.sql` was ever run, and whether the five targets are your
+   own numbers now, has not been confirmed. Worth checking on the Targets screen and in
+   the products list. Ask rather than assume in a future session.
 
-Migrations 0001–0003 are in. **0004 is pending and the app needs it.**
+Migrations 0001–0004 have all been run.
 
 ## Done
+
+- 2026-09-08 — **Both pre-phase-7 issues closed.** The form-width fix was tested on the
+  phone and approved. Migration 0004 was run, and the app has been in real daily use for
+  a week since — which exercises every product, recipe and meal screen against the
+  renamed `sugars_total` column. Phase 7 is now unblocked.
 
 - 2026-09-02 — **Phase 6 complete: sleep and smoking.** Both steps tested on the phone
   and approved. Every table in the plan except gym now has a screen behind it.
@@ -140,7 +126,9 @@ the plan:
 Two things to raise before any of it is built: **whether a charting library goes in**
 (it would be the first dependency added since the scaffold, and needs asking), and
 **whether there is enough real data yet** for TDEE to say anything — it wants three to
-four weeks of weight and food, and the real logging is only starting now.
+four weeks of weight and food, and as of 2026-09-08 there is roughly one week of real
+logging. The charts and the counters work on a week; TDEE does not, so it may be worth
+building last in the phase rather than first.
 
 Then 8 (gym).
 
@@ -188,9 +176,10 @@ For a session picking this up cold, after reading the plan and this file:
   `/api/export`, which is the URL that hands over the whole database.
 - The database has ten tables: the nine in the plan plus `login_attempts`. Sample data
   goes in and out by hand with the scripts in `supabase/sample-data/`; the app never
-  creates data by itself. As of 2026-09-02 it holds **mostly `seed.sql` sample data
-  plus a few things Andrei added himself**, so `wipe.sql` may refuse if something real
-  now uses a sample product — that's it doing its job. Ask rather than assume.
+  creates data by itself. As of 2026-09-08 it holds **a week of real logging**, on top of
+  whatever remains of the `seed.sql` sample data — whether the wipe was ever run has not
+  been confirmed, so `wipe.sql` may now refuse because something real uses a sample
+  product. That's it doing its job. Ask rather than assume.
 - Nothing in this repo has ever written to Supabase except through the app itself, and
   Claude has never created a row there. Every database check has been run against a
   throwaway Postgres in the session scratchpad.
@@ -198,7 +187,7 @@ For a session picking this up cold, after reading the plan and this file:
   5 was committed as five steps, one per approved step, plus the two side fixes.
 - Four environment variables, in `.env.local` and in Vercel: `SUPABASE_URL`,
   `SUPABASE_SECRET_KEY`, `PIN_HASH`, `SESSION_SECRET`.
-- Migrations `0001`, `0002` and `0003` have all been run. A new migration means a new
+- Migrations `0001` to `0004` have all been run. A new migration means a new
   numbered file in `supabase/migrations/` for Andrei to paste in himself.
 
 - Git: Andrei runs every git command. Reading history (`git log`, `git status`,
