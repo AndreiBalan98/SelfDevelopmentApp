@@ -1,0 +1,870 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Life Tracker — Phase 7 mockups</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+:root{
+  --bg:#141416; --screen:#1c1c1f; --card:#26262a; --card2:#303035;
+  --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.16);
+  --tx:#ededed; --tx2:#a9a9ae; --tx3:#77777c;
+  --blue:#378ADD; --amber:#EF9F27; --green:#639922; --coral:#D85A30; --grey:#cfcfd4;
+  --red:#E24B4A; --zone:#97C459;
+  --prot:#7F77DD; --carb:#EF9F27; --sug:#378ADD; --fib:#639922; --fat:#1D9E75; --sat:#0F6E56; --unsat:#5DCAA5;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.page{max-width:1180px;margin:0 auto;padding:40px 24px 96px}
+h1{font-size:28px;font-weight:600;margin:0 0 10px}
+.intro{color:var(--tx2);max-width:72ch;line-height:1.6;font-size:15px;margin:0 0 6px}
+section{margin-top:64px}
+h2{font-size:21px;font-weight:600;margin:0 0 6px}
+.sec-note{color:var(--tx2);max-width:74ch;line-height:1.55;margin:0 0 22px;font-size:14px}
+.row{display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start}
+.fig{width:340px}
+.fig.wide{width:auto}
+.cap{font-size:13px;color:var(--tx2);margin:12px 4px 0;line-height:1.5}
+.cap b{color:var(--tx);font-weight:600}
+
+/* phone */
+.phone{width:340px;min-height:700px;background:var(--screen);border-radius:30px;border:1px solid var(--line2);position:relative;overflow:hidden}
+.scr{padding:18px 16px 96px;position:relative}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:68px;border-top:1px solid var(--line);display:flex;justify-content:space-around;padding-top:12px;background:var(--screen);z-index:3}
+.tabbar span{position:relative;font-size:25px;color:var(--tx3);height:28px}
+.tabbar .dot{position:absolute;top:-1px;right:-5px;width:8px;height:8px;border-radius:50%;background:var(--red)}
+.hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;min-height:28px}
+.title{font-size:18px;font-weight:600}
+.hbtns{display:flex;gap:16px;align-items:center}
+.hbtn{position:relative;font-size:23px;color:var(--tx2);display:inline-flex}
+.hbtn .dot{position:absolute;top:-1px;right:-3px;width:8px;height:8px;border-radius:50%;background:var(--red)}
+.scrolled{font-size:11px;color:var(--tx3);text-align:center;margin:-4px 0 10px}
+
+/* range pills */
+.pills{display:flex;gap:6px;margin:0 0 10px;flex-wrap:wrap}
+.pill{font-size:12px;padding:5px 11px;border-radius:999px;border:1px solid var(--line2);color:var(--tx2)}
+.pill.on.blue{background:rgba(55,138,221,.18);border-color:var(--blue);color:#B5D4F4}
+.pill.on.amber{background:rgba(239,159,39,.16);border-color:var(--amber);color:#FAC775}
+.pill.on.green{background:rgba(99,153,34,.2);border-color:var(--green);color:#C0DD97}
+.rangeinfo{font-size:12px;color:var(--tx3);margin:-2px 0 10px}
+.daterow{display:flex;justify-content:center;align-items:center;gap:14px;font-size:13px;color:var(--tx2);margin:0 0 12px}
+.daterow i{font-size:18px}
+
+/* nutrition sub-tabs, fab */
+.seg{display:flex;background:var(--line);border-radius:9px;padding:2px;margin:0 0 12px}
+.seg span{flex:1;text-align:center;font-size:12px;padding:6px 0;color:var(--tx2);border-radius:7px;position:relative}
+.seg span.on{background:var(--card2);color:var(--tx)}
+.seg .sdot{position:absolute;top:3px;right:5px;width:6px;height:6px;border-radius:50%;background:var(--red)}
+.fab{position:absolute;right:16px;bottom:82px;width:46px;height:46px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;color:#EAF3DE;font-size:24px;z-index:4}
+
+/* cards, boxes, rows */
+.card{background:var(--card);border-radius:12px;padding:12px 14px;margin:0 0 12px}
+.ctitle{font-size:14px;font-weight:600;margin:0}
+.csub{font-size:12px;color:var(--tx3);margin:2px 0 10px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0 0 14px}
+.box{background:var(--card);border-radius:10px;padding:8px 10px}
+.box .l{font-size:11px;color:var(--tx3)}
+.box .v{font-size:17px;font-weight:600}
+.lrow{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--line);font-size:13px;gap:10px}
+.lrow:first-child{border-top:none}
+.muted{color:var(--tx3)}
+.sec2{color:var(--tx2)}
+.red{color:var(--red)}
+.okg{color:var(--zone)}
+.tag{font-size:10px;padding:1px 7px;border-radius:999px;background:var(--line2);color:var(--tx2);margin-left:6px;white-space:nowrap}
+.minirot{font-size:18px;color:var(--tx2)}
+.charthead{display:flex;justify-content:space-between;align-items:center;margin:4px 0 2px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--tx2);margin:4px 0 12px}
+.sw{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:5px;border-radius:2px}
+
+/* nutrient bars */
+.nb{margin:0 0 15px}
+.nbh{display:flex;justify-content:space-between;font-size:13px;margin:0 0 6px}
+.track{position:relative;height:8px;background:var(--line2);border-radius:4px}
+.zone{position:absolute;top:-4px;height:16px;background:var(--zone);opacity:.28;border-radius:3px;left:69.2%;width:15.4%}
+.fill{position:absolute;top:0;left:0;height:8px;border-radius:4px}
+.over{position:absolute;top:0;height:8px;background:var(--red);border-radius:0 4px 4px 0}
+.mark{position:absolute;top:-5px;width:2px;height:18px;background:var(--tx2);left:76.9%}
+.fatline{font-size:12px;color:var(--tx2);margin-top:7px}
+.fatline .k{display:inline-block;width:9px;height:8px;border-radius:2px;vertical-align:middle;margin-right:4px}
+
+/* sheets */
+.dim{position:absolute;inset:0;background:rgba(0,0,0,.55);z-index:5}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--card);border-radius:18px 18px 0 0;padding:10px 16px 26px;z-index:6}
+.grab{width:38px;height:4px;border-radius:2px;background:var(--line2);margin:0 auto 12px}
+
+/* tokens */
+.swatches{display:flex;flex-wrap:wrap;gap:14px}
+.swc{width:128px}
+.swc .c{height:44px;border-radius:10px;margin-bottom:6px}
+.swc .n{font-size:13px}
+.swc .h{font-size:12px;color:var(--tx3)}
+.tokrow{margin:0 0 22px}
+.tokrow h3{font-size:14px;font-weight:600;color:var(--tx2);margin:0 0 10px}
+.landscape{width:700px;height:340px;background:var(--screen);border-radius:30px;border:1px solid var(--line2);padding:16px 20px;position:relative}
+.foot{margin-top:72px;color:var(--tx3);font-size:13px;max-width:74ch;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>Life Tracker — Phase 7 mockups</h1>
+<p class="intro">Visual reference for <code>phase-7-spec.md</code>. Every screen here uses only the options that were approved. Layout, spacing, colours, icons and components are the reference; the numbers are illustrative (many come from the 1–9 September 2026 export).</p>
+<p class="intro">Where this file and the spec disagree about <em>behaviour</em>, the spec wins. Where they disagree about <em>looks</em>, this file wins.</p>
+
+<!-- ============ FOUNDATIONS ============ -->
+<section>
+<h2>Foundations</h2>
+<p class="sec-note">Dark base, one accent per tab, fixed nutrient colours used everywhere. Red means a missing log, a missed target, or an overdue backup; amber only means a backup that's getting old. The font stays Geist in the app (this file uses a system font only because it's standalone). Icons are Tabler Icons, outline set. Spec part 2.</p>
+
+<div class="tokrow"><h3>Tab accents</h3>
+<div class="swatches">
+<div class="swc"><div class="c" style="background:#378ADD"></div><div class="n">Sleep</div><div class="h">#378ADD</div></div>
+<div class="swc"><div class="c" style="background:#EF9F27"></div><div class="n">Smoking</div><div class="h">#EF9F27</div></div>
+<div class="swc"><div class="c" style="background:#639922"></div><div class="n">Nutrition</div><div class="h">#639922</div></div>
+<div class="swc"><div class="c" style="background:#D85A30"></div><div class="n">Workout</div><div class="h">#D85A30</div></div>
+<div class="swc"><div class="c" style="background:#cfcfd4"></div><div class="n">Settings</div><div class="h">neutral grey</div></div>
+</div></div>
+
+<div class="tokrow"><h3>Nutrients</h3>
+<div class="swatches">
+<div class="swc"><div class="c" style="background:#7F77DD"></div><div class="n">Protein · P</div><div class="h">#7F77DD</div></div>
+<div class="swc"><div class="c" style="background:#EF9F27"></div><div class="n">Carbs · C</div><div class="h">#EF9F27</div></div>
+<div class="swc"><div class="c" style="background:#378ADD"></div><div class="n">Added sugar · S</div><div class="h">#378ADD</div></div>
+<div class="swc"><div class="c" style="background:#639922"></div><div class="n">Fibre · Fi</div><div class="h">#639922</div></div>
+<div class="swc"><div class="c" style="background:#1D9E75"></div><div class="n">Fat · Fa</div><div class="h">#1D9E75</div></div>
+<div class="swc"><div class="c" style="background:#0F6E56"></div><div class="n">Saturated</div><div class="h">#0F6E56</div></div>
+<div class="swc"><div class="c" style="background:#5DCAA5"></div><div class="n">Unsaturated</div><div class="h">#5DCAA5</div></div>
+</div></div>
+
+<div class="tokrow"><h3>States</h3>
+<div class="swatches">
+<div class="swc"><div class="c" style="background:#E24B4A"></div><div class="n">Missing / missed / backup 14d+</div><div class="h">#E24B4A</div></div>
+<div class="swc"><div class="c" style="background:#EF9F27"></div><div class="n">Backup 7d+</div><div class="h">amber (existing --warn)</div></div>
+<div class="swc"><div class="c" style="background:rgba(151,196,89,.35)"></div><div class="n">±10% target zone</div><div class="h">#97C459 at ~30%</div></div>
+<div class="swc"><div class="c" style="background:#639922"></div><div class="n">Meals (comparisons)</div><div class="h">#639922</div></div>
+<div class="swc"><div class="c" style="background:#D85A30"></div><div class="n">Snacks (comparisons)</div><div class="h">#D85A30</div></div>
+</div></div>
+
+<div class="tokrow"><h3>Surfaces used in this file</h3>
+<div class="swatches">
+<div class="swc"><div class="c" style="background:#1c1c1f;border:1px solid rgba(255,255,255,.16)"></div><div class="n">Screen</div><div class="h">#1c1c1f</div></div>
+<div class="swc"><div class="c" style="background:#26262a"></div><div class="n">Card</div><div class="h">#26262a</div></div>
+<div class="swc"><div class="c" style="background:#303035"></div><div class="n">Raised segment</div><div class="h">#303035</div></div>
+<div class="swc"><div class="c" style="background:#ededed"></div><div class="n">Text</div><div class="h">#ededed / #a9a9ae / #77777c</div></div>
+</div></div>
+
+<div class="tokrow"><h3>Bottom tab bar (icons only, no labels)</h3>
+<div style="width:340px;background:var(--screen);border-radius:16px;border:1px solid var(--line2);position:relative;height:68px;overflow:hidden">
+<div class="tabbar" data-active="nutrition" data-dots="sleep"></div>
+</div>
+<p class="cap">moon · smoking · salad · barbell · settings. Active icon in the tab's accent, others muted. The red dot shows a missing log (here: last night's sleep).</p>
+</div>
+</section>
+
+<!-- ============ SLEEP ============ -->
+<section>
+<h2>Sleep</h2>
+<p class="sec-note">12-hour clock face. Arc ends are always labelled in 24-hour time. Night view steps between nights with the arrows (a night is stored under its wake-up date); tapping the clock edits that night; period views overlay one translucent arc per night. The chart icon switches to chart view (ranges only). Spec part 3.</p>
+<div class="row">
+
+<div class="fig">
+<div class="phone"><div class="scr">
+  <div class="hdr"><span class="title">Sleep</span><span class="hbtns"><span class="hbtn"><i class="ti ti-chart-line"></i></span><span class="hbtn"><i class="ti ti-plus"></i></span></span></div>
+  <div class="pills"><span class="pill on blue">Night</span><span class="pill">7</span><span class="pill">14</span><span class="pill">28</span><span class="pill">Custom</span></div>
+  <div class="daterow"><i class="ti ti-chevron-left"></i><span>Night to 11 Sep</span><i class="ti ti-chevron-right"></i><i class="ti ti-calendar" style="color:var(--blue)"></i></div>
+  <svg id="clockNight" viewBox="0 0 320 320" width="100%"></svg>
+  <p style="text-align:center;font-style:italic;color:var(--tx2);font-size:14px;margin:6px 10px 0">Birthday dinner, couldn't get to bed earlier.</p>
+</div><div class="tabbar" data-active="sleep"></div></div>
+<p class="cap"><b>Night view.</b> Thick blue arc from bedtime to wake time, exact times at both ends, hours and quality in the centre, note in italics below.</p>
+</div>
+
+<div class="fig">
+<div class="phone"><div class="scr">
+  <div class="hdr"><span class="title">Sleep</span><span class="hbtns"><span class="hbtn"><i class="ti ti-chart-line"></i></span><span class="hbtn"><i class="ti ti-plus"></i></span></span></div>
+  <div class="pills"><span class="pill">Night</span><span class="pill on blue">7</span><span class="pill">14</span><span class="pill">28</span><span class="pill">Custom</span></div>
+  <div class="rangeinfo" style="text-align:center">4–10 Sep · 7 nights</div>
+  <svg id="clockPeriod" viewBox="0 0 320 320" width="100%"></svg>
+  <div class="card" style="margin-top:6px;padding:10px 12px">
+    <div style="display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr;font-size:12px;row-gap:6px">
+      <span></span><span class="muted">earliest</span><span class="muted">latest</span><span class="muted">avg</span>
+      <span class="sec2">Bedtime</span><span>23:30</span><span>02:00</span><span>00:28</span>
+      <span class="sec2">Wake</span><span>07:00</span><span>09:30</span><span>08:19</span>
+    </div>
+  </div>
+</div><div class="tabbar" data-active="sleep"></div></div>
+<p class="cap"><b>Period view (7 / 14 / 28 / Custom).</b> One translucent arc per night; overlaps build up to full blue. Averages in the centre and on the rim; earliest, latest and average times below. No notes.</p>
+</div>
+
+<div class="fig">
+<div class="phone"><div class="scr">
+  <div class="hdr"><span class="title">Sleep</span><span class="hbtns"><span class="hbtn"><i class="ti ti-chart-line"></i></span><span class="hbtn"><i class="ti ti-plus"></i><span class="dot"></span></span></span></div>
+  <div class="pills"><span class="pill on blue">Night</span><span class="pill">7</span><span class="pill">14</span><span class="pill">28</span><span class="pill">Custom</span></div>
+  <div class="daterow"><i class="ti ti-chevron-left"></i><span>Night to 11 Sep</span><i class="ti ti-chevron-right"></i><i class="ti ti-calendar" style="color:var(--blue)"></i></div>
+  <svg id="clockEmpty" viewBox="0 0 320 320" width="100%"></svg>
+  <p style="text-align:center;color:var(--tx2);font-size:14px;margin:6px 0 0">Log last night</p>
+</div><div class="tabbar" data-active="sleep" data-dots="sleep"></div></div>
+<p class="cap"><b>Missing last night.</b> Big + on the clock, red dot on the header + and on the Sleep tab icon. Tapping either opens the existing entry form (restyled).</p>
+</div>
+
+<div class="fig">
+<div class="phone"><div class="scr">
+  <div class="hdr"><span class="title">Sleep</span><span class="hbtns"><span class="hbtn" style="color:var(--blue)"><i class="ti ti-clock"></i></span><span class="hbtn"><i class="ti ti-plus"></i></span></span></div>
+  <div class="pills"><span class="pill on blue">7</span><span class="pill">14</span><span class="pill">28</span><span class="pill">Custom</span></div>
+  <div class="charthead"><span class="rangeinfo" style="margin:0">4–10 Sep · 7 nights</span><i class="ti ti-rotate-clockwise minirot"></i></div>
+  <svg viewBox="0 0 400 250" width="100%">
+    <g style="font-size:11px;fill:#77777c" text-anchor="end"><text x="42" y="224">22:00</text><text x="42" y="193">00:00</text><text x="42" y="162">02:00</text><text x="42" y="131">04:00</text><text x="42" y="100">06:00</text><text x="42" y="70">08:00</text><text x="42" y="39">10:00</text></g>
+    <g stroke="rgba(255,255,255,.08)" stroke-width="1"><line x1="50" y1="220" x2="330" y2="220"/><line x1="50" y1="189.2" x2="330" y2="189.2"/><line x1="50" y1="158.5" x2="330" y2="158.5"/><line x1="50" y1="127.7" x2="330" y2="127.7"/><line x1="50" y1="96.9" x2="330" y2="96.9"/><line x1="50" y1="66.2" x2="330" y2="66.2"/><line x1="50" y1="35.4" x2="330" y2="35.4"/></g>
+    <polygon points="70,66.2 110,81.5 150,43.1 190,50.8 230,58.5 270,66.2 310,62.3 310,185.4 270,196.9 230,158.5 190,189.2 150,170 110,193.1 70,181.5" fill="#378ADD" fill-opacity="0.18"/>
+    <polyline points="70,66.2 110,81.5 150,43.1 190,50.8 230,58.5 270,66.2 310,62.3" fill="none" stroke="#EF9F27" stroke-width="2.5"/>
+    <polyline points="70,181.5 110,193.1 150,170 190,189.2 230,158.5 270,196.9 310,185.4" fill="none" stroke="#7F77DD" stroke-width="2.5"/>
+    <g fill="#EF9F27"><circle cx="70" cy="66.2" r="3"/><circle cx="110" cy="81.5" r="3"/><circle cx="150" cy="43.1" r="3"/><circle cx="190" cy="50.8" r="3"/><circle cx="230" cy="58.5" r="3"/><circle cx="270" cy="66.2" r="3"/><circle cx="310" cy="62.3" r="3"/></g>
+    <g fill="#7F77DD"><circle cx="70" cy="181.5" r="3"/><circle cx="110" cy="193.1" r="3"/><circle cx="150" cy="170" r="3"/><circle cx="190" cy="189.2" r="3"/><circle cx="230" cy="158.5" r="3"/><circle cx="270" cy="196.9" r="3"/><circle cx="310" cy="185.4" r="3"/></g>
+    <line x1="50" y1="61.2" x2="330" y2="61.2" stroke="#EF9F27" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <line x1="50" y1="182.1" x2="330" y2="182.1" stroke="#7F77DD" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <text x="336" y="65" style="font-size:11px;fill:#a9a9ae">avg 08:19</text>
+    <text x="336" y="186" style="font-size:11px;fill:#a9a9ae">avg 00:28</text>
+    <g style="font-size:11px;fill:#77777c" text-anchor="middle"><text x="70" y="240">4</text><text x="110" y="240">5</text><text x="150" y="240">6</text><text x="190" y="240">7</text><text x="230" y="240">8</text><text x="270" y="240">9</text><text x="310" y="240">10</text></g>
+  </svg>
+  <div class="legend"><span><span class="sw" style="background:#EF9F27"></span>Wake time</span><span><span class="sw" style="background:#7F77DD"></span>Bedtime</span><span><span class="sw" style="background:rgba(55,138,221,.45);height:8px"></span>Asleep</span></div>
+</div><div class="tabbar" data-active="sleep"></div></div>
+<p class="cap"><b>Chart view.</b> Time axis runs continuously across midnight. Dashed average lines, light blue shading between bedtime and wake time. No second chart. Rotate button top right of the chart.</p>
+</div>
+
+</div>
+</section>
+
+<!-- ============ SMOKING ============ -->
+<section>
+<h2>Smoking</h2>
+<p class="sec-note">Always one day behind. Bar chart from zero up to exactly the highest count in range, with 4-day and 7-day moving averages. Opens on 28 days. List below, newest first; tap a row to edit. Spec part 4.</p>
+<div class="row">
+
+<div class="fig">
+<div class="phone"><div class="scr">
+  <div class="hdr"><span class="title">Smoking</span><span class="hbtns"><span class="hbtn"><i class="ti ti-plus"></i><span class="dot"></span></span></span></div>
+  <div class="pills"><span class="pill">7</span><span class="pill">14</span><span class="pill on amber">28</span><span class="pill">All</span><span class="pill">Custom</span></div>
+  <div class="charthead"><span class="rangeinfo" style="margin:0">13 Aug – 9 Sep · 28 days</span><i class="ti ti-rotate-clockwise minirot"></i></div>
+  <svg id="smokePortrait" viewBox="0 0 320 210" width="100%"></svg>
+  <div class="legend"><span><span class="sw" style="background:#EF9F27;height:8px;width:8px"></span>Per day</span><span><span class="sw" style="background:#ededed"></span>4-day avg</span><span><span class="sw" style="background:#D85A30"></span>7-day avg</span></div>
+  <div>
+    <div class="lrow"><span>Wed 9 Sep</span><span class="muted" style="flex:1">&nbsp;</span><span style="font-weight:600">8</span></div>
+    <div class="lrow"><span>Tue 8 Sep <span class="muted" style="font-size:12px">· Party</span></span><span style="font-weight:600">11</span></div>
+    <div class="lrow"><span>Mon 7 Sep</span><span style="font-weight:600">9</span></div>
+    <div class="lrow"><span>Sun 6 Sep <span class="muted" style="font-size:12px">· Long drive</span></span><span style="font-weight:600">10</span></div>
+  </div>
+</div><div class="tabbar" data-active="smoking" data-dots="smoking"></div></div>
+<p class="cap"><b>Portrait.</b> Red dot on + and on the tab icon because yesterday (10 Sep) isn't logged yet. A logged zero shows a small 0 (23 Aug); a day with no entry has nothing (30 Aug). No averages text line: the chart's lines replace it.</p>
+</div>
+
+<div class="fig wide">
+<div class="landscape">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+    <span style="font-size:15px;font-weight:600">Smoking <span class="muted" style="font-weight:400;font-size:13px">· 13 Aug – 9 Sep</span></span>
+    <i class="ti ti-rotate-2 minirot" style="font-size:22px"></i>
+  </div>
+  <svg id="smokeLandscape" viewBox="0 0 660 280" width="100%"></svg>
+</div>
+<p class="cap" style="max-width:700px"><b>After tapping rotate.</b> The chart turns 90° clockwise to fill the screen; I turn the phone to match. The list is hidden. Tapping the button again returns to portrait. Every chart in the app has this button.</p>
+</div>
+
+</div>
+</section>
+
+<!-- ============ NUTRITION TODAY ============ -->
+<section>
+<h2>Nutrition — Today</h2>
+<p class="sec-note">Opens by default. Sub-tabs Today · Recipes · Products · Weight. Calories are the hero with money beside it. Bars keep their nutrient colour; red only on the part that's over and on the number. Spec part 5.</p>
+<div class="row">
+
+<div class="fig">
+<div class="phone"><div class="scr">
+  <div class="hdr"><span class="title">Nutrition</span></div>
+  <div class="seg"><span class="on">Today</span><span>Recipes</span><span>Products</span><span>Weight<i class="sdot"></i></span></div>
+  <div class="daterow"><i class="ti ti-chevron-left"></i><span>Today, 11 Sep</span><i class="ti ti-chevron-right"></i><i class="ti ti-calendar" style="color:var(--green)"></i></div>
+  <div style="display:flex;align-items:flex-end;gap:18px;margin:4px 0 20px">
+    <div><div style="font-size:32px;font-weight:600;line-height:1">1,960 <span style="font-size:13px;color:var(--tx3);font-weight:400">kcal</span></div><div style="font-size:11px;color:var(--tx3);margin-top:4px">of 2,000</div></div>
+    <div><div style="font-size:17px;font-weight:600;color:var(--red);line-height:1">36.40 lei</div><div style="font-size:11px;color:var(--tx3);margin-top:4px">of 33 lei</div></div>
+  </div>
+
+  <div class="nb"><div class="nbh"><span>Protein</span><span class="sec2">118 / 150 g · 17 to zone</span></div>
+    <div class="track"><div class="zone"></div><div class="fill" style="width:60.5%;background:var(--prot)"></div><div class="mark"></div></div></div>
+  <div class="nb"><div class="nbh"><span>Carbs</span><span class="okg">230 / 240 g <i class="ti ti-check"></i></span></div>
+    <div class="track"><div class="zone"></div><div class="fill" style="width:73.7%;background:var(--carb)"></div><div class="mark"></div></div></div>
+  <div class="nb"><div class="nbh"><span>Added sugar</span><span class="red">38 / 30 g max</span></div>
+    <div class="track"><div class="fill" style="width:76.9%;background:var(--sug);border-radius:4px 0 0 4px"></div><div class="over" style="left:76.9%;width:20.5%"></div><div class="mark"></div></div></div>
+  <div class="nb"><div class="nbh"><span>Fibre</span><span class="okg">33 / 35 g <i class="ti ti-check"></i></span></div>
+    <div class="track"><div class="zone"></div><div class="fill" style="width:72.5%;background:var(--fib)"></div><div class="mark"></div></div></div>
+  <div class="nb" style="margin-bottom:8px"><div class="nbh"><span>Fat</span><span class="okg">66 / 60 g <i class="ti ti-check"></i></span></div>
+    <div class="track"><div class="zone"></div><div class="fill" style="width:33.3%;background:var(--sat);border-radius:4px 0 0 4px"></div><div class="fill" style="left:33.3%;width:51.3%;background:var(--unsat);border-radius:0 4px 4px 0"></div><div class="mark"></div></div>
+    <div class="fatline"><span class="k" style="background:var(--sat)"></span>Sat 26 g · <span class="k" style="background:var(--unsat)"></span>Unsat 40 g · <span class="red">1 : 1.5</span> <span class="muted">(goal 1 : 2)</span></div></div>
+</div>
+<div class="fab"><i class="ti ti-plus"></i></div>
+<div class="tabbar" data-active="nutrition" data-dots="nutrition"></div></div>
+<p class="cap"><b>Top of Today.</b> Protein below its zone is neutral today (red on past days). Carbs and fibre in zone get a tick. Added sugar and money over their ceilings turn red. The fat bar is split saturated/unsaturated; only the ratio is red. Red dot on Weight and on the Nutrition icon: today's weight is missing.</p>
+</div>
+
+<div class="fig">
+<div class="phone"><div class="scr" style="padding-bottom:150px">
+  <p class="scrolled">Today, scrolled down</p>
+  <div class="card" style="padding:4px 14px">
+    <div id="mealRows"></div>
+  </div>
+  <p style="font-size:14px;font-weight:600;margin:16px 0 8px">Day details</p>
+  <div class="card" style="padding:6px 14px;font-size:13px">
+    <div class="lrow"><span>Energy</span><span>1,960 kcal</span></div>
+    <div class="lrow"><span>Fat</span><span>66 g</span></div>
+    <div class="lrow"><span class="sec2" style="padding-left:12px">of which saturates</span><span class="sec2">26 g</span></div>
+    <div class="lrow"><span>Carbohydrates</span><span>230 g</span></div>
+    <div class="lrow"><span class="sec2" style="padding-left:12px">of which sugars</span><span class="sec2">61 g</span></div>
+    <div class="lrow"><span class="sec2" style="padding-left:24px">of which added</span><span class="sec2">38 g</span></div>
+    <div class="lrow"><span>Fibre</span><span>33 g</span></div>
+    <div class="lrow"><span>Protein</span><span>118 g</span></div>
+    <div class="lrow"><span>Salt</span><span>3.4 g</span></div>
+    <div class="lrow"><span>Cost</span><span>36.40 lei</span></div>
+  </div>
+</div>
+<div class="fab"><i class="ti ti-plus"></i></div>
+<div class="tabbar" data-active="nutrition" data-dots="nutrition"></div></div>
+<p class="cap"><b>Meal list and day details.</b> Type always spelled out. Macro letters in nutrient colours: S = added sugar, Fi = fibre, Fa = fat. Day details in EU label order. The stats section continues below (see further down).</p>
+</div>
+
+<div class="fig">
+<div class="phone"><div class="scr" style="opacity:.35">
+  <div class="hdr"><span class="title">Nutrition</span></div>
+  <div class="seg"><span class="on">Today</span><span>Recipes</span><span>Products</span><span>Weight</span></div>
+  <div class="daterow"><i class="ti ti-chevron-left"></i><span>Today, 11 Sep</span><i class="ti ti-chevron-right"></i><i class="ti ti-calendar"></i></div>
+</div>
+<div class="dim"></div>
+<div class="sheet">
+  <div class="grab"></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <span style="font-size:16px;font-weight:600">September 2026</span>
+    <span class="hbtns" style="gap:12px"><i class="ti ti-chevron-left sec2"></i><i class="ti ti-chevron-right sec2"></i></span>
+  </div>
+  <div class="grid2" style="margin-bottom:14px">
+    <div class="box" style="background:var(--card2)"><div class="l">Logging streak</div><div class="v">11 days</div></div>
+    <div class="box" style="background:var(--card2)"><div class="l">Days logged</div><div class="v">42</div></div>
+  </div>
+  <div id="calGrid"></div>
+  <div class="legend" style="margin-top:12px;justify-content:center"><span>Dot = logs that day (sleep, smoking, weight, meals)</span></div>
+</div>
+<div class="tabbar" data-active="nutrition" style="opacity:.35"></div></div>
+<p class="cap"><b>Calendar = heatmap.</b> Opened from the calendar icon. Each day's dot gets stronger with more of the four daily logs. Streak (one missed day per week allowed) and days-logged counter on top. Tap a day to open it.</p>
+</div>
+
+<div class="fig">
+<div class="phone"><div class="scr" style="opacity:.35">
+  <div class="hdr"><span class="title">Nutrition</span></div>
+  <div class="seg"><span class="on">Today</span><span>Recipes</span><span>Products</span><span>Weight</span></div>
+  <div class="daterow"><i class="ti ti-chevron-left"></i><span>Today, 11 Sep</span><i class="ti ti-chevron-right"></i><i class="ti ti-calendar"></i></div>
+</div>
+<div class="dim"></div>
+<div class="sheet" style="padding-bottom:146px">
+  <div class="grab"></div>
+  <div style="font-size:16px;font-weight:600">Repeat something recent</div>
+  <div class="csub" style="margin-bottom:8px">Copies onto Today, 11 Sep</div>
+  <div class="lrow"><span><span style="color:#C0DD97;font-weight:600">Meal</span> · Oats</span><span class="sec2">560 kcal · 6.10 lei</span></div>
+  <div class="lrow"><span><span style="color:#C0DD97;font-weight:600">Meal</span> · Burritos</span><span class="sec2">540 kcal · 6.34 lei</span></div>
+  <div class="lrow"><span><span style="color:#C0DD97;font-weight:600">Meal</span> · Rice-chicken</span><span class="sec2">512 kcal · 9.80 lei</span></div>
+  <div class="lrow"><span><span style="color:#F0997B;font-weight:600">Snack</span> · Yogurt with honey</span><span class="sec2">200 kcal · 6.46 lei</span></div>
+  <div class="lrow"><span><span style="color:#F0997B;font-weight:600">Snack</span> · Ursus Cooler</span><span class="sec2">105 kcal · 4.50 lei</span></div>
+</div>
+<div class="fab" style="z-index:7;box-shadow:0 0 0 6px rgba(99,153,34,.35)"><i class="ti ti-plus"></i></div>
+<div class="tabbar" data-active="nutrition" style="opacity:.35"></div></div>
+<p class="cap"><b>Holding the + button.</b> A normal tap still creates a new meal straight away. Holding it opens recent meals; tapping one copies it onto the day being viewed (lines and type, not note or score).</p>
+</div>
+
+</div>
+</section>
+
+<!-- ============ WHERE DID IT COME FROM ============ -->
+<section>
+<h2>Where did it come from?</h2>
+<p class="sec-note">Tapping any number or bar (hero, nutrient bars, stats boxes, chart bars) opens a panel with its sources, biggest first. Top 5, then show all. In the spend panel, items taking 5%+ of spend while low in protein get a tag. Spec part 5.7.</p>
+<div class="row">
+
+<div class="fig">
+<div class="phone"><div class="scr" style="opacity:.35"><div class="hdr"><span class="title">Nutrition</span></div></div>
+<div class="dim"></div>
+<div class="sheet">
+  <div class="grab"></div>
+  <div style="font-size:16px;font-weight:600">Added sugar</div>
+  <div class="csub" style="margin-bottom:14px">1–9 Sep · 252 g total</div>
+  <div id="whereSugar"></div>
+  <div style="text-align:center;font-size:13px;color:var(--tx2);margin-top:12px">Show all</div>
+</div>
+<div class="tabbar" data-active="nutrition" style="opacity:.35"></div></div>
+<p class="cap"><b>Tapped: added sugar</b> in the stats section (range 1–9 Sep).</p>
+</div>
+
+<div class="fig">
+<div class="phone"><div class="scr" style="opacity:.35"><div class="hdr"><span class="title">Nutrition</span></div></div>
+<div class="dim"></div>
+<div class="sheet">
+  <div class="grab"></div>
+  <div style="font-size:16px;font-weight:600">Spend</div>
+  <div class="csub" style="margin-bottom:14px">1–9 Sep · 279.48 lei total</div>
+  <div id="whereSpend"></div>
+  <div style="text-align:center;font-size:13px;color:var(--tx2);margin-top:12px">Show all</div>
+</div>
+<div class="tabbar" data-active="nutrition" style="opacity:.35"></div></div>
+<p class="cap"><b>Tapped: spend.</b> Ursus Cooler takes 6% of spend with almost no protein, so it gets the "low protein" tag.</p>
+</div>
+
+</div>
+</section>
+
+<!-- ============ NUTRITION STATS ============ -->
+<section>
+<h2>Nutrition — stats section</h2>
+<p class="sec-note">Below the day details on Today. Order: digest cards → range → 8 average boxes → one chart with metric buttons → Meals vs snacks → Days on target → Timing. The chart buttons below are clickable. Spec part 7.</p>
+<div class="row">
+
+<div class="fig">
+<div class="phone"><div class="scr" style="padding-bottom:150px">
+  <p class="scrolled">Today, scrolled to stats</p>
+  <div class="grid2" style="margin-bottom:12px">
+    <div class="box"><div class="l">Weekly digest</div><div style="font-size:12px;color:var(--tx2);margin-top:2px">Tap to open <i class="ti ti-chevron-right" style="font-size:12px"></i></div></div>
+    <div class="box"><div class="l">Food spend · September</div><div class="v">279 <span style="font-size:12px;color:var(--tx3);font-weight:400">/ 990 lei</span></div></div>
+  </div>
+  <div class="pills"><span class="pill">4</span><span class="pill">7</span><span class="pill">14</span><span class="pill">28</span><span class="pill on green">Custom</span></div>
+  <div class="rangeinfo">1–9 Sep · 9 days</div>
+  <div class="grid2">
+    <div class="box"><div class="l">Calories / day</div><div class="v">2,101</div></div>
+    <div class="box"><div class="l">Spend / day</div><div class="v">31.05 lei</div></div>
+    <div class="box"><div class="l" style="color:var(--prot)">Protein / day</div><div class="v">122 g</div></div>
+    <div class="box"><div class="l" style="color:var(--carb)">Carbs / day</div><div class="v">235 g</div></div>
+    <div class="box"><div class="l" style="color:var(--sug)">Added sugar / day</div><div class="v">28 g</div></div>
+    <div class="box"><div class="l" style="color:var(--fib)">Fibre / day</div><div class="v">34.5 g</div></div>
+    <div class="box"><div class="l" style="color:var(--fat)">Fat / day</div><div class="v">68 g</div></div>
+    <div class="box"><div class="l">Meals · snacks / day</div><div class="v">3.1 · 1.9</div></div>
+  </div>
+  <div class="charthead"><span style="font-size:14px;font-weight:600">Over time</span><i class="ti ti-rotate-clockwise minirot"></i></div>
+  <div id="statChips" style="display:flex;gap:5px;flex-wrap:wrap;margin:8px 0 6px"></div>
+  <svg viewBox="0 0 340 200" width="100%"><g id="statPlot"></g></svg>
+  <div id="statFoot" style="font-size:12px;color:var(--tx2)"></div>
+</div>
+<div class="fab"><i class="ti ti-plus"></i></div>
+<div class="tabbar" data-active="nutrition"></div></div>
+<p class="cap"><b>Averages and chart.</b> Daily bars from zero; ceiling line or ±10% zone; over part red; past days under a zone get a thin red cap; dashed average line. Try the buttons.</p>
+</div>
+
+<div class="fig">
+<div class="phone"><div class="scr">
+  <p class="scrolled">Stats, continued</p>
+  <div class="card">
+    <p class="ctitle">Meals vs snacks</p><p class="csub">1–9 Sep · 28 meals · 17 snacks</p>
+    <div id="mvs"></div>
+  </div>
+  <div class="card">
+    <p class="ctitle">Days on target</p><p class="csub">1–9 Sep · 9 days</p>
+    <div id="dot"></div>
+  </div>
+</div>
+<div class="tabbar" data-active="nutrition"></div></div>
+<p class="cap"><b>Meals vs snacks</b> (10 rows, share rows as split bars) and <b>Days on target</b> (green hit, red missed, counts, targets hit per day, swing line). Grid values are computed from the chart data in this file.</p>
+</div>
+
+<div class="fig">
+<div class="phone"><div class="scr">
+  <p class="scrolled">Stats, continued</p>
+  <div class="card">
+    <p class="ctitle">Timing</p><p class="csub">1–9 Sep · average day</p>
+    <div class="lrow"><span class="sec2">Wake → first food</span><span>4 h 45 <span class="muted">(3–8 h)</span></span></div>
+    <div class="lrow"><span class="sec2">First food</span><span>~13:30</span></div>
+    <div class="lrow"><span class="sec2">Last food</span><span>~00:15</span></div>
+    <div class="lrow"><span class="sec2">Eating window</span><span>~10 h 45</span></div>
+    <div class="lrow"><span class="sec2">Eaten after 01:00</span><span>3 items · 650 kcal</span></div>
+    <svg viewBox="0 0 320 140" width="100%" style="margin-top:10px">
+      <g transform="translate(10,0)">
+        <text x="0" y="12" style="font-size:11px;fill:#77777c">Protein by hour (g)</text>
+        <g fill="#7F77DD">
+          <rect x="112.5" y="36" width="10" height="54"/><rect x="125" y="87" width="10" height="3"/><rect x="150" y="85.5" width="10" height="4.5"/>
+          <rect x="187.5" y="39" width="10" height="51"/><rect x="200" y="84" width="10" height="6"/><rect x="225" y="45" width="10" height="45"/>
+          <rect x="237.5" y="81" width="10" height="9"/><rect x="250" y="82.5" width="10" height="7.5"/><rect x="262.5" y="85.5" width="10" height="4.5"/>
+        </g>
+        <text x="155" y="58" text-anchor="middle" style="font-size:10px;fill:#77777c">afternoon</text><text x="155" y="70" text-anchor="middle" style="font-size:10px;fill:#77777c">gap</text>
+        <rect x="0" y="96" width="59.4" height="14" fill="#378ADD" fill-opacity="0.45"/>
+        <rect x="256.25" y="96" width="43.75" height="14" fill="#378ADD" fill-opacity="0.45"/>
+        <rect x="59.4" y="96" width="59.35" height="14" fill="rgba(255,255,255,.16)"/>
+        <rect x="118.75" y="96" width="134.4" height="14" fill="#97C459" fill-opacity="0.55"/>
+        <g style="font-size:11px;fill:#77777c" text-anchor="middle"><text x="0" y="128">04</text><text x="50" y="128">08</text><text x="100" y="128">12</text><text x="150" y="128">16</text><text x="200" y="128">20</text><text x="250" y="128">00</text><text x="300" y="128">04</text></g>
+      </g>
+    </svg>
+    <div class="legend" style="margin-bottom:0"><span><span class="sw" style="background:#378ADD;height:8px"></span>Sleep</span><span><span class="sw" style="background:rgba(255,255,255,.3);height:8px"></span>No food yet</span><span><span class="sw" style="background:#97C459;height:8px"></span>Eating window</span><span><span class="sw" style="background:#7F77DD;height:8px"></span>Protein</span></div>
+  </div>
+</div>
+<div class="tabbar" data-active="nutrition"></div></div>
+<p class="cap"><b>Timing.</b> Key numbers plus an average-day strip from 04:00 to 04:00: sleep (from the sleep log), the no-food gap, the eating window, protein by hour.</p>
+</div>
+
+</div>
+</section>
+
+<!-- ============ RECIPES & PRODUCTS ============ -->
+<section>
+<h2>Nutrition — Recipes and Products</h2>
+<p class="sec-note">Existing functions stay (show retired, duplicate, add new, retire instead of delete). New: sort pills and two value numbers per row. Low-protein items sink to the bottom with a label. Spec part 6.1.</p>
+<div class="row">
+
+<div class="fig">
+<div class="phone"><div class="scr">
+  <div class="hdr"><span class="title">Nutrition</span></div>
+  <div class="seg"><span>Today</span><span class="on">Recipes</span><span>Products</span><span>Weight</span></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin:0 0 10px;font-size:13px">
+    <span class="sec2"><i class="ti ti-toggle-left" style="font-size:20px;vertical-align:-4px"></i> Show retired</span>
+    <span style="color:var(--green)"><i class="ti ti-plus" style="vertical-align:-2px"></i> New recipe</span>
+  </div>
+  <div class="pills"><span class="pill">A–Z</span><span class="pill on green">Cheapest protein</span><span class="pill">Cheapest calories</span></div>
+  <div id="recipeRows"></div>
+</div>
+<div class="tabbar" data-active="nutrition"></div></div>
+<p class="cap"><b>Recipes, sorted by cheapest protein.</b> Main number: lei per 30 g protein. Second number: lei per 1,000 kcal.</p>
+</div>
+
+<div class="fig">
+<div class="phone"><div class="scr">
+  <div class="hdr"><span class="title">Nutrition</span></div>
+  <div class="seg"><span>Today</span><span>Recipes</span><span class="on">Products</span><span>Weight</span></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin:0 0 10px;font-size:13px">
+    <span class="sec2"><i class="ti ti-toggle-left" style="font-size:20px;vertical-align:-4px"></i> Show retired</span>
+    <span style="color:var(--green)"><i class="ti ti-plus" style="vertical-align:-2px"></i> New product</span>
+  </div>
+  <div class="pills"><span class="pill">A–Z</span><span class="pill on green">Cheapest protein</span><span class="pill">Cheapest calories</span></div>
+  <div id="productRows"></div>
+</div>
+<div class="tabbar" data-active="nutrition"></div></div>
+<p class="cap"><b>Products, sorted by cheapest protein.</b> Honey has almost no protein, so it sits at the bottom labelled "low protein" instead of a price.</p>
+</div>
+
+</div>
+</section>
+
+<!-- ============ WEIGHT ============ -->
+<section>
+<h2>Nutrition — Weight</h2>
+<p class="sec-note">Dots for weigh-ins, 4-day and 7-day averages, tight axis padded ~1 kg. Goal distance from the 7-day average. TDEE with accuracy label and formula comparison. Spec parts 6.2 and 6.3.</p>
+<div class="row">
+
+<div class="fig">
+<div class="phone"><div class="scr">
+  <div class="hdr"><span class="title">Nutrition</span><span class="hbtns"><span class="hbtn"><i class="ti ti-plus"></i></span></span></div>
+  <div class="seg"><span>Today</span><span>Recipes</span><span>Products</span><span class="on">Weight</span></div>
+  <div class="pills"><span class="pill">7</span><span class="pill">14</span><span class="pill on green">28</span><span class="pill">All</span><span class="pill">Custom</span></div>
+  <div style="display:flex;align-items:baseline;gap:10px;margin:2px 0 6px">
+    <span style="font-size:24px;font-weight:600">4.6 kg</span><span class="sec2" style="font-size:13px">to goal (75 kg)</span>
+  </div>
+  <div class="charthead"><span class="rangeinfo" style="margin:0">1–9 Sep · 9 weigh-ins</span><i class="ti ti-rotate-clockwise minirot"></i></div>
+  <svg id="weightChart" viewBox="0 0 320 205" width="100%"></svg>
+  <div class="legend"><span><span class="sw" style="background:#639922;height:8px;width:8px;border-radius:50%"></span>Weigh-in</span><span><span class="sw" style="border:1.5px solid #a9a9ae;height:8px;width:8px;border-radius:50%"></span>Skipped day (invented)</span><span><span class="sw" style="background:#7F77DD"></span>4-day avg</span><span><span class="sw" style="background:#D85A30"></span>7-day avg</span></div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:baseline">
+      <span class="sec2" style="font-size:13px">TDEE, calories burned / day</span>
+      <span class="tag" style="background:rgba(239,159,39,.18);color:#FAC775">Rough · 9 days</span>
+    </div>
+    <div style="font-size:24px;font-weight:600;margin:6px 0 2px">2,680 <span style="font-size:14px;color:var(--tx2);font-weight:400">± 400 kcal</span></div>
+    <div style="font-size:12px;color:var(--tx2)">Formula estimate: 2,427 kcal (light activity) · You: +253</div>
+  </div>
+  <div class="lrow"><span style="flex:1">Wed 9 Sep</span><span>79.2 kg</span><span class="muted" style="width:52px;text-align:right">0.0</span></div>
+  <div class="lrow"><span style="flex:1">Tue 8 Sep</span><span>79.2 kg</span><span class="muted" style="width:52px;text-align:right">−0.4</span></div>
+  <div class="lrow"><span style="flex:1">Mon 7 Sep</span><span>79.6 kg</span><span class="muted" style="width:52px;text-align:right">−0.4</span></div>
+</div>
+<div class="tabbar" data-active="nutrition"></div></div>
+<p class="cap"><b>Weight sub-tab.</b> TDEE label steps Rough (7–13 days) → Fair (14–27) → Reliable (28+). Skipped days (6 Sep here) get a hollow grey invented point, left out of the averages and TDEE. The list keeps the difference from the previous entry.</p>
+</div>
+
+</div>
+</section>
+
+<!-- ============ WORKOUT & SETTINGS ============ -->
+<section>
+<h2>Workout and Settings</h2>
+<p class="sec-note">Workout is a placeholder until Phase 8: a countdown to the gym start date. Settings holds every target and setting from the spec. Spec parts 8 and 9.</p>
+<div class="row">
+
+<div class="fig">
+<div class="phone"><div class="scr" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:600px;text-align:center">
+  <div style="width:120px;height:120px;border-radius:50%;background:rgba(216,90,48,.16);display:flex;align-items:center;justify-content:center;margin-bottom:26px">
+    <i class="ti ti-barbell" style="font-size:64px;color:var(--coral)"></i>
+  </div>
+  <div style="font-size:15px;color:var(--tx2)">Gym starts in</div>
+  <div style="font-size:52px;font-weight:600;line-height:1.1;margin:4px 0">23 days</div>
+  <div style="font-size:14px;color:var(--tx2)">Sunday, 4 October</div>
+  <div style="font-size:12px;color:var(--tx3);margin-top:28px">Change the date in Settings</div>
+</div>
+<div class="tabbar" data-active="workout"></div></div>
+<p class="cap"><b>Workout placeholder.</b> No date set: "Set your gym start date" with a button to Settings. Date passed: "Gym started 5 days ago · workout tracking is coming". Static for now.</p>
+</div>
+
+<div class="fig">
+<div class="phone" style="min-height:960px"><div class="scr">
+  <div class="hdr"><span class="title">Settings</span></div>
+
+  <p class="csub" style="margin:0 0 6px">Goal</p>
+  <div class="card" style="padding:10px 14px">
+    <div class="seg" style="margin:2px 0 10px"><span class="on">Cut</span><span>Maintain</span><span>Bulk</span></div>
+    <div style="font-size:11px;color:var(--tx3);margin:-4px 0 6px">On a cut, calories are a ceiling. On maintain or bulk, a ±10% zone.</div>
+    <div class="lrow"><span>Goal weight</span><span>75 kg</span></div>
+  </div>
+
+  <p class="csub" style="margin:14px 0 6px">Daily targets</p>
+  <div class="card" style="padding:4px 14px">
+    <div class="lrow"><span>Calories <span class="muted" style="font-size:11px">· ceiling</span></span><span>2,000 kcal</span></div>
+    <div class="lrow"><span>Daily spend <span class="muted" style="font-size:11px">· ceiling</span></span><span>33 lei</span></div>
+    <div class="lrow"><span style="color:var(--prot)">Protein <span class="muted" style="font-size:11px">· ±10%</span></span><span>150 g</span></div>
+    <div class="lrow"><span style="color:var(--carb)">Carbs <span class="muted" style="font-size:11px">· ±10%</span></span><span>240 g</span></div>
+    <div class="lrow"><span style="color:var(--sug)">Added sugar <span class="muted" style="font-size:11px">· ceiling</span></span><span>30 g</span></div>
+    <div class="lrow"><span style="color:var(--fib)">Fibre <span class="muted" style="font-size:11px">· ±10%</span></span><span>35 g</span></div>
+    <div class="lrow"><span style="color:var(--fat)">Fat <span class="muted" style="font-size:11px">· ±10%</span></span><span>60 g</span></div>
+    <div class="lrow"><span style="color:var(--fat)">Saturated : unsaturated</span><span>1 : 2</span></div>
+  </div>
+
+  <p class="csub" style="margin:14px 0 6px">Body, for the formula estimate</p>
+  <div class="card" style="padding:4px 14px">
+    <div class="lrow"><span>Height</span><span class="sec2">180 cm</span></div>
+    <div class="lrow"><span>Birth year</span><span class="sec2">1995</span></div>
+    <div class="lrow"><span>Sex</span><span class="sec2">Male</span></div>
+    <div class="lrow"><span>Activity level</span><span class="sec2">Light <i class="ti ti-chevron-right" style="font-size:13px"></i></span></div>
+  </div>
+
+  <p class="csub" style="margin:14px 0 6px">Workout</p>
+  <div class="card" style="padding:4px 14px">
+    <div class="lrow"><span>Gym start date</span><span class="sec2">4 Oct 2026</span></div>
+  </div>
+
+  <p class="csub" style="margin:14px 0 6px">Data</p>
+  <div class="card" style="display:flex;justify-content:space-between;align-items:center;font-size:14px">
+    <span><i class="ti ti-download" style="vertical-align:-3px;margin-right:6px"></i>Export everything</span>
+    <span style="font-size:12px;color:#EF9F27">Last export: 9 days ago</span>
+  </div>
+</div>
+<div class="tabbar" data-active="settings" data-dots="settings:amber"></div></div>
+<p class="cap"><b>Settings</b>, scrolled full length. One set of targets, all optional, edited by hand when the goal phase changes. Body values are placeholders. The last export was 9 days ago, so the Export row and the Settings tab dot are amber (red from 14 days).</p>
+</div>
+
+</div>
+</section>
+
+<p class="foot">Numbers are illustrative. Weight, meals-vs-snacks, where-did-it-come-from and daily averages use the real 1–9 September 2026 export; other screens use invented but plausible values. Rich animations are out of scope for Phase 7. Smoking includes a logged zero and an unlogged day, and Weight a skipped day, to show how those look.</p>
+
+</div>
+
+<script>
+/* ---------- tab bars ---------- */
+const TABS=[['sleep','ti-moon','#378ADD'],['smoking','ti-smoking','#EF9F27'],['nutrition','ti-salad','#639922'],['workout','ti-barbell','#D85A30'],['settings','ti-settings','#cfcfd4']];
+document.querySelectorAll('.tabbar').forEach(tb=>{
+  const act=tb.dataset.active, dots=(tb.dataset.dots||'').split(',');
+  tb.innerHTML=TABS.map(([k,ic,c])=>{const amber=dots.includes(k+':amber');const red=dots.includes(k);
+    return `<span style="${k===act?'color:'+c:''}"><i class="ti ${ic}"></i>${red?'<i class="dot"></i>':amber?'<i class="dot" style="background:#EF9F27"></i>':''}</span>`;}).join('');
+});
+
+/* ---------- sleep clocks (12-hour face) ---------- */
+const CX=160,CY=160,R=104;
+function pt(r,t){const a=((t%12)/12)*2*Math.PI;return [CX+r*Math.sin(a),CY-r*Math.cos(a)];}
+function arc(bed,wake){let d=(wake-bed+24)%24;if(d>=12){return `M${CX} ${CY-R} A${R} ${R} 0 1 1 ${CX-0.01} ${CY-R}`;}
+  const [x1,y1]=pt(R,bed),[x2,y2]=pt(R,wake);return `M${x1} ${y1} A${R} ${R} 0 ${d>6?1:0} 1 ${x2} ${y2}`;}
+function face(){let s=`<circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="2"/>`;
+  for(let h=0;h<12;h++){const [a,b]=pt(R-18,h),[c,d]=pt(R-10,h);s+=`<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="#77777c" stroke-width="2"/>`;
+    const [nx,ny]=pt(R-32,h);s+=`<text x="${nx}" y="${ny+4}" text-anchor="middle" style="font-size:12px;fill:#77777c">${h===0?12:h}</text>`;}
+  return s;}
+function hm(t){const h=Math.floor(t)%24,m=Math.round((t-Math.floor(t))*60);return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');}
+function label(t,txt,sub){const [x,y]=pt(R+26,t);return `<text x="${x}" y="${y+(sub?-1:4)}" text-anchor="middle" style="font-size:12px;font-weight:600;fill:#ededed">${txt}</text>`+(sub?`<text x="${x}" y="${y+12}" text-anchor="middle" style="font-size:10px;fill:#77777c">${sub}</text>`:'');}
+
+(function(){ /* single night 00:10 -> 08:05 */
+  const bed=10/60, wake=8+5/60;
+  let s=face()+`<path d="${arc(bed,wake)}" fill="none" stroke="#378ADD" stroke-width="12" stroke-linecap="round"/>`;
+  s+=label(bed,hm(bed))+label(wake,hm(wake));
+  s+=`<text x="${CX}" y="${CY+4}" text-anchor="middle" style="font-size:34px;font-weight:600;fill:#ededed">7h 55</text>`;
+  s+=`<text x="${CX}" y="${CY+28}" text-anchor="middle" style="font-size:13px;fill:#a9a9ae">quality 8</text>`;
+  document.getElementById('clockNight').innerHTML=s;
+})();
+(function(){ /* 7 nights */
+  const beds=[0.5,23.75,1.25,0,2,23.5,0.25], wakes=[8,7,9.5,9,8.5,8,8.25];
+  let s=face();
+  beds.forEach((b,i)=>{s+=`<path d="${arc(b,wakes[i])}" fill="none" stroke="#378ADD" stroke-opacity="0.28" stroke-width="12" stroke-linecap="butt"/>`;});
+  s+=label(0.4667,'00:28','avg bed')+label(8.3167,'08:19','avg wake');
+  s+=`<text x="${CX}" y="${CY+2}" text-anchor="middle" style="font-size:30px;font-weight:600;fill:#ededed">7h 51</text>`;
+  s+=`<text x="${CX}" y="${CY+22}" text-anchor="middle" style="font-size:12px;fill:#a9a9ae">avg · quality 7.4</text>`;
+  document.getElementById('clockPeriod').innerHTML=s;
+})();
+(function(){ /* empty */
+  let s=face();
+  s+=`<circle cx="${CX}" cy="${CY}" r="38" fill="rgba(55,138,221,.18)" stroke="#378ADD" stroke-width="2"/>`;
+  s+=`<line x1="${CX-14}" y1="${CY}" x2="${CX+14}" y2="${CY}" stroke="#B5D4F4" stroke-width="4" stroke-linecap="round"/><line x1="${CX}" y1="${CY-14}" x2="${CX}" y2="${CY+14}" stroke="#B5D4F4" stroke-width="4" stroke-linecap="round"/>`;
+  document.getElementById('clockEmpty').innerHTML=s;
+})();
+
+/* ---------- smoking charts ---------- */
+const SMOKE=[14,13,15,12,14,13,11,13,12,14,0,11,12,10,12,11,13,null,11,9,11,10,12,9,10,9,11,8]; /* index 10 = logged zero, index 17 = not logged */
+const SMOKE_LABELS={0:'13 Aug',7:'20 Aug',14:'27 Aug',21:'3 Sep',27:'9 Sep'};
+function ma(arr,n){return arr.map((_,i)=>{if(i<n-1)return null;const w=arr.slice(i-n+1,i+1).filter(v=>v!=null);return w.length?w.reduce((a,b)=>a+b,0)/w.length:null;});}
+function smokeChart(id,W,H,left,top,bottom){
+  const max=Math.max(...SMOKE.filter(v=>v!=null)), pw=W-left-8, ph=H-top-bottom, step=pw/SMOKE.length, bw=step*0.66;
+  const y=v=>top+ph-(v/max)*ph;
+  let s=`<g style="font-size:11px;fill:#77777c" text-anchor="end">`;
+  [0,5,10,max].forEach(v=>{s+=`<text x="${left-6}" y="${y(v)+4}">${v}</text>`;});
+  s+=`</g>`;
+  [0,5,10,max].forEach(v=>{s+=`<line x1="${left}" y1="${y(v)}" x2="${W-8}" y2="${y(v)}" stroke="rgba(255,255,255,.07)"/>`;});
+  SMOKE.forEach((v,i)=>{if(v==null)return;
+    if(v===0){s+=`<text x="${left+i*step+step/2}" y="${top+ph-3}" text-anchor="middle" style="font-size:9px;fill:#FAC775">0</text>`;return;}
+    s+=`<rect x="${left+i*step+(step-bw)/2}" y="${y(v)}" width="${bw}" height="${top+ph-y(v)}" fill="#EF9F27" rx="1.5"/>`;});
+  const line=(vals,col)=>{const p=vals.map((v,i)=>v==null?null:`${left+i*step+step/2},${y(v)}`).filter(Boolean).join(' ');return `<polyline points="${p}" fill="none" stroke="${col}" stroke-width="2"/>`;};
+  s+=line(ma(SMOKE,4),'#ededed')+line(ma(SMOKE,7),'#D85A30');
+  s+=`<g style="font-size:11px;fill:#77777c" text-anchor="middle">`;
+  Object.entries(SMOKE_LABELS).forEach(([i,t])=>{s+=`<text x="${left+i*step+step/2}" y="${H-4}">${t}</text>`;});
+  s+=`</g>`;
+  document.getElementById(id).innerHTML=s;
+}
+smokeChart('smokePortrait',320,210,28,10,24);
+smokeChart('smokeLandscape',660,280,30,10,24);
+
+/* ---------- meal rows ---------- */
+const MEALS=[
+ ['Meal','13:30','Oats','6.10',32,62,0,12,14],
+ ['Snack','16:10','Ursus Cooler','4.50',0,26,24,0,0],
+ ['Meal','19:20','Burritos','6.34',36,52,1,11,18],
+ ['Snack','21:40','Crunchy','3.20',4,30,8,2,8],
+ ['Meal','23:10','Rice-chicken','9.80',38,40,0,7,16],
+ ['Snack','00:40','Yogurt with honey','6.46',8,20,5,1,10]
+];
+const MC=['#7F77DD','#EF9F27','#378ADD','#639922','#1D9E75'], ML=['P','C','S','Fi','Fa'];
+document.getElementById('mealRows').innerHTML=MEALS.map((m,idx)=>`
+ <div style="padding:10px 0;${idx?'border-top:1px solid rgba(255,255,255,.08)':''}">
+  <div style="display:flex;justify-content:space-between;font-size:13px;gap:8px">
+   <span><span style="color:${m[0]==='Meal'?'#C0DD97':'#F0997B'};font-weight:600">${m[0]}</span> <span class="muted">· ${m[1]} ·</span> ${m[2]}</span>
+   <span class="sec2" style="white-space:nowrap">${m[3]} lei</span>
+  </div>
+  <div style="font-size:12px;margin-top:4px;color:#a9a9ae">${ML.map((l,i)=>`<span style="color:${MC[i]};font-weight:600">${l}</span> ${m[4+i]}`).join(' <span class="muted">·</span> ')}</div>
+ </div>`).join('');
+
+/* ---------- calendar heatmap ---------- */
+(function(){
+  const logs=[4,4,3,4,4,2,4,4,3,4,1]; /* 1..11 Sep; day 11 partly logged so far */
+  let s='<div style="display:grid;grid-template-columns:repeat(7,1fr);row-gap:10px;text-align:center;font-size:11px">';
+  ['M','T','W','T','F','S','S'].forEach(d=>s+=`<span class="muted">${d}</span>`);
+  s+='<span></span>'; /* 1 Sep 2026 is a Tuesday */
+  for(let d=1;d<=30;d++){
+    const n=logs[d-1];
+    const dot=n==null?'<span style="display:block;width:8px;height:8px;margin:3px auto 0"></span>':`<span style="display:block;width:8px;height:8px;border-radius:50%;margin:3px auto 0;background:#639922;opacity:${[0.12,0.3,0.5,0.75,1][n]}"></span>`;
+    const sel=d===11?'border:1px solid #639922;border-radius:8px;':'';
+    s+=`<span style="${sel}padding:3px 0;color:${n==null?'#55555a':'#ededed'}">${d}${dot}</span>`;
+  }
+  s+='</div>';
+  document.getElementById('calGrid').innerHTML=s;
+})();
+
+/* ---------- where did it come from ---------- */
+function whereRows(id,rows,col){
+  document.getElementById(id).innerHTML=rows.map(r=>`
+   <div style="margin:0 0 11px">
+    <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>${r[0]}${r[3]?'<span class="tag">low protein</span>':''}</span><span class="sec2">${r[1]} · ${r[2]}%</span></div>
+    <div style="height:6px;background:rgba(255,255,255,.1);border-radius:3px"><div style="height:6px;border-radius:3px;width:${r[2]*2}%;max-width:100%;background:${col}"></div></div>
+   </div>`).join('');
+}
+whereRows('whereSugar',[['Honey','77 g',31],['Ursus Cooler','71 g',28],['Crunchy','22 g',9],['Burritos','19 g',7],['Napoca','18 g',7]],'#378ADD');
+whereRows('whereSpend',[['Burritos','50.73 lei',18],['Oats','48.70 lei',17],['Tuna in oil','27.00 lei',10],['Rice-chicken','19.00 lei',7],['Ursus Cooler','18.00 lei',6,true]],'#639922');
+
+/* ---------- stats chart with metric buttons ---------- */
+const D={
+ cal:{n:'Calories',u:'kcal',c:'#639922',v:[1947,1920,1830,2150,2564,1681,1905,2914,1998],max:3000,t:2000,type:'ceil',d:0},
+ spend:{n:'Spend',u:'lei',c:'#639922',v:[28.34,30.10,26.50,40.72,34.27,23.82,29.87,37.16,28.70],max:45,t:33,type:'ceil',d:2},
+ prot:{n:'Protein',u:'g',c:'#7F77DD',v:[119.4,125,112,130,118,86.6,128,165.8,110],max:200,t:150,type:'zone',d:0},
+ carb:{n:'Carbs',u:'g',c:'#EF9F27',v:[213,190,205,260,353,180,215,290,212],max:400,t:240,type:'zone',d:0},
+ sug:{n:'Sugar',u:'g',c:'#378ADD',v:[25.8,12,2.3,30,67.2,40,14.5,54,6.2],max:70,t:30,type:'ceil',d:0},
+ fib:{n:'Fibre',u:'g',c:'#639922',v:[36,34.1,40,28,19.1,30,48.4,42,33.4],max:60,t:35,type:'zone',d:1},
+ fat:{n:'Fat',u:'g',c:'#1D9E75',v:[68.1,60,55,78,85,48.7,62,91,61.2],max:100,t:60,type:'zone',d:0}
+};
+const SAT=[22,20,18,28,30,16.1,20,41.3,19.6];
+function yy(v,m){return 170-v*150/m;}
+function draw(k){
+  const m=D[k]; let s='';
+  s+=`<g style="font-size:11px;fill:#77777c" text-anchor="end"><text x="42" y="174">0</text><text x="42" y="99">${m.max/2}</text><text x="42" y="24">${m.max}</text></g>`;
+  s+=`<line x1="48" y1="170" x2="334" y2="170" stroke="rgba(255,255,255,.1)"/><line x1="48" y1="20" x2="334" y2="20" stroke="rgba(255,255,255,.06)"/>`;
+  if(m.type==='zone') s+=`<rect x="48" y="${yy(m.t*1.1,m.max)}" width="286" height="${yy(m.t*0.9,m.max)-yy(m.t*1.1,m.max)}" fill="#97C459" fill-opacity="0.22"/>`;
+  const lim=m.type==='ceil'?m.t:m.t*1.1;
+  m.v.forEach((v,i)=>{const x=55+i*31.25, n=Math.min(v,lim);
+    s+=`<rect x="${x}" y="${yy(n,m.max)}" width="20" height="${170-yy(n,m.max)}" fill="${m.c}"/>`;
+    if(v>lim) s+=`<rect x="${x}" y="${yy(v,m.max)}" width="20" height="${yy(lim,m.max)-yy(v,m.max)}" fill="#E24B4A"/>`;
+    if(m.type==='zone'&&v<m.t*0.9) s+=`<rect x="${x}" y="${yy(v,m.max)-3}" width="20" height="3" fill="#E24B4A"/>`;
+  });
+  s+=`<line x1="48" y1="${yy(m.t,m.max)}" x2="334" y2="${yy(m.t,m.max)}" stroke="#a9a9ae" stroke-width="1"/>`;
+  const avg=m.v.reduce((a,b)=>a+b,0)/m.v.length;
+  s+=`<line x1="48" y1="${yy(avg,m.max)}" x2="334" y2="${yy(avg,m.max)}" stroke="#ededed" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+  s+=`<g style="font-size:11px;fill:#77777c" text-anchor="middle">`;[0,2,4,6,8].forEach(i=>{s+=`<text x="${65+i*31.25}" y="188">${i+1}</text>`;});s+=`</g>`;
+  document.getElementById('statPlot').innerHTML=s;
+  document.getElementById('statFoot').textContent=`average ${avg.toFixed(m.d)} ${m.u} (dashed) · target ${m.t} ${m.u}${m.type==='zone'?' ±10% (green band)':' max'}`;
+}
+(function(){
+  const box=document.getElementById('statChips');
+  Object.keys(D).forEach((k,i)=>{
+    const b=document.createElement('button');
+    b.textContent=D[k].n; b.dataset.k=k;
+    b.style.cssText='font-size:12px;padding:4px 10px;border-radius:999px;border:none;cursor:pointer;font-family:inherit;';
+    const paint=on=>{b.style.background=on?'#639922':'rgba(255,255,255,.1)';b.style.color=on?'#EAF3DE':'#a9a9ae';};
+    paint(i===0); b._paint=paint;
+    b.addEventListener('click',()=>{box.querySelectorAll('button').forEach(x=>x._paint(false));paint(true);draw(k);});
+    box.appendChild(b);
+  });
+  draw('cal');
+})();
+
+/* ---------- meals vs snacks ---------- */
+(function(){
+  const rows=[['Avg calories','569','175'],['Avg protein','35.8 g','5.5 g','#7F77DD'],['Avg fibre','10.5 g','1.0 g','#639922'],['Avg added sugar','0.9 g','13.3 g','#378ADD'],['Avg cost','7.73 lei','3.71 lei'],['Protein per leu','4.6 g','1.5 g'],['Avg score','9.4','5.8']];
+  let s=`<div style="display:grid;grid-template-columns:1.4fr 1fr 1fr;font-size:12px;padding-bottom:6px"><span></span><span style="text-align:right;color:#639922">Meals</span><span style="text-align:right;color:#D85A30">Snacks</span></div>`;
+  rows.forEach(r=>{s+=`<div style="display:grid;grid-template-columns:1.4fr 1fr 1fr;font-size:13px;padding:6px 0;border-top:1px solid rgba(255,255,255,.08)"><span style="color:${r[3]||'#a9a9ae'}">${r[0]}</span><span style="text-align:right">${r[1]}</span><span style="text-align:right">${r[2]}</span></div>`;});
+  [['Share of calories',84],['Share of spending',77.5],['Share of added sugar',10]].forEach(([l,p])=>{
+    s+=`<div style="font-size:12px;color:#a9a9ae;margin:10px 0 4px">${l}</div><div style="display:flex;height:10px;border-radius:5px;overflow:hidden"><div style="width:${p}%;background:#639922"></div><div style="width:${100-p}%;background:#D85A30"></div></div><div style="display:flex;justify-content:space-between;font-size:11px;color:#77777c;margin-top:3px"><span>${p}%</span><span>${Math.round((100-p)*10)/10}%</span></div>`;
+  });
+  document.getElementById('mvs').innerHTML=s;
+})();
+
+/* ---------- days on target (computed from the chart data) ---------- */
+(function(){
+  const hit=(k,i)=>{const m=D[k],v=m.v[i];return m.type==='ceil'?v<=m.t:(v>=m.t*0.9&&v<=m.t*1.1);};
+  const T=[['Calories','#a9a9ae',i=>hit('cal',i)],['Spend','#a9a9ae',i=>hit('spend',i)],['Protein','#7F77DD',i=>hit('prot',i)],['Carbs','#EF9F27',i=>hit('carb',i)],['Added sugar','#378ADD',i=>hit('sug',i)],['Fibre','#639922',i=>hit('fib',i)],['Fat','#1D9E75',i=>hit('fat',i)],['Fat ratio','#1D9E75',i=>SAT[i]/D.fat.v[i]<=1/3+0.001]];
+  const days=[...Array(9).keys()];
+  const sq=ok=>`<span style="width:15px;height:15px;border-radius:3px;background:${ok?'#97C459':'#E24B4A'};display:inline-block"></span>`;
+  let s='';
+  T.forEach(([n,c,f])=>{const r=days.map(f);s+=`<div style="display:flex;align-items:center;gap:6px;margin:0 0 5px"><span style="width:84px;font-size:11.5px;white-space:nowrap;color:${c}">${n}</span><span style="display:flex;gap:3px;flex:1">${r.map(sq).join('')}</span><span style="width:28px;text-align:right;font-size:12px">${r.filter(Boolean).length}/9</span></div>`;});
+  const tot=days.map(i=>T.filter(t=>t[2](i)).length);
+  s+=`<div style="display:flex;align-items:center;gap:6px;margin-top:8px"><span style="width:84px;font-size:11px;color:#77777c">Day</span><span style="display:flex;gap:3px;flex:1">${days.map(i=>`<span style="width:15px;text-align:center;font-size:10px;color:#77777c">${i+1}</span>`).join('')}</span><span style="width:28px"></span></div>`;
+  s+=`<div style="display:flex;align-items:center;gap:6px"><span style="width:84px;font-size:11px;color:#77777c">Targets hit</span><span style="display:flex;gap:3px;flex:1">${tot.map(v=>`<span style="width:15px;text-align:center;font-size:10px;color:${v<=2?'#E24B4A':'#a9a9ae'}">${v}</span>`).join('')}</span><span style="width:28px"></span></div>`;
+  const sd=a=>{const mu=a.reduce((x,y)=>x+y,0)/a.length;return Math.sqrt(a.reduce((x,y)=>x+(y-mu)**2,0)/(a.length-1));};
+  s+=`<div style="font-size:12px;color:#a9a9ae;border-top:1px solid rgba(255,255,255,.08);margin-top:10px;padding-top:8px">Calories swing ±${Math.round(sd(D.cal.v))} kcal · Protein swing ±${Math.round(sd(D.prot.v))} g</div>`;
+  document.getElementById('dot').innerHTML=s;
+})();
+
+/* ---------- recipes and products ---------- */
+function valueRows(id,rows){
+  document.getElementById(id).innerHTML=rows.map((r,i)=>r[1]==null?`
+   <div class="lrow"><span style="width:16px" class="muted"></span><span style="flex:1;color:#77777c">${r[0]}</span><span style="text-align:right"><span class="tag" style="margin:0;display:inline-block">low protein</span><div style="font-size:10px;color:#77777c;margin-top:3px">${r[2]} lei / 1,000 kcal</div></span></div>`:`
+   <div class="lrow"><span style="width:16px;font-size:12px" class="muted">${i+1}</span><span style="flex:1">${r[0]}</span><span style="text-align:right"><div style="font-size:14px;font-weight:600">${r[1]} lei <span style="font-size:10px;color:#77777c;font-weight:400">/ 30 g protein</span></div><div style="font-size:11px;color:#a9a9ae;margin-top:2px">${r[2]} lei / 1,000 kcal</div></span></div>`).join('');
+}
+valueRows('recipeRows',[['Rice-chicken','4.95','9.20'],['Pesto pasta','5.58','8.10'],['Oats','5.91','7.40'],['Burritos','6.18','11.90']]);
+valueRows('productRows',[['Fagaras cheese','5.88','14.20'],['Milbona yogurt','5.99','21.50'],['Eggs','6.50','16.80'],['Protein powder','8.57','45.00'],['Tuna in oil','10.80','22.60'],['Honey',null,'6.20']]);
+
+/* ---------- weight chart ---------- */
+(function(){
+  const W=[81.5,81.0,79.6,79.8,80.0,null,79.6,79.2,79.2], /* 6 Sep skipped */ lo=78, hi=83, left=30, top=10, ph=160, pw=280;
+  const y=v=>top+ph-(v-lo)/(hi-lo)*ph, x=i=>left+10+i*(pw-20)/8;
+  let s='<g style="font-size:11px;fill:#77777c" text-anchor="end">';
+  for(let v=lo;v<=hi;v++) s+=`<text x="${left-6}" y="${y(v)+4}">${v}</text>`;
+  s+='</g>';
+  for(let v=lo;v<=hi;v++) s+=`<line x1="${left}" y1="${y(v)}" x2="${left+pw}" y2="${y(v)}" stroke="rgba(255,255,255,.07)"/>`;
+  const line=(vals,col)=>`<polyline points="${vals.map((v,i)=>v==null?null:x(i)+','+y(v)).filter(Boolean).join(' ')}" fill="none" stroke="${col}" stroke-width="2"/>`;
+  s+=line(ma(W,4),'#7F77DD')+line(ma(W,7),'#D85A30');
+  W.forEach((v,i)=>{
+    if(v==null){const prev=W.slice(0,i).reverse().find(q=>q!=null), next=W.slice(i+1).find(q=>q!=null), est=(prev+next)/2;
+      s+=`<circle cx="${x(i)}" cy="${y(est)}" r="4" fill="none" stroke="#a9a9ae" stroke-width="1.8"/>`;return;}
+    s+=`<circle cx="${x(i)}" cy="${y(v)}" r="4.5" fill="#639922"/>`;});
+  s+='<g style="font-size:11px;fill:#77777c" text-anchor="middle">';
+  [0,2,4,6,8].forEach(i=>{s+=`<text x="${x(i)}" y="${top+ph+20}">${i+1} Sep</text>`;});
+  s+='</g>';
+  document.getElementById('weightChart').innerHTML=s;
+})();
+</script>
+</body>
+</html>
