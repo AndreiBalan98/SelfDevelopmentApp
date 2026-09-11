@@ -4,82 +4,55 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Phase 7 is on hold while the plan for it is rewritten.** Phases 1–6 are complete, every
-table in the plan except gym has a screen behind it, and both pre-phase-7 issues are
-closed. The app has been in real daily use since about 2026-09-01.
+**Phase 7, step 7.0 is complete: the plan is rewritten and every decision in it is made.
+Next is step 7.1, the speed and scroll bugs, when Andrei says go.** Phases 1–6 are
+complete and the app has been in daily use since 2026-09-01. No code has been written
+for phase 7, and no library has been added.
 
-**Nothing is being built.** No code, no library chosen, no step started, until the rewrite
-below is finished and Andrei says start. Phase 7 as currently written in the plan is
-**not** the phase that will be built.
+### How phase 7 got here
 
-### The rewrite, and how it runs
+On 2026-09-11 Andrei committed `docs/phase-7-spec.md` and `docs/phase-7-mockups.html`.
+The spec is the list the previous session was waiting for, **and the one-item-at-a-time
+review agreed on 2026-09-08 had already been done** — he did it himself, covering every
+item of the old phase 7 as well. Don't run that review again.
 
-A week of real use has given Andrei his own list of what he wants the app to do next.
-That list is the starting point, and phase 7 gets merged into it — not the other way
-round. In his words: he'll say exactly what he wants from here on, and the plan changes
-to match.
+In step 7.0 the spec was merged into Part 5 of `life-tracker-plan.md` as **Phase 7 — in
+detail**, and the other parts of the plan it replaced were rewritten (Part 3's weight and
+settings, Part 5's gamification and TDEE). From now on the plan is the source of truth for
+phase 7, and the spec file is background. The mockups stay the visual reference: the plan
+wins on behaviour, the mockups win on looks.
 
-**As of 2026-09-09 he is still writing that list.** He said it was taking longer than he
-expected. **The next session starts by waiting for it.** Do not propose phase 7 work, do
-not propose steps, do not ask which chart to build first — he knows the process and will
-open with the list.
+Every item of the old phase 7 checklist is accounted for in the table at the top of the
+plan's phase 7 section. Nothing was dropped silently.
 
-The process, agreed on 2026-09-08 and confirmed by him:
+`architecture.md` was deliberately **not** changed. It describes the app as it stands,
+and none of the app has changed yet; it's updated step by step as the code is.
 
-1. He gives **the whole list at once**. Claude acts on none of it yet.
-2. Then **one item at a time, in conversation**. For each: what it overlaps with in the
-   current phase 7, what it replaces, what it would leave orphaned. He decides
-   keep / change / remove. One decision, then the next. Slow and explicit is the point —
-   he asked for it that way.
-3. The result is a **rewritten phase 7 in Part 5 of `life-tracker-plan.md`**. The plan is
-   the source of truth, so it gets edited to match what he actually wants rather than
-   appended to.
-
-**Phase 8 (gym) is explicitly out of scope for this rewrite** — his words: "let phase 8
-aside, it's for the future, not now." Don't touch it, don't design it, don't raise it.
-
-**The rule about forgetting.** He is worried something in phase 7 that he still wants will
-be lost because he didn't think to mention it. So nothing in phase 7 disappears silently.
-Every item below has to be explicitly accounted for — kept, changed, or removed **by his
-decision** — and a removal is written into the plan or into Deferred with its reason, so a
-later session can't quietly resurrect it or quietly drop it. If something he describes
-overlaps an existing item, say so rather than building both.
-
-The full checklist that must be accounted for, from Part 5 of the plan as it stands:
-
-- Weight chart over time, with interpolated days marked
-- Cigarettes chart, with the 4-day and 7-day moving averages
-- Calories against target, charted
-- Days-logged counter (only goes up)
-- Calendar heatmap, a dot per day coloured by how completely it was logged
-- Logging streak with a grace day — on *logging*, never on hitting a target
-- Weekly digest card: average sleep, cigarette trend, food spend, average calories
-- Milestones ("lowest weight in three months", "first week under 40 cigarettes")
-- Food spend this month
-- **The TDEE estimate**, with its constraints: 7-day moving average of weight, window of
-  at least 14 days and ideally 21–28, interpolated days excluded, confidence range rather
-  than one number
-
-Two decisions were outstanding before this started and are now **folded into the rewrite**
-rather than answered first — they only make sense once the shape of the phase is known:
-whether a **charting library** goes in (it would be the first dependency since the
-scaffold, so it needs asking properly), and **how the phase breaks into steps**, the way
-phase 5 was five steps. Raise both *after* the list is settled, not before.
+**Phase 8 (gym) stays out of scope**, apart from the Workout placeholder tab in phase 7.
+Don't design it or raise it.
 
 ## Waiting on me (Andrei)
 
-1. **The list.** Everything he wants the app to do from here on, in one go. Being written
-   as of 2026-09-09. **Everything else waits on this.**
-2. **Your month of cigarette history**, a day at a time, whenever you get to it.
-3. **Whether the five targets are set.** The database was wiped before real logging
-   started, and `wipe.sql` leaves all five empty — so unless they've been typed on the
-   Targets screen since, they are still blank. The day screen shows numbers with no bars
-   in that state, and several phase 7 items read them. Worth a look.
+1. **Commit the step 7.0 documents** — the plan and this file. Held back until the
+   decisions were all in, at Andrei's request; they are now.
+2. **Say go for step 7.1**, the speed and scroll bugs. The first thing it needs from you
+   is which region your Supabase project runs in and which region your Vercel functions
+   run in — both are shown in each project's settings in its dashboard. Claude can't
+   look at either.
+3. **Your month of cigarette history**, a day at a time, whenever you get to it. It
+   doesn't block anything: nothing derived is stored, so the charts pick it up the
+   moment it's entered.
 
 Migrations 0001–0004 have all been run.
 
 ## Done
 
+- 2026-09-12 — **Phase 7 step 7.0 complete: the plan is rewritten.** Andrei's
+  `phase-7-spec.md` merged into Part 5 of the plan as "Phase 7 — in detail", and the
+  parts of the plan it replaced rewritten. Then every open point settled one at a time,
+  in conversation: chart drawing and icons, the step breakdown, Duplicate as a new
+  feature, the spec's six assumptions, the four places it disagreed with the app, and
+  the small calls. Each is under Decisions with its reason. Documents only; no code.
 - 2026-09-08 — **Both pre-phase-7 issues closed.** The form-width fix was tested on the
   phone and approved. Migration 0004 was run, and the app has been in real daily use for
   a week since — which exercises every product, recipe and meal screen against the
@@ -161,17 +134,69 @@ Migrations 0001–0004 have all been run.
 
 ## Next
 
-**Rewrite phase 7, then build it.** The rewrite and how it runs are described in Now —
-read that section rather than this one, because phase 7 as written in the plan is not
-what will be built. The next session opens by waiting for Andrei's list.
+**Build phase 7**, once the decisions in Waiting on me are made. What it contains is in
+Part 5 of the plan.
 
-One piece of context that will matter when TDEE comes up in that conversation: it wants
-three to four weeks of weight and food, and as of 2026-09-09 there is roughly one week of
-real logging. The charts and the counters work on a week; TDEE does not. That's an
-argument for where it sits in the order, not for dropping it — it's the reason the app
-exists.
+### Step breakdown — approved 2026-09-12
 
-Then 8 (gym), which is deliberately parked and not part of this rewrite.
+The spec's Part 15 was a starting proposal. This version, approved by Andrei as it
+stands, differs from it in four places:
+
+- **The speed and scroll bugs move from last to first.** Every step tested in between
+  would otherwise be tested on the slow app. The region check costs nothing. And the
+  scroll jumps live in the meal screen that 7.4 restyles, so it's better to fix them
+  before restyling than after.
+- **The chart base is built together with the first real chart (Smoking)**, rather than
+  on its own in the shell step. A chart frame with no chart in it is scaffolding that
+  can't be tested on the phone.
+- **The Workout placeholder moves into the settings step.** All it reads is the gym date
+  that step adds. Until then the tab bar has four tabs.
+- **TDEE gets its own step**, separate from the weight chart. It's the reason the app
+  exists, and the arithmetic is the risk.
+
+| Step | Work |
+|---|---|
+| 7.0 | Rewrite the plan and this file from the spec; proposals *(this step)* |
+| 7.1 | Speed and scroll bugs: check where Vercel and Supabase each run, stop search and Add jumping to the top, make taps faster |
+| 7.2 | App shell: new palette, tab bar with icons (Sleep · Smoking · Nutrition · Settings), Nutrition opens by default with its four sub-tabs over the existing screens, Sleep, Smoking and Weight moved to the 04:00 day, the smoking form opening on yesterday, red dots for missing logs, the backup dot, Settings tab holding the current targets and the export, old home screen and `/export` retired, rubber-band check |
+| 7.3 | Settings: migration 0005 with every new field, the full Settings tab, timezone in the export, and the Workout tab with its countdown |
+| 7.4 | Nutrition → Today: target rules, hero, nutrient bars with the fat split, meal rows, day details, "+" with tap and hold |
+| 7.5 | Calendar heatmap with the streak and the days-logged counter |
+| 7.6 | "Where did it come from?" panels (on Today; the stats section reuses them later) |
+| 7.7 | Recipes and Products: sort pills, lei per 30 g protein and per 1,000 kcal, and Duplicate |
+| 7.8 | Smoking tab: the shared range control and the chart base with its rotate button, proven on the bar chart with its two averages, and the list |
+| 7.9 | Weight: dots chart, averages, invented points, goal line, list |
+| 7.10 | TDEE estimate and the formula comparison |
+| 7.11 | Sleep: the clock, night and period |
+| 7.12 | Sleep: chart view |
+| 7.13 | Stats, part 1: digest cards (with the weekly digest's content), food spend this month, range, average boxes, chart with metric buttons |
+| 7.14 | Stats, part 2: meals vs snacks, days on target |
+| 7.15 | Stats, part 3: timing card |
+| 7.16 | Milestones |
+
+### Details to settle at the step that builds them
+
+Not needed now, and written here so they aren't lost:
+
+- **TDEE (7.10):** what counts as a "day of data" for the 7-day threshold and the
+  accuracy label: days with a weigh-in, days with meals, or both. And what shows with
+  fewer than three weigh-ins. A trend line needs two points and a ± range needs three.
+- **Duplicate (7.7):** where the button sits (next to Replace on the item's screen is the
+  obvious place), what the copy is called, and whether a duplicated recipe's retired
+  ingredients follow `replaced_by` to the current version the way Replace does.
+- **Streak (7.5):** is "one missed day per week" counted per calendar week (Monday to
+  Sunday) or across any seven days in a row?
+- **Where did it come from (7.6):** a recipe line counts as the recipe as a whole
+  ("Burritos"), not its ingredients. The mockups show it that way; confirm when building.
+- **Weekly digest (7.13):** is "the previous week" the seven days before the last
+  seven, or the previous calendar week?
+- **Milestones (7.16):** Claude proposes the full list.
+
+One piece of context for TDEE: it wants three to four weeks of weight and food, and as
+of 2026-09-11 there is roughly ten days of real logging. By step 7.10 there should
+probably be enough for "Fair". That's why it sits where it does, not a reason to drop it.
+
+Then 8 (gym), which is deliberately parked.
 
 ### Settled already, so don't re-ask
 
@@ -188,8 +213,10 @@ These came out of phase 5 and hold from here on:
 - A recipe contains products only. A recipe can never contain another recipe.
 - Every date and time goes through `lib/day.ts`, in Europe/Bucharest. Nothing anywhere
   else builds one.
-- Nothing in the app is ever red or amber about what was logged. Amber and red are for
-  an overdue backup, and nothing else.
+- **Changed in phase 7:** red means a missing log, a missed target, or an overdue
+  backup; amber means only a backup that's getting old. Nothing else is ever red or
+  amber. (Until 2026-09-11 this said nothing was ever red or amber about what was
+  logged — that rule is gone.)
 
 Two things that shaped phase 5 and are worth keeping in view:
 
@@ -329,7 +356,7 @@ From step 3, on dates specifically:
 2026-09-01 — The backup file reaches the phone through the iOS share sheet, falling back to a plain download where there isn't one. Downloads inside a home-screen app are unpredictable, which is the wrong behaviour for the one feature whose job is making sure the file really got saved.
 2026-09-01 — "Backed up X days ago" comes from a new `last_export_at` column on `settings`, not from the phone. iOS wipes a home-screen app's stored data after about a week of not opening it — precisely when the reminder would matter.
 2026-09-01 — That timestamp records that the file was handed over, not that it was saved. Cancel the share sheet and the clock still resets. Accepted knowingly; the alternative depends on a success signal iOS reports unreliably.
-2026-09-01 — The reminder is a line on the home screen linking to `/export`, which holds the button. Quiet under 7 days, amber at 7, red at 14.
+2026-09-01 — The reminder is a line on the home screen linking to `/export`, which holds the button. Quiet under 7 days, amber at 7, red at 14. **Superseded 2026-09-11 (phase 7):** same thresholds, but shown as a dot on the Settings tab icon and on the Export row in Settings; the home screen and `/export` go.
 2026-09-01 — The export is all-or-nothing: if one table can't be read the whole thing fails, rather than handing over a file with a table silently missing.
 2026-09-01 — `login_attempts` is left out of the backup. Timestamps for the lockout, worthless to restore.
 2026-09-01 — Tables are written in restore order, so the file can be turned back into rows top to bottom. There is deliberately no import screen yet — Andrei was told, and left it alone.
@@ -337,14 +364,14 @@ From step 3, on dates specifically:
 2026-09-01 — `wipe.sql` refuses and rolls back if something real already uses a sample product, rather than cascading. Note for later: `on delete restrict` raises `restrict_violation` (23001), not `foreign_key_violation` (23503) — caught by testing, not by reading.
 2026-09-01 — `lib/day.ts` is the only place dates are built, always in Europe/Bucharest.
 2026-09-01 — The weight screen holds the form and the last 14 entries together; logging a day that already exists updates it rather than refusing, and the button reads Update. Safe because nothing points at a weigh-in — unlike products and recipes, which are frozen once used.
-2026-09-01 — Home screen is a plain list of destinations, one line per phase as they land. A bottom tab bar was considered and deliberately deferred until there are four or five real screens (around phase 6) — the tab set will change several times before then.
+2026-09-01 — Home screen is a plain list of destinations, one line per phase as they land. A bottom tab bar was considered and deliberately deferred until there are four or five real screens (around phase 6) — the tab set will change several times before then. **Superseded 2026-09-11 (phase 7):** a five-tab bar replaces the home screen, and the app opens on Nutrition.
 2026-09-01 — `lib/types.ts` describes the database to TypeScript, written by hand because the Supabase CLI is off limits. **It must be updated by hand with every migration.** Note: `Views: Record<string, never>` silently disables table-name checking, because an empty Record is keyed by any string — use `{ [_ in never]: never }`. Caught by deliberately typing a wrong table name and finding no error.
 2026-09-02 — The product form follows EU-label order (energy, fat, saturates, carbs, sugars, fibre, protein, salt), not database order, so you can type straight down the packet. One long form, not a wizard: iOS drops a home-screen app's state on relaunch, so a form split across screens can lose half your typing.
 2026-09-02 — Price per 100 is shown live under the price and package-size fields. It's the only cheap guard against typing 100 g for a 1 kg bag, which silently corrupts the cost of every meal that product ever appears in.
 2026-09-02 — What you may change is decided by whether the product has been used: unused means fully editable and deletable, used means frozen except the name. Replace opens the add form pre-filled with a copy and steps the name ("oats" → "oats 2"). Replacing has to be as fast as editing, or the honesty rule quietly stops holding.
 2026-09-02 — Creating a replacement and retiring the original are two writes with no transaction available. If the second doesn't happen the first is undone. **Note for any future two-step write: updating a row that doesn't exist is not an error — it silently matches nothing. Ask for the changed rows back with `.select()` and check you got any.** Found by testing, after the action reported success while leaving an orphan.
 2026-09-01 — Weight input accepts a comma as a decimal point and rounds past two decimals, matching what the column stores. Future dates are refused; past dates are not, because backfill is required everywhere.
-2026-09-01 — Two colours added to `globals.css`, `--warn` and `--danger`, used only to say a backup is overdue. Nothing in this app is ever red about what you ate.
+2026-09-01 — Two colours added to `globals.css`, `--warn` and `--danger`, used only to say a backup is overdue. Nothing in this app is ever red about what you ate. **Superseded 2026-09-11 (phase 7):** red now also means a missing log or a missed target.
 2026-09-02 — A recipe is one screen. Name and servings are saved first, then the ingredients are added to the saved recipe underneath: search, type a quantity, Add. Nothing is spread across two screens, because iOS drops a home-screen app's state on relaunch. Accepted cost: a recipe can sit there empty, which the list shows as "no ingredients". That state is honest anyway — the cooked weight can't be filled in until the pan has been weighed, usually a different day.
 2026-09-02 — Shrinkage is shown as grams *and* a percentage. The percentage is what you compare between cooks; the grams are what tell you a figure was mistyped. A pan that got heavier is reported as such rather than hidden — adding water to a stew is real, and so is a typo.
 2026-09-02 — Per-serving nutrition and cost sit on the recipe screen itself, right under the ingredients, because that's the one moment you can still spot a wrong number and fix it. The whole-batch figures are one muted line beneath.
@@ -365,15 +392,15 @@ From step 3, on dates specifically:
 2026-09-02 — A night's length is never stored. It's worked out from the two times and shown live under the fields, which is what catches a mistyped time while you can still see it. Crossing midnight is arithmetic, not a question: if bedtime is later on the clock than the wake-up, the night crossed midnight. The app never asks which day bedtime was on.
 2026-09-02 — Averages over days count only the days that have an entry, and say how many when the window isn't full ("over the 6 you logged"). A missing day is a day not logged, not a day of zero — filling gaps with zero would flatter a cigarette count, and treating a half-empty window as complete would lie about it. `lib/series.ts`, reused by phase 7 for the 7-day weight average.
 2026-09-02 — On the cigarettes screen a zero is a real entry and an empty box is refused. The schema keeps "not logged" and "smoked nothing" apart deliberately, and the field starts empty rather than at zero so a zero is always something you typed. If empty quietly meant none, every forgotten day would read as a perfect one.
-2026-09-02 — The cigarettes screen carries one interpreted sentence — "The last four days are below the week", or above it — shown only when the two averages differ. It's the only place in the app that interprets rather than reports, it exists because the plan says the trend is the point, and it stays neutral in both directions: no congratulation, no colour.
+2026-09-02 — The cigarettes screen carries one interpreted sentence — "The last four days are below the week", or above it — shown only when the two averages differ. It's the only place in the app that interprets rather than reports, it exists because the plan says the trend is the point, and it stays neutral in both directions: no congratulation, no colour. **Superseded 2026-09-11 (phase 7):** the sentence and the two averages above the list are removed; the chart's two average lines replace them.
 2026-09-02 — **No backfill machinery for cigarettes.** A grid of thirty editable days was proposed and Andrei turned it down: he'll enter his month of history one day at a time, and the smoking screen is the weight screen's shape exactly. Don't re-propose it.
-2026-09-02 — Repeat has two entry points: a button on any past meal, and a "Repeat something recent" list on the day screen. The button alone is what the plan literally asks for, but it's only reachable by remembering which day you ate the thing; the list is what makes it a daily feature. Ranked by recency, not frequency — recency is exact, and "how often" needs a definition of "the same meal" that belongs with phase 7's statistics.
+2026-09-02 — Repeat has two entry points: a button on any past meal, and a "Repeat something recent" list on the day screen. The button alone is what the plan literally asks for, but it's only reachable by remembering which day you ate the thing; the list is what makes it a daily feature. Ranked by recency, not frequency — recency is exact, and "how often" needs a definition of "the same meal" that belongs with phase 7's statistics. **Changed 2026-09-11 (phase 7):** the list moves into a sheet opened by holding the "+" on Today; the button on a past meal stays; still ranked by recency.
 2026-09-02 — A repeat copies the lines and the meal/snack type, but not the note or the score. A score is a judgement about one particular plate of food, and carrying it forward would fill the history with scores that were never given — which matters, because phase 7 reads them.
 2026-09-02 — A repeated line pointing at something retired follows `replaced_by`, and the copy says which lines moved. That notice is worked out by comparing the copy against the meal it came from, because the copy itself points only at the current versions — a moment later the information is gone. Something retired with nothing after it is copied as it stands and called out separately, rather than failing the whole repeat over one line.
 2026-09-02 — The day's totals live at the top of the meals day screen, not on a separate "Today" page, so they work for any day rather than only for today. Backfilling Saturday shows Saturday's totals. A today-only screen would have needed a second copy of the same arithmetic.
-2026-09-02 — The home screen's Meals line shows today's calories rather than a fixed label. One extra query on the home screen, for the number the app is most often opened to check.
-2026-09-02 — `/settings` holds the five targets, all optional and clearable. They live in the database rather than in code because the plan expects them to be revised once TDEE can be estimated — and if changing them meant the Supabase SQL editor, they'd quietly go stale. `day_boundary_hour` is deliberately not on that screen; it changes how past data reads, not what it's measured against.
-2026-09-02 — Every bar on the day screen is the same colour, including the ones you've gone past. No amber, no red, ever, about what was eaten — Part 5 of the plan rules it out, and amber is reserved for an overdue backup, which is an actual problem. Going over fills the bar and says "past it" in plain text.
+2026-09-02 — The home screen's Meals line shows today's calories rather than a fixed label. One extra query on the home screen, for the number the app is most often opened to check. **Superseded 2026-09-11 (phase 7):** the home screen goes; the app opens on Nutrition → Today, where calories are the hero.
+2026-09-02 — `/settings` holds the five targets, all optional and clearable. They live in the database rather than in code because the plan expects them to be revised once TDEE can be estimated — and if changing them meant the Supabase SQL editor, they'd quietly go stale. `day_boundary_hour` is deliberately not on that screen; it changes how past data reads, not what it's measured against. **Extended 2026-09-11 (phase 7):** the Settings tab adds carbs, fat, the fat ratio, goal phase and weight, body figures, the gym date and the export; `day_boundary_hour` stays hidden.
+2026-09-02 — Every bar on the day screen is the same colour, including the ones you've gone past. No amber, no red, ever, about what was eaten — Part 5 of the plan rules it out, and amber is reserved for an overdue backup, which is an actual problem. Going over fills the bar and says "past it" in plain text. **Superseded 2026-09-11 (phase 7):** bars keep their nutrient colour, and the part past a ceiling or above a ±10% zone turns red, as does the number; protein and fibre stop being floors.
 2026-09-02 — A target that isn't set shows the number with no bar and a link to the targets screen, rather than hiding the row. You want to watch a number for a fortnight before deciding what it should be.
 2026-09-02 — Nothing about a meal is ever frozen. Nothing in the database points at a meal, so every line, quantity, time and note stays editable and deletable forever, and deleting a meal takes only its own lines.
 2026-09-02 — `agentRules: false` in `next.config.ts`. `next dev` was appending its own block of instructions to `CLAUDE.md` and re-adding it whenever it was removed; that file is written by hand and says what it needs to say.
@@ -388,14 +415,38 @@ keep/change/remove, ending in a rewritten phase 7 in Part 5. He asked for it slo
 explicitly, decision after decision, and specifically asked that nothing already in phase
 7 be lost just because he forgot to mention it — so every existing item is accounted for
 by an explicit decision, and removals are written down with their reason. Phase 8 is out
-of scope for the rewrite.
+of scope for the rewrite. **Done 2026-09-11:** Andrei ran the review himself; see below.
 2026-09-01 — Icon files are split by job: `app/icon.png` and `app/apple-icon.png` for the browser and iOS (Next.js writes the link tags automatically), `public/icon-192.png` and `public/icon-512.png` for the manifest, which needs fixed paths.
+2026-09-11 — **The phase 7 review was done by Andrei himself**, before the session, and delivered as `docs/phase-7-spec.md` with `docs/phase-7-mockups.html`. Claude doesn't re-run it. The spec was merged into Part 5 of the plan as **Phase 7 — in detail**; the spec file is background from now on, and the mockups stay the visual reference (the plan wins on behaviour, the mockups on looks).
+2026-09-11 — What phase 7 replaced, so nobody finds two rules and guesses (each old line above is marked where it applies): red now means a missing log, a missed target or an overdue backup, and amber only an ageing backup; targets are ceilings (calories on a cut, spend, added sugar) or ±10% zones (protein, carbs, fibre, fat, and calories on maintain or bulk), no longer budgets and floors; TDEE fits a trend line through real weigh-ins and shows from 7 days with an accuracy label, instead of 7-day averages after 14 days; the weight chart shows skipped days as hollow grey invented points instead of a line across them; a five-tab bar replaces the home screen and the app opens on Nutrition; the smoking screen's averages and trend sentence go, replaced by the chart; "Repeat something recent" moves to holding the "+"; Settings gains every target, the goal, body figures, the gym date and the export.
+2026-09-11 — The original plan's TDEE formula had its sign backwards: with "weight change" read as end minus start, losing weight would have lowered the estimate. The phase 7 formula, `TDEE = average intake − slope × 7700`, has it right. Worth checking the sign against a made-up losing week when 7.10 is built.
+2026-09-11 — `architecture.md` describes the app as it is, not as it will be, so it changes step by step as phase 7's code lands. It was not rewritten in step 7.0.
+2026-09-12 — **Charts are drawn by hand as SVG, with no charting library.** Chosen over Recharts: several of phase 7's charts are things no library draws (the 12-hour sleep clock, a time axis across midnight, ±10% zone bands with red overflow, hollow invented weight points), and server-drawn SVG sends the phone no extra code. Cost accepted: axes, labels and tappable bars are written by hand. The chart arithmetic lives in `lib/` as pure functions and is checked in the scratchpad like the rest.
+2026-09-12 — **Tabler icons are copied into one file in the app as SVG**, with Tabler's licence notice at the top, rather than added as the `@tabler/icons-react` dependency or loaded as the icon font the mockups use (which would send the phone thousands of icons). A new icon means copying one more in.
+2026-09-12 — **Duplicate is a new feature on Products and Recipes**, built in 7.7. It opens the add form pre-filled with a copy (a recipe brings its ingredients) and saving creates a new, separate item; unlike Replace, the original is not retired and not linked. For creating something much like an item that already exists. The spec's "tap to duplicate" meant this, not Replace.
+2026-09-12 — `fibre_min` is renamed `fibre_target` in migration 0005, because it's now a ±10% target rather than a minimum. `added_sugar_max` and `daily_budget` keep their names; they're still accurate.
+2026-09-12 — The fat-ratio limit follows the setting: with 1 : N, saturated fat is over when it's more than 1 ÷ (1 + N) of total fat. The spec's "⅓" is that rule at the default 1 : 2.
+2026-09-12 — Never having exported shows red, the same as 14+ days. It showed amber before.
+2026-09-12 — The export file keeps `format: 1` when it gains `tz`. Adding a field changes nothing already in the file.
+2026-09-12 — `docs/phase-7-spec.md` stays in the repo as background reading. The plan wins where they differ.
+2026-09-12 — The phase 7 step breakdown under Next is approved as written, including the speed and scroll bugs moving from last to first (7.1).
+2026-09-12 — The Nutrition stats range opens on 7 days: a week always holds one weekend, so the averages compare like with like, and it matches the weekly digest above it.
+2026-09-12 — "Low protein" means protein supplies under 10% of an item's calories, at 4 kcal a gram. Chosen over 5% (rice and bananas would stay in the ranking with meaningless prices) and 15% (bread, pasta and oats would drop out). The calorie sort's counterpart, "low calorie", is under 20 kcal per 100 g or ml; for a recipe, per 100 g of its ingredients added up.
+2026-09-12 — In the stats, days with no meals logged are grey in Days on target and left out of every average. A forgotten day counted as zero would be red on the zone targets, green on the ceilings, and would drag average calories — and TDEE — down.
+2026-09-12 — The stats cover complete days only, ending yesterday; Custom can't end later. Today's half-finished numbers would pull every average down each morning, and they're already live at the top of the same screen. Food spend this month is a running total and does include today.
+2026-09-12 — A logged day, for the streak, the days-logged counter and a full-strength calendar dot, means all four logs exist: that morning's sleep, that day's cigarettes, that day's weigh-in, at least one meal. Worked out up to yesterday, since smoking is logged the next day. Chosen over three-of-four knowingly: it's strict — a trip of two or more days without a scale breaks the streak — but the streak means "I logged everything", and TDEE needs both weight and meals.
+2026-09-12 — Milestones are proposed by Claude at step 7.16, not now, so the list can be checked against a month or more of real data.
+2026-09-12 — **Sleep, Smoking and Weight move to the 04:00 day**, like meals, in step 7.2: their red dots, the day their forms open on, and the "that date is in the future" check. Until now they went by the midnight date (`today()` in `lib/day.ts`), which would have put a red sleep dot up at 00:30 for a night not yet slept. Accepted cost: a weigh-in typed between midnight and 04:00 opens on the previous day.
+2026-09-12 — The smoking form opens on yesterday (by the 04:00 rule), not today, from step 7.2 — the same step as its red dot. Smoking is logged a day behind, and a form that opened on today would put the count on the wrong day whenever the date wasn't changed. Logging today early means changing the date.
+2026-09-12 — The search box on the Products and Recipes lists stays, above the sort pills, although the mockups leave it out. The lists only grow, every price change adds another version, and search is how an old retired one is found for its price history.
+2026-09-12 — Each meal row on Today keeps its calories, beside the cost, although the mockup's row leaves them out: when the day's total looks high, the first question is which meal did it. Accepted cost: a busier first line, and long names cut short sooner.
+2026-09-12 — The Sleep tab keeps a permanent "+" in its header, alongside the big "+" on the clock. The big one only covers last night; the header one reaches any night, including from the period view, and matches Smoking and Weight.
 
 ## Deferred
 
 - `AGENTS.md`, which the scaffolder wanted to add, was dropped. `CLAUDE.md` already covers it and two files of instructions would drift apart.
 - The scaffold's demo homepage and its five unused demo images were removed rather than kept.
-- Rubber-band scroll bouncing at the top and bottom of the screen is left as-is. It only looks wrong once there are real scrolling screens; worth revisiting then, not now.
+- Rubber-band scroll bouncing at the top and bottom of the screen is left as-is. It only looks wrong once there are real scrolling screens; worth revisiting then, not now. **Picked up by phase 7:** the fixed tab bar makes it real; checked on the phone in the shell step.
 - The icons and the manifest are deliberately reachable without the PIN. iOS fetches them when you add the app to the home screen, before there's any way to have logged in. They give nothing away.
 - A custom lock-screen-style keypad for the PIN. The plain field works; revisit only if it annoys you in daily use.
 - No import or restore screen. Restoring from a backup today means working from the
@@ -418,7 +469,8 @@ of scope for the rewrite.
   screen is the way to see it.
 - The cigarettes trend sentence was checked as logic but never rendered here: in the
   sample data the 4-day and 7-day averages are both exactly 9.3, so it correctly says
-  nothing. It appears as soon as they differ.
+  nothing. It appears as soon as they differ. **Moot from phase 7:** the sentence is
+  removed.
 - `settings.day_boundary_hour` is not read by anything. The app uses a constant of 4.
   Nothing can change the column yet, so reading it would only be scaffolding — but if a
   settings screen ever lands, `lib/day.ts` is the one place that has to change.
@@ -451,3 +503,35 @@ of scope for the rewrite.
   carry `sugars_total`. The export is `select *`, so it followed the rename by itself.
   There is no import screen, so nothing breaks today — but an old backup restored by
   hand would need that one key renamed.
+- The sleep form accepts a night with only one of the two times. Phase 7 doesn't handle
+  that case specially: Andrei doesn't log nights that way, and may deal with it later —
+  for instance by having the form refuse one time on its own.
+- The export writes on a GET request (noted above). Phase 7 moves its button into
+  Settings. It has to stay a button that fetches, never a link, or the browser could
+  trigger an export just by prefetching the page.
+
+**Left out of phase 7 by Andrei's decision** (2026-09-11, the spec's Part 13, also listed
+in the plan). Where no reason is given, the reason is his decision in the review:
+
+- A variety card (distinct foods, top-two share, fruit and veg servings, days since a
+  new product), and the product `category` field it would need.
+- A score card (nutrition by score band, repeated low scorers).
+- A per-snack protein target.
+- A protein g/kg label. Protein is shown in grams only.
+- An ultra-processed / NOVA flag on products.
+- A `cooking_additions` field on recipes. Oil and salt go in as ordinary recipe
+  ingredients instead.
+- A daily cigarette limit.
+- A sleep hours target.
+- Separate target sets per goal phase. There's one set, edited by hand when the phase
+  changes.
+- A second sleep chart (hours and quality).
+- Rich animations: bars filling, numbers counting up, the sleep arc drawing itself,
+  gliding tabs. Later, not now.
+- A separate monthly budget setting. Food spend this month uses the daily spend target ×
+  the days in the month.
+- The smoking screen's averages text and trend sentence. The chart's two lines replace
+  them.
+- A banner on Today for an overdue backup. The reminder is the dot on the Settings tab.
+- A "time not real" flag on backfilled meals. Accepted, because meals are rarely
+  backfilled.
