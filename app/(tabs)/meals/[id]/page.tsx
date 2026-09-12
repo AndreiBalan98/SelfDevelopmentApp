@@ -1,28 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/supabase";
-import { dayFor, dayLabel, timeIn, dateIn } from "@/lib/day";
+import { dateRowLabel, dayFor, timeIn, dateIn } from "@/lib/day";
 import { loadCatalogue, mealItems, resolveLines, whatChanged } from "@/lib/meals";
-import { mealLineCost, mealLineNutrition, mealTotals, round, type Nutrient } from "@/lib/nutrition";
+import { mealLineCost, mealLineNutrition, mealTotals, round } from "@/lib/nutrition";
 import { MealDetailsForm } from "./meal-details-form";
 import { FoodSearch } from "./food-search";
 import { DeleteMealButton, EditMealLine } from "./meal-line-forms";
 import { RepeatButton } from "../repeat-buttons";
+import { NutritionDetails } from "../nutrition-details";
+import { CARD, HEADING } from "../../ui";
 
 export const dynamic = "force-dynamic";
-
-// Same order as the product form and an EU label.
-const NUTRITION: Array<{ key: Nutrient; label: string; unit: string; decimals: number }> = [
-  { key: "calories", label: "Energy", unit: "kcal", decimals: 0 },
-  { key: "fat", label: "Fat", unit: "g", decimals: 1 },
-  { key: "saturated_fat", label: "of which saturates", unit: "g", decimals: 1 },
-  { key: "carbs", label: "Carbohydrate", unit: "g", decimals: 1 },
-  { key: "sugars_total", label: "of which sugars", unit: "g", decimals: 1 },
-  { key: "sugars_added", label: "of which added", unit: "g", decimals: 1 },
-  { key: "fibre", label: "Fibre", unit: "g", decimals: 1 },
-  { key: "protein", label: "Protein", unit: "g", decimals: 1 },
-  { key: "salt", label: "Salt", unit: "g", decimals: 2 },
-];
 
 export default async function MealPage({ params, searchParams }: PageProps<"/meals/[id]">) {
   const { id } = await params;
@@ -76,19 +65,25 @@ export default async function MealPage({ params, searchParams }: PageProps<"/mea
     }));
 
   return (
-    <main className="flex-1 px-5 py-8 mx-auto w-full max-w-md flex flex-col gap-6">
-      <header className="flex items-baseline justify-between gap-4">
-        <h1 className="text-xl font-semibold tracking-tight capitalize">
-          {meal.type}
-          <span className="text-muted"> · {timeIn(eatenAt)}</span>
+    <main className="flex-1 px-5 py-8 mx-auto w-full max-w-md flex flex-col gap-5">
+      <header className="flex min-h-7 items-center justify-between gap-4">
+        <h1 className="whitespace-nowrap text-lg font-semibold">
+          <span className={meal.type === "snack" ? "text-snack-label" : "text-meal-label"}>
+            {meal.type === "snack" ? "Snack" : "Meal"}
+          </span>
+          <span className="font-normal text-faint tabular-nums"> · {timeIn(eatenAt)}</span>
         </h1>
-        <Link href={`/meals?day=${meal.day}`} className="text-sm text-accent">
-          {dayLabel(meal.day)}
+        {/* The way back: the day it counts towards, as Today's date row writes it. */}
+        <Link
+          href={`/meals?day=${meal.day}`}
+          className="min-w-0 truncate text-sm text-accent"
+        >
+          {dateRowLabel(meal.day)}
         </Link>
       </header>
 
       {copiedFrom !== null && (
-        <div className="rounded-lg border border-border bg-surface p-3 text-sm text-muted flex flex-col gap-1">
+        <div className="flex flex-col gap-1 rounded-xl bg-surface p-3.5 text-[13px] text-muted">
           <p>Copied from an earlier meal. Change the amounts if they were different.</p>
 
           {changes.moved.length > 0 && (
@@ -112,73 +107,61 @@ export default async function MealPage({ params, searchParams }: PageProps<"/mea
         </div>
       )}
 
-      <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-medium text-muted">What was in it</h2>
+      <section className="flex flex-col gap-1.5">
+        <h2 className={HEADING}>What was in it</h2>
 
         {lines.length === 0 ? (
-          <p className="text-sm text-muted">
+          <p className="text-[13px] text-muted">
             Nothing in it yet. Search below to add the first thing.
           </p>
         ) : (
-          <ul className="rounded-lg border border-border bg-surface divide-y divide-[var(--border)]">
-            {lines.map((line) => (
-              <li key={line.id} className="flex flex-col gap-2 px-3 py-2.5">
-                <div className="flex items-baseline justify-between gap-3">
-                  <Link href={line.href} className="min-w-0 truncate">
-                    {line.name}
-                  </Link>
-                  <span className="shrink-0 text-sm text-muted tabular-nums">
-                    {line.detail}
-                  </span>
-                </div>
+          <ul className={CARD}>
+            {lines.map((line) => {
+              const calories = mealLineNutrition(line.line).calories;
 
-                <div className="flex items-baseline justify-between gap-3 text-xs text-muted tabular-nums">
-                  <span>{round(mealLineNutrition(line.line).calories, 0)} kcal</span>
-                  <span>{mealLineCost(line.line).toFixed(2)}</span>
-                </div>
+              return (
+                <li
+                  key={line.id}
+                  className="flex flex-col gap-1.5 border-t border-border py-2.5 first:border-t-0"
+                >
+                  <div className="flex items-start justify-between gap-3 text-[13px]">
+                    <span className="flex min-w-0 flex-col">
+                      <Link href={line.href} className="truncate">
+                        {line.name}
+                      </Link>
+                      {/* "2 pieces · 120 g", "1.5 servings": as it's stored. */}
+                      <span className="text-xs text-faint tabular-nums">{line.detail}</span>
+                    </span>
+                    <span className="shrink-0 text-muted tabular-nums">
+                      {Math.round(calories).toLocaleString("en-GB")} kcal ·{" "}
+                      {mealLineCost(line.line).toFixed(2)} lei
+                    </span>
+                  </div>
 
-                <EditMealLine
-                  mealId={mealId}
-                  lineId={line.id}
-                  kind={line.kind}
-                  amount={line.amount}
-                  unit={line.unit}
-                />
-              </li>
-            ))}
+                  <EditMealLine
+                    mealId={mealId}
+                    lineId={line.id}
+                    kind={line.kind}
+                    amount={line.amount}
+                    unit={line.unit}
+                  />
+                </li>
+              );
+            })}
           </ul>
         )}
 
-        <FoodSearch mealId={mealId} recipes={recipeChoices} products={productChoices} />
+        <div className="mt-1">
+          <FoodSearch mealId={mealId} recipes={recipeChoices} products={productChoices} />
+        </div>
       </section>
 
       {lines.length > 0 && (
-        <section className="flex flex-col gap-2">
-          <h2 className="text-sm font-medium text-muted">The whole meal</h2>
-
-          <ul className="rounded-lg border border-border bg-surface divide-y divide-[var(--border)]">
-            {NUTRITION.map((row) => (
-              <li
-                key={row.key}
-                className="flex items-baseline justify-between gap-3 px-3 py-2 text-sm"
-              >
-                <span>{row.label}</span>
-                <span className="tabular-nums">
-                  {round(totals.nutrition[row.key], row.decimals)} {row.unit}
-                </span>
-              </li>
-            ))}
-
-            <li className="flex items-baseline justify-between gap-3 px-3 py-2 text-sm">
-              <span>Cost</span>
-              <span className="tabular-nums">{totals.cost.toFixed(2)}</span>
-            </li>
-          </ul>
-        </section>
+        <NutritionDetails heading="Meal details" nutrition={totals.nutrition} cost={totals.cost} />
       )}
 
-      <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-medium text-muted">When, and how it was</h2>
+      <section className="flex flex-col gap-1.5">
+        <h2 className={HEADING}>When, and how it was</h2>
 
         <MealDetailsForm
           id={mealId}
@@ -191,7 +174,7 @@ export default async function MealPage({ params, searchParams }: PageProps<"/mea
         />
       </section>
 
-      <div className="flex flex-col gap-3 border-t border-border pt-6">
+      <div className="flex flex-col gap-3 pt-2">
         {lines.length > 0 && <RepeatButton sourceId={mealId} day={dayFor(new Date())} />}
         <DeleteMealButton id={mealId} day={meal.day} />
       </div>

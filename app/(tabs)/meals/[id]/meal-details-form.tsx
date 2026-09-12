@@ -3,9 +3,7 @@
 import { useActionState, useState } from "react";
 import { dayFor, dayLabel, localTimestamp, weekdayName } from "@/lib/day";
 import { updateMeal, type Result } from "../actions";
-
-const FIELD =
-  "rounded-lg border border-border bg-surface px-3 py-2.5 text-base outline-none focus:border-accent";
+import { BOX, CARD, PRIMARY, ROW, SEGMENT, SEGMENT_CHOSEN, SEGMENTS } from "../../ui";
 
 type Props = {
   id: number;
@@ -39,128 +37,144 @@ export function MealDetailsForm({ id, date, time, day, type, note, score }: Prop
 
   return (
     <form action={action} className="flex flex-col gap-4">
+      {/* The type and the score are buttons, so they travel in hidden fields. */}
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="type" value={mealType} />
       <input type="hidden" name="score" value={chosenScore ?? ""} />
 
-      <div className="flex gap-3">
-        <label className="flex flex-1 flex-col gap-1.5">
-          <span className="text-sm text-muted">Date</span>
+      <div className={CARD}>
+        <div className={ROW}>
+          <label htmlFor="meal-date" className="text-[13px]">
+            Date
+          </label>
           <input
+            id="meal-date"
             name="date"
             type="date"
             value={when.date}
             onChange={(event) => setWhen({ ...when, date: event.target.value })}
             required
-            className={`${FIELD} tabular-nums`}
+            className={`${BOX} min-h-8 w-36 [&::-webkit-date-and-time-value]:text-right`}
           />
-        </label>
+        </div>
 
-        <label className="flex w-32 flex-col gap-1.5">
-          <span className="text-sm text-muted">Time</span>
+        <div className={ROW}>
+          <label htmlFor="meal-time" className="text-[13px]">
+            Time
+          </label>
           <input
+            id="meal-time"
             name="time"
             type="time"
             value={when.time}
             onChange={(event) => setWhen({ ...when, time: event.target.value })}
             required
-            className={`${FIELD} tabular-nums`}
+            // Wide enough for a phone set to 12-hour time ("02:20 AM").
+            className={`${BOX} min-h-8 w-32 [&::-webkit-date-and-time-value]:text-right`}
           />
-        </label>
-      </div>
+        </div>
 
-      <label className="flex flex-col gap-1.5">
-        <span className="text-sm text-muted">
-          Counts towards{" "}
-          {countsTowards && (
-            <span className="text-foreground">{weekdayName(countsTowards)}</span>
-          )}
-        </span>
-        <input
-          name="day"
-          type="date"
-          value={countsTowards}
-          onChange={(event) => setCountsTowards(event.target.value)}
-          required
-          className={`${FIELD} tabular-nums`}
-        />
-      </label>
+        <div className={ROW}>
+          <label htmlFor="meal-day" className="text-[13px]">
+            Counts towards
+            {countsTowards && (
+              <span className="text-faint"> · {weekdayName(countsTowards)}</span>
+            )}
+          </label>
+          <input
+            id="meal-day"
+            name="day"
+            type="date"
+            value={countsTowards}
+            onChange={(event) => setCountsTowards(event.target.value)}
+            required
+            className={`${BOX} min-h-8 w-36 [&::-webkit-date-and-time-value]:text-right`}
+          />
+        </div>
 
-      {disagrees && byTheRule && (
-        <div className="-mt-2 flex items-baseline justify-between gap-3 text-xs text-muted">
-          <span>
-            Anything before 04:00 counts towards the day before. By that rule this one
-            belongs to {dayLabel(byTheRule)}.
+        {disagrees && byTheRule && (
+          <div className="-mt-0.5 flex items-baseline justify-between gap-3 pb-2.5 text-[11px] text-faint">
+            <span>
+              Anything before 04:00 counts towards the day before. By that rule this one
+              belongs to {dayLabel(byTheRule)}.
+            </span>
+            <button
+              type="button"
+              onClick={() => setCountsTowards(byTheRule)}
+              className="shrink-0 text-xs text-accent"
+            >
+              Use it
+            </button>
+          </div>
+        )}
+
+        <div className={ROW}>
+          <span className="whitespace-nowrap text-[13px]">Meal or snack</span>
+          <div className={`${SEGMENTS} w-36`}>
+            {(["meal", "snack"] as const).map((option) => (
+              <button
+                key={option}
+                type="button"
+                aria-pressed={mealType === option}
+                onClick={() => setMealType(option)}
+                className={`${SEGMENT} ${
+                  mealType === option
+                    ? `${SEGMENT_CHOSEN} ${option === "snack" ? "text-snack-label" : "text-meal-label"}`
+                    : "text-muted"
+                }`}
+              >
+                {option === "snack" ? "Snack" : "Meal"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className={ROW}>
+          <label htmlFor="meal-note" className="text-[13px]">
+            Note
+          </label>
+          <input
+            id="meal-note"
+            name="note"
+            type="text"
+            defaultValue={note ?? ""}
+            placeholder="optional"
+            autoComplete="off"
+            className={`${BOX} min-w-0 flex-1 text-left placeholder:text-faint`}
+          />
+        </div>
+
+        <div className="flex flex-col gap-2 border-t border-border py-2.5">
+          <span className="text-[13px]">
+            Score
+            <span className="text-faint">
+              {chosenScore !== null ? ` · ${chosenScore}` : " · optional"}
+            </span>
           </span>
-          <button
-            type="button"
-            onClick={() => setCountsTowards(byTheRule)}
-            className="shrink-0 text-accent"
-          >
-            Use it
-          </button>
-        </div>
-      )}
-
-      <fieldset className="flex flex-col gap-1.5">
-        <legend className="text-sm text-muted">Meal or snack</legend>
-        <div className="flex gap-2">
-          {(["meal", "snack"] as const).map((option) => (
-            <button
-              key={option}
-              type="button"
-              onClick={() => setMealType(option)}
-              className={`flex-1 rounded-lg border px-3 py-2.5 text-center capitalize ${
-                mealType === option ? "border-accent text-accent" : "border-border text-muted"
-              }`}
-            >
-              {option}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-
-      <label className="flex flex-col gap-1.5">
-        <span className="text-sm text-muted">Note (optional)</span>
-        <input
-          name="note"
-          type="text"
-          defaultValue={note ?? ""}
-          autoComplete="off"
-          className={FIELD}
-        />
-      </label>
-
-      <div className="flex flex-col gap-1.5">
-        <span className="text-sm text-muted">
-          Score (optional){chosenScore !== null && <span> · {chosenScore}</span>}
-        </span>
-        <div className="flex gap-1">
-          {Array.from({ length: 10 }, (_, index) => index + 1).map((number) => (
-            <button
-              key={number}
-              type="button"
-              aria-label={`Score ${number}`}
-              onClick={() => setChosenScore(chosenScore === number ? null : number)}
-              className={`flex-1 rounded-md border py-2 text-xs tabular-nums ${
-                chosenScore === number
-                  ? "border-accent text-accent"
-                  : "border-border text-muted"
-              }`}
-            >
-              {number}
-            </button>
-          ))}
+          <div className="flex gap-1">
+            {Array.from({ length: 10 }, (_, index) => index + 1).map((number) => (
+              <button
+                key={number}
+                type="button"
+                aria-label={`Score ${number}`}
+                aria-pressed={chosenScore === number}
+                onClick={() => setChosenScore(chosenScore === number ? null : number)}
+                className={`flex-1 rounded-md py-1.5 text-xs tabular-nums ${
+                  chosenScore === number
+                    ? "bg-accent font-semibold text-black"
+                    : "bg-background text-muted"
+                }`}
+              >
+                {number}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       <div className="flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded-lg border border-border bg-surface px-4 py-2.5 text-sm disabled:opacity-50"
-        >
-          {pending ? "…" : "Save"}
+        <button type="submit" disabled={pending} className={PRIMARY}>
+          {pending ? "Saving…" : "Save"}
         </button>
 
         {result && (

@@ -54,9 +54,14 @@ app/                 every screen, and the server code behind it
     refresh-on-return.tsx  redraws the screen when the app comes back to the front
     icons.tsx        the Tabler icons the app uses, copied in, with their licence
     skeleton.tsx     the grey building blocks every loading screen is made of
+    ui.ts            the new look's building blocks — card, row, box, buttons,
+                     segmented control — shared by every screen restyled to it,
+                     so they can't drift apart
     loading.tsx      (in each screen folder) that screen's skeleton — what shows
                      the instant you tap, while its data loads
     meals/           Nutrition → Today: one day at a time, with the day's totals
+      nutrition-details.tsx  the full label figures in EU order, shared by
+                     Today ("Day details") and one meal ("Meal details")
       [id]/          one meal: what was in it, when, and how it was
     recipes/         Nutrition → Recipes: list and search, add, edit, replace
       new/           the add form — also the replace form, pre-filled
@@ -424,6 +429,15 @@ one tap to delete.
 their calories a serving. Retired ones are left out, including when backfilling. The
 search runs on the phone (see "Searching happens on the phone"); after an Add the box
 empties, ready for the next thing.
+
+**One meal's screen** has the phase 7 look (step 7.4b): the header says "Meal · 13:30"
+with the way back to its day on the right; "What was in it" is a card with a line per
+food — its name and what's stored ("2 pieces · 120 g"), its calories and cost, and the
+box to change the amount with Save and Remove; the search box sits under it; then
+"Meal details", the same card as Today's day details; then "When, and how it was" as a
+card of rows — date, time, the day it counts towards, meal or snack, note, score —
+with one Save. Repeat this today and Delete this meal close the screen. It works
+exactly as it did before the restyle.
 
 **Nothing about a meal is ever frozen.** Products and recipes freeze once something
 points at them; nothing points at a meal, so every line, quantity, time and note stays

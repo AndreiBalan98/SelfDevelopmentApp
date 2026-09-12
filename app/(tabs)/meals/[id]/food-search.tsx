@@ -44,7 +44,7 @@ export function FoodSearch({
   const clear = () => setText("");
 
   return (
-    <div className="flex flex-col gap-2 pt-1">
+    <div className="flex flex-col gap-2">
       <input
         type="search"
         value={text}
@@ -52,15 +52,15 @@ export function FoodSearch({
         placeholder="Search what you ate"
         aria-label="Search what you ate"
         autoComplete="off"
-        className="rounded-lg border border-border bg-surface px-4 py-2.5 text-base
-                   outline-none focus:border-accent"
+        className="rounded-xl border border-transparent bg-surface px-3.5 py-2.5 text-base
+                   outline-none placeholder:text-faint focus:border-accent"
       />
 
       {term &&
         (recipeMatches.length === 0 && productMatches.length === 0 ? (
-          <p className="text-sm text-muted">Nothing matching “{text.trim()}”.</p>
+          <p className="text-[13px] text-muted">Nothing matching “{text.trim()}”.</p>
         ) : (
-          <ul className="rounded-lg border border-border bg-surface divide-y divide-[var(--border)]">
+          <ul className="flex flex-col rounded-xl bg-surface px-3.5 [&>li+li]:border-t [&>li+li]:border-border">
             {recipeMatches.map((recipe) => (
               <li key={`recipe-${recipe.id}`}>
                 <AddRecipeLine
