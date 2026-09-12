@@ -38,3 +38,19 @@ body {
      running from the home screen. Zero in a normal browser tab. */
   padding-bottom: env(safe-area-inset-bottom);
 }
+
+/* The grey blocks in a loading skeleton (app/skeleton.tsx). They pulse gently
+   until the data arrives. They appear at once rather than fading in: on some
+   screens one skeleton is swapped for an identical one partway through a load,
+   and a fade would turn that swap into a visible blink. */
+.bone {
+  border-radius: 0.375rem;
+  background: var(--border);
+  animation: bone-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes bone-pulse {
+  50% {
+    background: color-mix(in srgb, var(--border) 50%, var(--surface));
+  }
+}

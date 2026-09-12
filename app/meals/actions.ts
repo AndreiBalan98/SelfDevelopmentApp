@@ -251,9 +251,12 @@ export async function addMealLine(
     return { ok: false, message: "Nothing chosen." };
   }
 
+  // Redraws the meal where it stands, with the new line in it. Deliberately not
+  // a redirect: that re-opens the page, and re-opening it scrolls to the top.
   revalidatePath("/meals");
-  // Back to the meal with the search box empty, ready for the next thing.
-  redirect(`/meals/${mealId}`);
+  revalidatePath(`/meals/${mealId}`);
+
+  return { ok: true, message: "Added." };
 }
 
 export async function setMealLineAmount(

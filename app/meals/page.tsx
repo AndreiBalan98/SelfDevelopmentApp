@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { db } from "@/lib/supabase";
 import { dayFor, dayLabel, shiftDays, timeIn } from "@/lib/day";
 import { linesForMeals, recentMeals } from "@/lib/meals";
@@ -8,6 +9,7 @@ import { DayPicker } from "./day-picker";
 import { AddMealButton } from "./add-meal-button";
 import { DayTotals } from "./day-totals";
 import { RepeatRow } from "./repeat-buttons";
+import Loading from "./loading";
 
 export const dynamic = "force-dynamic";
 
@@ -35,18 +37,31 @@ export default async function MealsPage({ searchParams }: PageProps<"/meals">) {
   const selected =
     typeof day === "string" && /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : currentDay;
 
-  const { data, error } = await db()
-    .from("meals")
-    .select("id, eaten_at, day, type, note, score")
-    .eq("day", selected)
-    .order("eaten_at", { ascending: true });
+  // Keyed on the day, so stepping to another day swaps straight to the
+  // skeleton while it loads, rather than leaving the old day on screen as if
+  // the tap hadn't registered.
+  return (
+    <Suspense key={selected} fallback={<Loading />}>
+      <Day selected={selected} currentDay={currentDay} />
+    </Suspense>
+  );
+}
 
-  const meals = data ?? [];
-  const [lines, targets, recent] = await Promise.all([
-    linesForMeals(meals.map((meal) => meal.id)),
+async function Day({ selected, currentDay }: { selected: string; currentDay: string }) {
+  // The targets and the recent list don't depend on which meals are on this
+  // day, so they're asked for at the same time rather than after.
+  const [{ data, error }, targets, recent] = await Promise.all([
+    db()
+      .from("meals")
+      .select("id, eaten_at, day, type, note, score")
+      .eq("day", selected)
+      .order("eaten_at", { ascending: true }),
     readTargets(),
     recentMeals(RECENT),
   ]);
+
+  const meals = data ?? [];
+  const lines = await linesForMeals(meals.map((meal) => meal.id));
 
   // The day, added up from every line of every meal on it. Nothing about this
   // is stored — it's the meals themselves, totalled when the screen is drawn.

@@ -358,10 +358,12 @@ export async function addLine(
 
   if (error) return { ok: false, message: `Could not add it: ${error.message}` };
 
+  // Redraws the recipe where it stands, with the new line in it. Deliberately
+  // not a redirect: that re-opens the page, and re-opening it scrolls to the top.
   revalidatePath("/recipes");
-  // Back to the recipe with no search term, so the box is empty and ready for
-  // the next ingredient.
-  redirect(`/recipes/${recipeId}`);
+  revalidatePath(`/recipes/${recipeId}`);
+
+  return { ok: true, message: "Added." };
 }
 
 export async function setLineQuantity(

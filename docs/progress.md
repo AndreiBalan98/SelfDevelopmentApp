@@ -4,10 +4,9 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Phase 7, step 7.0 is complete: the plan is rewritten and every decision in it is made.
-Next is step 7.1, the speed and scroll bugs, when Andrei says go.** Phases 1–6 are
-complete and the app has been in daily use since 2026-09-01. No code has been written
-for phase 7, and no library has been added.
+**Phase 7, step 7.1 (speed and scroll bugs) is built and waiting for Andrei to test it on
+the phone.** Phases 1–6 are complete and the app has been in daily use since 2026-09-01.
+Step 7.0 (the plan rewrite) is committed. No library has been added in phase 7.
 
 ### How phase 7 got here
 
@@ -33,17 +32,24 @@ Don't design it or raise it.
 
 ## Waiting on me (Andrei)
 
-1. **Commit the step 7.0 documents** — the plan and this file. Held back until the
-   decisions were all in, at Andrei's request; they are now.
-2. **Say go for step 7.1**, the speed and scroll bugs. The first thing it needs from you
-   is which region your Supabase project runs in and which region your Vercel functions
-   run in — both are shown in each project's settings in its dashboard. Claude can't
-   look at either.
-3. **Your month of cigarette history**, a day at a time, whenever you get to it. It
-   doesn't block anything: nothing derived is stored, so the charts pick it up the
-   moment it's entered.
+1. **Commit and push step 7.1, then test it on the phone.** What to check:
+   - **Meal builder:** open a meal with a few lines, scroll down to the search box, type.
+     Results appear as you type, and the page stays where it is. Type an amount, tap
+     Add: the line appears in the list above, the search box empties, and the page does
+     not jump to the top.
+   - **Recipe builder:** the same, on a recipe nobody has eaten yet.
+   - **Products and Recipes lists:** scroll down a little, type in the search box — no
+     jump. "Show retired" still shows the old versions.
+   - **Skeletons:** from the home screen, open each screen. Grey pulsing blocks under the
+     real title should appear the moment you tap, then fill in. The day arrows on Meals,
+     and tapping an older entry on Weight, Sleep or Cigarettes, should do the same.
+   - **Saving:** save a weigh-in — no skeleton, and "Saved …" stays on screen.
+   - **Speed in general:** does any tap still feel slow? If so, which one.
 
-Migrations 0001–0004 have all been run.
+Migrations 0001–0004 have all been run. Step 7.1 has no migration.
+
+Andrei will enter his August cigarette history himself, when he chooses. It isn't
+tracked here and doesn't need raising.
 
 ## Done
 
@@ -134,8 +140,7 @@ Migrations 0001–0004 have all been run.
 
 ## Next
 
-**Build phase 7**, once the decisions in Waiting on me are made. What it contains is in
-Part 5 of the plan.
+**Build phase 7**, one step at a time. What it contains is in Part 5 of the plan.
 
 ### Step breakdown — approved 2026-09-12
 
@@ -156,8 +161,8 @@ stands, differs from it in four places:
 
 | Step | Work |
 |---|---|
-| 7.0 | Rewrite the plan and this file from the spec; proposals *(this step)* |
-| 7.1 | Speed and scroll bugs: check where Vercel and Supabase each run, stop search and Add jumping to the top, make taps faster |
+| 7.0 | Rewrite the plan and this file from the spec; proposals *(done)* |
+| 7.1 | Speed and scroll bugs: check where Vercel and Supabase each run, stop search and Add jumping to the top, make taps faster *(built, waiting on the phone test)* |
 | 7.2 | App shell: new palette, tab bar with icons (Sleep · Smoking · Nutrition · Settings), Nutrition opens by default with its four sub-tabs over the existing screens, Sleep, Smoking and Weight moved to the 04:00 day, the smoking form opening on yesterday, red dots for missing logs, the backup dot, Settings tab holding the current targets and the export, old home screen and `/export` retired, rubber-band check |
 | 7.3 | Settings: migration 0005 with every new field, the full Settings tab, timezone in the export, and the Workout tab with its countdown |
 | 7.4 | Nutrition → Today: target rules, hero, nutrient bars with the fat split, meal rows, day details, "+" with tap and hold |
@@ -242,6 +247,8 @@ For a session picking this up cold, after reading the plan and this file:
   `/export`. The temporary `/check` page has been deleted.
 - Everything except `/login`, the icons and the manifest is behind the PIN — including
   `/api/export`, which is the URL that hands over the whole database.
+- Every screen that reads the database has a `loading.tsx` skeleton next to it, and
+  every search box filters on the phone (both from step 7.1; see `architecture.md`).
 - The database has ten tables: the nine in the plan plus `login_attempts`. Sample data
   goes in and out by hand with the scripts in `supabase/sample-data/`; the app never
   creates data by itself. **The sample data is gone** — Andrei ran `wipe.sql` before he
@@ -260,7 +267,7 @@ For a session picking this up cold, after reading the plan and this file:
 - Git: Andrei runs every git command. Reading history (`git log`, `git status`,
   `git show`) is fine and useful; anything that writes is not.
 
-Worth knowing about how this has gone so far: **eight** mistakes were caught only
+Worth knowing about how this has gone so far: **nine** mistakes were caught only
 because things were tested rather than assumed — a batch of constraint tests that
 silently proved nothing; a login flow that would have let anyone in with the lockout
 switched off if the database were unreachable; an export that would have saved the
@@ -268,9 +275,10 @@ login page as your backup once the session expired; a wipe script catching the w
 Postgres error code; a `Database` type that silently switched off all table-name
 checking; a product replacement that reported success while leaving an orphan; a
 deletion refusal that blamed the wrong thing, telling you a recipe had been eaten when
-what actually blocked it was an older recipe pointing at it; and a date helper that
-stored every meal logged before the October clock change an hour late. Every one of
-them looked fine. Test against the real thing before reporting a step as done.
+what actually blocked it was an older recipe pointing at it; a date helper that
+stored every meal logged before the October clock change an hour late; and a meal
+search box that was meant to empty itself after Add but had never once done so. Every
+one of them looked fine. Test against the real thing before reporting a step as done.
 
 ### How to test database code without touching Supabase
 
@@ -312,6 +320,29 @@ Notes from doing it again in step 2, so the next session doesn't rediscover them
 - Two things point at a recipe with `on delete restrict`: `meal_items` and another
   recipe's `replaced_by`. Matching on "foreign key" alone can't tell them apart, so
   the error message has to look at *which* constraint failed.
+
+From step 7.1, for checking how screens *behave* rather than what a function returns —
+scrolling, skeletons, what a tap does:
+
+- Copy the repo into the scratchpad (not `.git`, not `.env.local`), put a stand-in
+  `lib/supabase.ts` in the copy that runs each query through `psql` against the
+  throwaway Postgres (the query builder it needs is about 150 lines: select, insert,
+  upsert, update, delete, eq/in/ilike/gt/lt, order, limit, single/maybeSingle, and
+  `count: "exact", head: true`), set `typescript.ignoreBuildErrors` in the copy's
+  `next.config.ts`, then `next build` and `next start`. Copy `node_modules` rather
+  than symlinking it.
+- A made-up `SESSION_SECRET` in the copy's `.env` lets the test forge its own session
+  cookie (`<expiry>.<HMAC-SHA256 hex of expiry>`), so the PIN gate stays switched on.
+- Playwright is already in the npx cache (`~/.npm/_npx/*/node_modules/playwright`), with
+  Chromium in `~/.cache/ms-playwright`. The iPhone 13 profile on Chromium is close
+  enough for layout and scroll; it can't show iOS-only behaviour.
+- A delay added to every stand-in query (300 ms) makes loading states visible and
+  measurable.
+- To show that a fix works, run the same check against the code as committed
+  (`git archive HEAD | tar -x` into another folder is read-only) and watch it fail
+  there. The scroll checks did.
+- Don't stop the test server with `pkill -f "next start …"`: it matches the shell
+  running the command and kills that too. Find the process number with `ss -ltnp`.
 
 From step 3, on dates specifically:
 
@@ -378,7 +409,7 @@ From step 3, on dates specifically:
 2026-09-02 — The cooked weight stays editable forever, even on a recipe that's been eaten. A meal records *servings*, so per-serving calories and cost come from the ingredients divided by the servings and the cooked weight is never part of that sum. It only says what a portion weighs. Weighing the pan a week later rewrites no history. Servings and ingredients are frozen once eaten; name and notes are always editable.
 2026-09-02 — Replace copies the ingredients, and any line pointing at a retired product is followed through `replaced_by` to the current version. The replace screen lists which lines moved before you save. Copying retired products across would mean replacing them again immediately; following the chain silently would hide a change in the numbers.
 2026-09-02 — Retired products are hidden from the ingredient search, the same as when logging a meal. A new recipe should be built from what you buy today.
-2026-09-02 — The ingredient search rewrites the URL rather than fetching in the browser, so the server does the searching and a reload doesn't lose your place. Adding an ingredient redirects back to the recipe with the box empty, ready for the next one.
+2026-09-02 — The ingredient search rewrites the URL rather than fetching in the browser, so the server does the searching and a reload doesn't lose your place. Adding an ingredient redirects back to the recipe with the box empty, ready for the next one. **Superseded 2026-09-12 (step 7.1):** every search box filters on the phone, and Add redraws in place instead of redirecting — both were what made the page jump to the top.
 2026-09-02 — All food arithmetic lives in `lib/nutrition.ts` as pure functions with no database access, and following a replacement chain lives in `lib/replacements.ts`. Both are checkable on their own, which is the point: nothing derived is stored, so one wrong function would be wrong everywhere at once and still look fine.
 2026-09-02 — A deletion refused by the database now says *why*. Several different things point at a product or a recipe with `on delete restrict` — a recipe that uses it, a meal that ate it, and an older version replaced by it — and they need different answers. Found by testing: the first version told you a recipe had been eaten when nobody had eaten it. Fixed in recipes and, at Andrei's request, in products too, where the same wrong message had shipped in step 1.
 2026-09-02 — The meals screen shows one day at a time, and "today" means the day you're currently logging towards rather than the calendar date — at 02:00 you're still filling in yesterday. Step 4 adds totals and progress to this same screen instead of making a second one.
@@ -441,6 +472,12 @@ of scope for the rewrite. **Done 2026-09-11:** Andrei ran the review himself; se
 2026-09-12 — The search box on the Products and Recipes lists stays, above the sort pills, although the mockups leave it out. The lists only grow, every price change adds another version, and search is how an old retired one is found for its price history.
 2026-09-12 — Each meal row on Today keeps its calories, beside the cost, although the mockup's row leaves them out: when the day's total looks high, the first question is which meal did it. Accepted cost: a busier first line, and long names cut short sooner.
 2026-09-12 — The Sleep tab keeps a permanent "+" in its header, alongside the big "+" on the clock. The big one only covers last night; the header one reaches any night, including from the period view, and matches Smoking and Weight.
+2026-09-12 — **The Vercel functions run in Dublin, beside Supabase in `eu-west-1` (Ireland).** They were in North America, so every database question crossed the Atlantic, and each screen asks two or three in a row. Andrei moved the region in the Vercel dashboard himself and confirmed it's faster. It's set there, not in the repo. If either side ever moves, the other moves with it.
+2026-09-12 — **Every search box filters on the phone** (step 7.1): the food search in a meal, the ingredient search in a recipe, and the Products and Recipes lists. The screen arrives with the full list and typing only filters it, so nothing reloads and nothing jumps. Andrei chose this over keeping the server search with the jump switched off, because each pause in typing still waited on the server. Accepted cost: a half-typed search, and the Show-retired toggle, are forgotten when you leave the screen. The two lists were included because Andrei said to fix the jump everywhere it happens, and testing showed the Products list jumped too.
+2026-09-12 — Adding a food to a meal or an ingredient to a recipe saves and redraws the screen in place, rather than redirecting back to it. A redirect re-opens the page, and re-opening scrolls to the top. The search box empties itself once the save has worked; on a failure it keeps what you typed and shows the reason. (The old version never actually emptied the box either — found by testing.)
+2026-09-12 — **Every screen that reads the database has a loading skeleton** (`loading.tsx` beside it, built from `app/skeleton.tsx`): the real title, headings and labels, with grey pulsing blocks where the data will go. Andrei asked for skeletons specifically, over a plain "Loading…". Meals, Weight, Sleep and Cigarettes also show theirs when the date changes without leaving the screen, through a boundary keyed on the date. Saving never shows one. **When a phase 7 step redesigns a screen, it redesigns that screen's skeleton too.**
+2026-09-12 — The skeleton blocks appear at once and pulse, rather than fading in after a delay. On the date-keyed screens one skeleton is swapped for an identical one partway through arriving, and a fade-in would make that swap blink. On a real connection every load is long enough to see them anyway.
+2026-09-12 — The meal, day and recipe screens ask the database their independent questions all at once instead of one after another. The product screen still asks three in a row; it isn't opened often enough to matter.
 
 ## Deferred
 
@@ -482,7 +519,10 @@ of scope for the rewrite. **Done 2026-09-11:** Andrei ran the review himself; se
   CLI if that ever slips.
 - Product search uses SQL `ilike`, so a `%` or `_` typed into the search box acts as a
   wildcard rather than a literal character. Harmless today; escape the term if it ever
-  reads as a bug.
+  reads as a bug. **Moot from step 7.1:** searching happens on the phone as plain text
+  matching, with no wildcards.
+- Search matching is exact about accents: "ciorba" won't find "ciorbă". It always
+  was. Worth changing only if it bites.
 - There is no confirmation step on any Delete button — a product, a weigh-in, a
   recipe. They're single-user actions on recoverable data, and the database refuses
   the dangerous ones outright. Revisit if something is ever lost by a mis-tap.

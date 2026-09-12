@@ -28,6 +28,14 @@ browser never sees the key, the connection, or the query — only the answer.
 This is verified rather than assumed: a request to the database with no key attached
 comes back `401 Unauthorized`, so the project URL on its own is worth nothing.
 
+**Where each half runs.** The Vercel functions run in Dublin, and the Supabase project
+in `eu-west-1`, also Ireland. They have to stay together: a screen asks the database
+two or three things one after another, and each question crosses whatever distance
+separates them. Until 2026-09-12 the functions ran in North America, and every
+question crossed the Atlantic — the main reason every tap was slow. If either one
+ever moves, move the other with it. The region is set in the Vercel dashboard, not in
+the repo.
+
 ## What's in the repo today
 
 ```
@@ -35,6 +43,9 @@ app/                 every screen, and the server code behind it
   layout.tsx         the frame every page sits inside: fonts, colours, page title,
                      and the tags that make iOS treat this as an installed app
   globals.css        the colour palette and base styling for the whole app
+  skeleton.tsx       the grey building blocks every loading screen is made of
+  loading.tsx        (here and in most screen folders) that screen's skeleton —
+                     what shows the instant you tap, while its data loads
   page.tsx           the home screen: one line per destination
   login/             the PIN screen
   weight/            logging a weigh-in, and the last fortnight of them
@@ -105,6 +116,38 @@ rebuilt from `package.json`, and the third would be secrets.
 Right now every page is static, so this is fast and free. Once screens read from the
 database they stop being static and get rendered per request instead — that's a
 normal and expected change, not a regression.
+
+### While a screen loads
+
+Every screen that reads from the database has a **skeleton** — its `loading.tsx`. The
+moment you tap through to it, the skeleton appears: the real title, headings and
+field labels, with grey pulsing blocks wherever data will go. When the data arrives
+it replaces the blocks in place. The phone has the skeletons in hand before you tap,
+so they appear straight away; without them, a tap left the old screen sitting there
+until the new one had finished loading, which read as a tap that hadn't registered.
+
+Screens that change date without being left — the day arrows on meals, tapping an
+older entry on weight, sleep and cigarettes — show their skeleton too. Those pages
+wrap everything below the date in a boundary tied to that date, so a new date means a
+fresh skeleton rather than the old date lingering on screen.
+
+Saving never shows a skeleton. A save redraws the screen where it stands, keeping
+your place and any "Saved" message.
+
+A skeleton follows its screen's layout, so **when a screen is redesigned, its
+skeleton is redesigned with it**, in the same step.
+
+### Searching happens on the phone
+
+Every search box — products and recipes on their lists, the food search inside a
+meal, the ingredient search inside a recipe — filters a list the screen already
+brought with it. Typing never waits for the server, and never reloads the page. One
+person's shopping is a few kilobytes, so sending all of it costs nothing.
+
+Until 2026-09-12 every pause in typing asked the server to search again, and every
+answer arrived as a reloaded page, which jumped you back to the top. Adding a food to
+a meal or an ingredient to a recipe did the same. Now Add saves, and the screen redraws
+around the new line without moving.
 
 ## The PIN gate
 
@@ -187,7 +230,9 @@ column holds — so what you see saved is what was stored.
 
 What you buy, entered once each. The list searches by name and hides retired
 products behind a toggle — that toggle is also how you read the price history,
-because oats → oats 2 → oats 3 is exactly what a kilo has cost you over time.
+because oats → oats 2 → oats 3 is exactly what a kilo has cost you over time. Both the
+search and the toggle work on the phone, over every product the screen brought with
+it; neither survives leaving the screen.
 
 **The form follows the packet, not the database.** Energy, fat, of which saturates,
 carbohydrate, of which sugars, fibre, protein, salt — the order printed on an EU
@@ -316,7 +361,9 @@ you and typing what you ate, because this is the screen used several times a day
 while eating. A mis-tap leaves an empty meal on the list, which is one tap to delete.
 
 **One search box for products and recipes together**, recipes marked with a tag and
-their calories a serving. Retired ones are left out, including when backfilling.
+their calories a serving. Retired ones are left out, including when backfilling. The
+search runs on the phone (see "Searching happens on the phone"); after an Add the box
+empties, ready for the next thing.
 
 **Nothing about a meal is ever frozen.** Products and recipes freeze once something
 points at them; nothing points at a meal, so every line, quantity, time and note stays

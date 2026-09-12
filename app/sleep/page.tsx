@@ -1,10 +1,12 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { db } from "@/lib/supabase";
 import { today } from "@/lib/day";
 import { asTimeField, formatDuration, minutesAsleep } from "@/lib/sleep";
 import { averageOver } from "@/lib/series";
 import { SleepForm } from "./sleep-form";
 import { DeleteButton } from "./delete-button";
+import Loading from "./loading";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +19,16 @@ export default async function SleepPage({ searchParams }: PageProps<"/sleep">) {
   const selected =
     typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : now;
 
+  // Keyed on the night, so picking another one swaps straight to the skeleton
+  // while it loads, rather than leaving the old night on screen.
+  return (
+    <Suspense key={selected} fallback={<Loading />}>
+      <Sleep selected={selected} now={now} />
+    </Suspense>
+  );
+}
+
+async function Sleep({ selected, now }: { selected: string; now: string }) {
   const supabase = db();
 
   const [entry, recent] = await Promise.all([

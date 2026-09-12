@@ -6,17 +6,10 @@ import { loadCatalogue, mealItems, resolveLines, whatChanged } from "@/lib/meals
 import { mealLineCost, mealLineNutrition, mealTotals, round, type Nutrient } from "@/lib/nutrition";
 import { MealDetailsForm } from "./meal-details-form";
 import { FoodSearch } from "./food-search";
-import {
-  AddProductLine,
-  AddRecipeLine,
-  DeleteMealButton,
-  EditMealLine,
-} from "./meal-line-forms";
+import { DeleteMealButton, EditMealLine } from "./meal-line-forms";
 import { RepeatButton } from "../repeat-buttons";
 
 export const dynamic = "force-dynamic";
-
-const RESULTS = 6;
 
 // Same order as the product form and an EU label.
 const NUTRITION: Array<{ key: Nutrient; label: string; unit: string; decimals: number }> = [
@@ -33,23 +26,24 @@ const NUTRITION: Array<{ key: Nutrient; label: string; unit: string; decimals: n
 
 export default async function MealPage({ params, searchParams }: PageProps<"/meals/[id]">) {
   const { id } = await params;
-  const { q, from } = await searchParams;
+  const { from } = await searchParams;
 
   if (!/^\d+$/.test(id)) notFound();
   const mealId = Number(id);
-  const search = typeof q === "string" ? q.trim() : "";
   const copiedFrom = typeof from === "string" && /^\d+$/.test(from) ? Number(from) : null;
 
-  const { data: meal, error } = await db()
-    .from("meals")
-    .select("*")
-    .eq("id", mealId)
-    .maybeSingle();
+  // All asked for at once rather than one after another: each is a trip to the
+  // database, and none of them needs another's answer.
+  const [{ data: meal, error }, items, catalogue, sourceItems] = await Promise.all([
+    db().from("meals").select("*").eq("id", mealId).maybeSingle(),
+    mealItems([mealId]),
+    loadCatalogue(),
+    copiedFrom === null ? Promise.resolve([]) : mealItems([copiedFrom]),
+  ]);
 
   if (error) throw new Error(error.message);
   if (!meal) notFound();
 
-  const [items, catalogue] = await Promise.all([mealItems([mealId]), loadCatalogue()]);
   const lines = resolveLines(items, catalogue);
   const totals = mealTotals(lines.map((line) => line.line));
 
@@ -60,22 +54,26 @@ export default async function MealPage({ params, searchParams }: PageProps<"/mea
   const changes =
     copiedFrom === null
       ? { moved: [], stillRetired: [] }
-      : whatChanged(await mealItems([copiedFrom]), items, catalogue);
+      : whatChanged(sourceItems, items, catalogue);
 
-  // Products and recipes come back in one list. Retired ones are left out —
-  // including when backfilling a past day, which is deliberate: if you want the
-  // old one you go and find it.
-  const term = search.toLowerCase();
-  const productMatches = search
-    ? catalogue.products
-        .filter((product) => !product.retired && product.name.toLowerCase().includes(term))
-        .slice(0, RESULTS)
-    : [];
-  const recipeMatches = search
-    ? catalogue.recipes
-        .filter((recipe) => !recipe.retired && recipe.name.toLowerCase().includes(term))
-        .slice(0, RESULTS)
-    : [];
+  // What the search box can offer, products and recipes together. Retired ones
+  // are left out — including when backfilling a past day, which is deliberate:
+  // if you want the old one you go and find it.
+  const recipeChoices = catalogue.recipes
+    .filter((recipe) => !recipe.retired)
+    .map((recipe) => ({
+      id: recipe.id,
+      name: recipe.name,
+      caloriesPerServing: round(recipe.perServing.calories, 0),
+    }));
+  const productChoices = catalogue.products
+    .filter((product) => !product.retired)
+    .map((product) => ({
+      id: product.id,
+      name: product.name,
+      unit: product.unit,
+      pieceGrams: product.piece_grams,
+    }));
 
   return (
     <main className="flex-1 px-5 py-8 mx-auto w-full max-w-md flex flex-col gap-6">
@@ -151,39 +149,7 @@ export default async function MealPage({ params, searchParams }: PageProps<"/mea
           </ul>
         )}
 
-        <div className="flex flex-col gap-2 pt-1">
-          <FoodSearch mealId={mealId} search={search} />
-
-          {search &&
-            (productMatches.length === 0 && recipeMatches.length === 0 ? (
-              <p className="text-sm text-muted">Nothing matching “{search}”.</p>
-            ) : (
-              <ul className="rounded-lg border border-border bg-surface divide-y divide-[var(--border)]">
-                {recipeMatches.map((recipe) => (
-                  <li key={`recipe-${recipe.id}`}>
-                    <AddRecipeLine
-                      mealId={mealId}
-                      recipeId={recipe.id}
-                      name={recipe.name}
-                      caloriesPerServing={round(recipe.perServing.calories, 0)}
-                    />
-                  </li>
-                ))}
-
-                {productMatches.map((product) => (
-                  <li key={`product-${product.id}`}>
-                    <AddProductLine
-                      mealId={mealId}
-                      productId={product.id}
-                      name={product.name}
-                      unit={product.unit}
-                      pieceGrams={product.piece_grams}
-                    />
-                  </li>
-                ))}
-              </ul>
-            ))}
-        </div>
+        <FoodSearch mealId={mealId} recipes={recipeChoices} products={productChoices} />
       </section>
 
       {lines.length > 0 && (

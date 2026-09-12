@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { db } from "@/lib/supabase";
 import { today } from "@/lib/day";
 import { averageOver, type Average } from "@/lib/series";
 import { SmokingForm } from "./smoking-form";
 import { DeleteButton } from "./delete-button";
+import Loading from "./loading";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +30,16 @@ export default async function SmokingPage({ searchParams }: PageProps<"/smoking"
   const selected =
     typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : now;
 
+  // Keyed on the day, so picking another day swaps straight to the skeleton
+  // while it loads, rather than leaving the old day on screen.
+  return (
+    <Suspense key={selected} fallback={<Loading />}>
+      <Smoking selected={selected} now={now} />
+    </Suspense>
+  );
+}
+
+async function Smoking({ selected, now }: { selected: string; now: string }) {
   const supabase = db();
 
   const [entry, recent] = await Promise.all([

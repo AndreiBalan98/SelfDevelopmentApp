@@ -13,7 +13,7 @@ import {
 import { timesUsed, updateRecipe } from "../actions";
 import { RecipeForm } from "../recipe-form";
 import { IngredientSearch } from "./ingredient-search";
-import { AddLineForm, EditLineForm } from "./line-forms";
+import { EditLineForm } from "./line-forms";
 import {
   CookedWeightForm,
   DeleteButton,
@@ -41,40 +41,42 @@ const NUTRITION: Array<{ key: Nutrient; label: string; unit: string; decimals: n
   { key: "salt", label: "Salt", unit: "g", decimals: 2 },
 ];
 
-export default async function RecipePage({ params, searchParams }: PageProps<"/recipes/[id]">) {
+export default async function RecipePage({ params }: PageProps<"/recipes/[id]">) {
   const { id } = await params;
-  const { q } = await searchParams;
 
   if (!/^\d+$/.test(id)) notFound();
   const recipeId = Number(id);
-  const search = typeof q === "string" ? q.trim() : "";
 
   const supabase = db();
 
-  const { data: recipe, error } = await supabase
-    .from("recipes")
-    .select("*")
-    .eq("id", recipeId)
-    .maybeSingle();
+  // Asked for at once rather than one after another: each is a trip to the
+  // database, and none of them needs another's answer.
+  const [
+    { data: recipe, error },
+    used,
+    { data: lineRows },
+    { data: productRows },
+    { data: predecessors },
+  ] = await Promise.all([
+    supabase.from("recipes").select("*").eq("id", recipeId).maybeSingle(),
+    timesUsed(recipeId),
+    supabase
+      .from("recipe_items")
+      .select("id, product_id, quantity")
+      .eq("recipe_id", recipeId)
+      .order("id", { ascending: true }),
+    supabase.from("products").select(PRODUCT_COLUMNS).order("name", { ascending: true }),
+    supabase.from("recipes").select("id, name").eq("replaced_by", recipeId),
+  ]);
 
   if (error) throw new Error(error.message);
   if (!recipe) notFound();
 
-  const used = await timesUsed(recipeId);
-
-  const [{ data: lineRows }, { data: productRows }, { data: replacement }, { data: predecessors }] =
-    await Promise.all([
-      supabase
-        .from("recipe_items")
-        .select("id, product_id, quantity")
-        .eq("recipe_id", recipeId)
-        .order("id", { ascending: true }),
-      supabase.from("products").select(PRODUCT_COLUMNS),
-      recipe.replaced_by
-        ? supabase.from("recipes").select("id, name").eq("id", recipe.replaced_by).maybeSingle()
-        : Promise.resolve({ data: null }),
-      supabase.from("recipes").select("id, name").eq("replaced_by", recipeId),
-    ]);
+  // The one read that has to wait: which recipe replaced this one is only
+  // known once this one has been read.
+  const { data: replacement } = recipe.replaced_by
+    ? await supabase.from("recipes").select("id, name").eq("id", recipe.replaced_by).maybeSingle()
+    : { data: null };
 
   const productsById = new Map((productRows ?? []).map((product) => [product.id, product]));
 
@@ -89,17 +91,20 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
   const perServing = divideNutrition(totals.nutrition, recipe.servings);
   const lost = shrinkage(totals.rawWeight, recipe.cooked_weight);
 
-  // Only searched when the recipe is still free to change, and retired products
-  // are left out — a new recipe should be built from what you buy today.
-  const { data: results } = search && used === 0
-    ? await supabase
-        .from("products")
-        .select("id, name, unit, piece_grams")
-        .eq("retired", false)
-        .ilike("name", `%${search}%`)
-        .order("name", { ascending: true })
-        .limit(8)
-    : { data: null };
+  // What the search box can offer, only while the recipe is still free to
+  // change. Retired products are left out — a new recipe should be built from
+  // what you buy today.
+  const ingredientChoices =
+    used === 0
+      ? (productRows ?? [])
+          .filter((product) => !product.retired)
+          .map((product) => ({
+            id: product.id,
+            name: product.name,
+            unit: product.unit,
+            pieceGrams: product.piece_grams,
+          }))
+      : [];
 
   return (
     <main className="flex-1 px-5 py-8 mx-auto w-full max-w-md flex flex-col gap-6">
@@ -207,27 +212,7 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
 
         {used === 0 && (
           <div className="flex flex-col gap-2 pt-1">
-            <IngredientSearch recipeId={recipe.id} search={search} />
-
-            {search && (
-              (results ?? []).length === 0 ? (
-                <p className="text-sm text-muted">Nothing matching “{search}”.</p>
-              ) : (
-                <ul className="rounded-lg border border-border bg-surface divide-y divide-[var(--border)]">
-                  {(results ?? []).map((product) => (
-                    <li key={product.id}>
-                      <AddLineForm
-                        recipeId={recipe.id}
-                        productId={product.id}
-                        name={product.name}
-                        unit={product.unit}
-                        pieceGrams={product.piece_grams}
-                      />
-                    </li>
-                  ))}
-                </ul>
-              )
-            )}
+            <IngredientSearch recipeId={recipe.id} products={ingredientChoices} />
 
             <p className="text-xs text-muted">
               Quantities are in the product&rsquo;s own unit. Retired products are left

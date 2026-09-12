@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { db } from "@/lib/supabase";
 import { today } from "@/lib/day";
 import { WeightForm } from "./weight-form";
 import { DeleteButton } from "./delete-button";
+import Loading from "./loading";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +23,16 @@ export default async function WeightPage({ searchParams }: PageProps<"/weight">)
   const now = today();
   const selected = typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : now;
 
+  // Keyed on the day, so picking another day swaps straight to the skeleton
+  // while it loads, rather than leaving the old day on screen.
+  return (
+    <Suspense key={selected} fallback={<Loading />}>
+      <Weight selected={selected} now={now} />
+    </Suspense>
+  );
+}
+
+async function Weight({ selected, now }: { selected: string; now: string }) {
   const supabase = db();
 
   const [entry, recent] = await Promise.all([

@@ -6,22 +6,32 @@ import { addLine, removeLine, setLineQuantity, type Result } from "../actions";
 const NUMBER =
   "w-24 rounded-md border border-border bg-background px-2 py-1.5 text-right text-base tabular-nums outline-none focus:border-accent";
 
-// One search result, with somewhere to type how much goes in. Adding sends you
-// back to the recipe with the search box empty, ready for the next ingredient.
+// One search result, with somewhere to type how much goes in. Adding redraws
+// the recipe in place with the new line in it — the page doesn't reload, so it
+// stays where you'd scrolled to — and tells the search box to empty itself.
 export function AddLineForm({
   recipeId,
   productId,
   name,
   unit,
   pieceGrams,
+  onAdded,
 }: {
   recipeId: number;
   productId: number;
   name: string;
   unit: "g" | "ml";
   pieceGrams: number | null;
+  onAdded: () => void;
 }) {
-  const [result, action, pending] = useActionState<Result | null, FormData>(addLine, null);
+  const [result, action, pending] = useActionState<Result | null, FormData>(
+    async (previous, form) => {
+      const outcome = await addLine(previous, form);
+      if (outcome.ok) onAdded();
+      return outcome;
+    },
+    null,
+  );
 
   return (
     <form action={action} className="flex flex-col gap-1.5 px-3 py-2.5">

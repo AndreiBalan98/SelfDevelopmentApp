@@ -15,6 +15,17 @@ const NUMBER =
 const SMALL_BUTTON =
   "rounded-md border border-border bg-surface px-3 py-1.5 text-sm disabled:opacity-50";
 
+// Adding a line, then telling the search box it worked so it can empty itself.
+// The meal redraws in place with the new line in it; the page doesn't reload,
+// so it stays where you'd scrolled to.
+function useAddLine(onAdded: () => void) {
+  return useActionState<Result | null, FormData>(async (previous, form) => {
+    const outcome = await addMealLine(previous, form);
+    if (outcome.ok) onAdded();
+    return outcome;
+  }, null);
+}
+
 // A product in the search results. When the product says what one piece weighs,
 // the box counts pieces by default — that's the whole reason the product has
 // that figure — and shows what it comes to in grams as you type.
@@ -24,14 +35,16 @@ export function AddProductLine({
   name,
   unit,
   pieceGrams,
+  onAdded,
 }: {
   mealId: number;
   productId: number;
   name: string;
   unit: "g" | "ml";
   pieceGrams: number | null;
+  onAdded: () => void;
 }) {
-  const [result, action, pending] = useActionState<Result | null, FormData>(addMealLine, null);
+  const [result, action, pending] = useAddLine(onAdded);
   const [pieces, setPieces] = useState(pieceGrams !== null);
   const [amount, setAmount] = useState("");
 
@@ -100,13 +113,15 @@ export function AddRecipeLine({
   recipeId,
   name,
   caloriesPerServing,
+  onAdded,
 }: {
   mealId: number;
   recipeId: number;
   name: string;
   caloriesPerServing: number;
+  onAdded: () => void;
 }) {
-  const [result, action, pending] = useActionState<Result | null, FormData>(addMealLine, null);
+  const [result, action, pending] = useAddLine(onAdded);
 
   return (
     <form action={action} className="flex flex-col gap-1.5 px-3 py-2.5">
