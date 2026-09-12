@@ -5,7 +5,9 @@ import { dateRowLabel, dayFor, shiftDays, timeIn } from "@/lib/day";
 import { linesForMeals, recentMeals } from "@/lib/meals";
 import { mealTotals, type Nutrient } from "@/lib/nutrition";
 import { readTargets } from "@/lib/settings";
-import { DayPicker } from "./day-picker";
+import { readLogDates } from "@/lib/log-dates";
+import { daysLogged, logCounts, streak } from "@/lib/logging";
+import { Calendar } from "./calendar";
 import { AddMealButton } from "./add-meal-button";
 import { DayTotals } from "./day-totals";
 import { NutritionDetails } from "./nutrition-details";
@@ -47,9 +49,10 @@ export default async function MealsPage({ searchParams }: PageProps<"/meals">) {
 }
 
 async function Day({ selected, currentDay }: { selected: string; currentDay: string }) {
-  // The targets and the recent list don't depend on which meals are on this
-  // day, so they're asked for at the same time rather than after.
-  const [{ data, error }, targets, recent] = await Promise.all([
+  // The targets, the recent list and the calendar's logs don't depend on which
+  // meals are on this day, so they're asked for at the same time rather than
+  // after.
+  const [{ data, error }, targets, recent, logDates] = await Promise.all([
     db()
       .from("meals")
       .select("id, eaten_at, day, type, note, score")
@@ -57,7 +60,10 @@ async function Day({ selected, currentDay }: { selected: string; currentDay: str
       .order("eaten_at", { ascending: true }),
     readTargets(),
     recentMeals(RECENT),
+    readLogDates(),
   ]);
+
+  const counts = logDates === null ? null : logCounts(logDates);
 
   const meals = data ?? [];
   const lines = await linesForMeals(meals.map((meal) => meal.id));
@@ -105,7 +111,13 @@ async function Day({ selected, currentDay }: { selected: string; currentDay: str
             </span>
           )}
 
-          <DayPicker day={selected} latest={currentDay} />
+          <Calendar
+            selected={selected}
+            today={currentDay}
+            counts={counts}
+            streak={counts === null ? 0 : streak(counts, currentDay)}
+            daysLogged={counts === null ? 0 : daysLogged(counts, currentDay)}
+          />
         </div>
 
         {selected !== currentDay && (

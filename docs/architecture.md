@@ -112,6 +112,10 @@ lib/
                      where each part of a bar is drawn
   sleep.ts           how long a night was, including crossing midnight
   series.ts          averages over a run of days, honest about the gaps
+  logging.ts         how completely each day was logged, the logging streak and
+                     the days-logged counter, and laying out a month
+  log-dates.ts       reads which dates have each of the four logs, 1,000 rows
+                     at a time (Supabase never hands over more in one go)
   replacements.ts    following oats → oats 2 → oats 3 to whatever you buy today
 supabase/
   migrations/        SQL you run by hand in the Supabase editor, numbered in order
@@ -567,9 +571,8 @@ totals; looking back at last week shows last week's. A today-only screen would h
 needed a second copy of the same arithmetic for every other day.
 
 **The date row** reads `‹ Today, 12 Sep ›`. The arrows step a day at a time (never past
-today), and "Back to today" appears when you're elsewhere. The calendar icon has the
-phone's own date picker hidden over it, for jumping further; step 7.5 turns it into the
-calendar heatmap.
+today), and "Back to today" appears when you're elsewhere. The calendar icon opens the
+calendar heatmap (below), which is also how you jump to a day further away.
 
 **The hero** is calories, large, with the day's spend beside it, each with its target
 underneath and no unit repeated: "of 2,000", "of 33". **The bars** are protein, carbs, added sugar, fibre and fat, in
@@ -608,6 +611,30 @@ either — there's no way to know whether they're a ceiling or a zone — and th
 
 **A past day with no meals is never red.** It's a day that wasn't logged, not a day of
 eating nothing — the same rule the averages follow.
+
+### The calendar heatmap
+
+A sheet from the bottom: a month at a time, Monday first, with arrows to step back
+through months (never past this one). Each day has a dot in Nutrition's green, stronger
+the more of its **four logs** exist — that morning's sleep, that day's cigarettes, that
+day's weigh-in, at least one meal. Four is full colour; none is a faint ghost. Days
+still to come are dimmed and can't be opened. The day Today is showing is outlined, and
+tapping any day opens it.
+
+Above the grid, two numbers, both counted up to **yesterday** — today can't be complete,
+because its cigarettes are logged tomorrow:
+
+- **Days logged** — every day with all four logs. Three out of four doesn't count.
+- **Logging streak** — logged days in a row, counting back from yesterday. One missed
+  day in a Monday–Sunday week is forgiven; a second in the same week ends the streak.
+  A forgiven day keeps the streak alive but doesn't add to it. And yesterday isn't held
+  against you while it can still be finished: until today is over, an unfinished
+  yesterday is neither counted nor a miss — otherwise the streak would break every
+  morning before the smoking log went in. It's on logging, never on hitting targets.
+
+All of it is worked out from the four tables every time Today is drawn
+(`lib/logging.ts`); nothing is stored. The dates are read 1,000 rows at a time, because
+Supabase quietly stops at 1,000 rows per question and a year of meals is far more.
 
 ### The "+"
 
