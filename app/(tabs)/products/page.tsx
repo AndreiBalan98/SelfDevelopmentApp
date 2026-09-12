@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { db } from "@/lib/supabase";
+import { allRows } from "@/lib/pages";
 import { ProductSearch } from "./product-search";
 import { NutritionHeader } from "../headers";
 
@@ -8,10 +9,16 @@ export const dynamic = "force-dynamic";
 export default async function ProductsPage() {
   // Every product, retired ones included: the search box and the retired
   // toggle filter this list on the phone.
-  const { data, error } = await db()
-    .from("products")
-    .select("id, name, unit, package_price, package_quantity, calories, retired")
-    .order("name", { ascending: true });
+  // Read a page at a time (lib/pages.ts): one question stops at 1,000 rows.
+  const supabase = db();
+  const { data, error } = await allRows((from, to) =>
+    supabase
+      .from("products")
+      .select("id, name, unit, package_price, package_quantity, calories, retired")
+      .order("name")
+      .order("id")
+      .range(from, to),
+  );
 
   return (
     <main className="flex-1 px-5 py-8 mx-auto w-full max-w-md flex flex-col gap-6">

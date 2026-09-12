@@ -4,8 +4,9 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Phase 7 step 7.5b (the backup no longer cut off at 1,000 rows) is built and checked
-here, waiting for Andrei to push and check it on the phone.** Steps 7.0–7.5 are done and
+**Phase 7 step 7.5b (nothing cut off at 1,000 rows — the backup, then at Andrei's
+request every other whole-table read) is built and checked here, waiting for Andrei to
+push and check it on the phone.** Steps 7.0–7.5 are done and
 approved. Phases 1–6 are complete and the app has been in daily use since
 2026-09-01. No library has been added in phase 7.
 
@@ -33,8 +34,9 @@ Don't design it or raise it.
 
 ## Waiting on me (Andrei)
 
-1. **Commit, push, and take one export on the phone** to check it still arrives as
-   before. No SQL. Then approve 7.5b or ask for changes.
+1. **Commit, push, and check on the phone**: take one export, and open Products,
+   Recipes, a recipe, and a meal's food search — all should work exactly as before. No
+   SQL. Then approve 7.5b or ask for changes.
 
 Migrations 0001–0005 have all been run. Steps 7.1, 7.2, 7.4 and 7.4b had no migration.
 
@@ -187,7 +189,7 @@ stands, differs from it in four places:
 | 7.4 | Nutrition → Today: target rules, hero, nutrient bars with the fat split, meal rows, day details, "+" with tap and hold *(done)* |
 | 7.4b | Restyle one meal's screen (`/meals/[id]`) to the new look: its lines, the food search, time, day, type, note, score. Works exactly as now *(done)* |
 | 7.5 | Calendar heatmap with the streak and the days-logged counter *(done)* |
-| 7.5b | The backup reads every table 1,000 rows at a time, so it's never cut off at Supabase's 1,000-row limit; found while testing 7.5 *(built; waiting on the phone check)* |
+| 7.5b | The backup reads every table 1,000 rows at a time, so it's never cut off at Supabase's 1,000-row limit; found while testing 7.5. Extended at Andrei's request to every whole-table read in the app *(built; waiting on the phone check)* |
 | 7.6 | "Where did it come from?" panels (on Today; the stats section reuses them later) |
 | 7.7 | Recipes and Products: sort pills, lei per 30 g protein and per 1,000 kcal, and Duplicate; restyle both lists, the add / edit / replace forms and the recipe screen |
 | 7.8 | Smoking tab: the shared range control and the chart base with its rotate button, proven on the bar chart with its two averages, and the list; restyle the entry form behind the "+" |
@@ -582,6 +584,7 @@ of scope for the rewrite. **Done 2026-09-11:** Andrei ran the review himself; se
 2026-09-12 — The calendar's dates are read 1,000 rows at a time (`lib/log-dates.ts`), because Supabase answers any one question with at most 1,000 rows. Without it, a year of meals would have looked like months of days with no meals. The scratchpad stand-in now caps every answer at 1,000 rows the same way, so tests see what the phone sees.
 2026-09-12 — **The backup's 1,000-row cut-off is fixed in the code, as step 7.5b, straight after 7.5** (Andrei's decision), rather than by raising Supabase's "Max rows" setting, which would only move the cliff.
 2026-09-12 — Step 7.5b: reading every row 1,000 at a time lives in one place, `lib/pages.ts`, used by the backup and the calendar. The backup reads each table in id order, a page at a time; any page failing fails the whole export and leaves the last-export time alone. Checked in the scratchpad with Supabase's cap reproduced: tables of 0, 3, 1,000, 1,001, 2,000 and 2,500 rows, with gaps in the ids, each identical row for row to the database; no row twice; a failure on a second page gives an error and no file.
+2026-09-12 — **Nothing in the app reads a whole table in one question any more** (Andrei's call: he wanted to know for sure, rather than leave the other reads for later). All six other places — the Products and Recipes lists, a recipe's screen, the meal food search (the catalogue), repeating a meal, replacing a recipe — go through `allRows` in `lib/pages.ts`, ordered with the id as a tie-breaker. Everything else in the app is held small by what it asks for (one day, one item, the last few). Checked in the scratchpad with Supabase's cap reproduced and 1,202 products, 1,101 recipes and 1,101 recipe lines: every place finds the items stored past row 1,000 — and the same checks fail against the code as committed, so they really test it. **Rule from now on: anything that reads a whole table uses `lib/pages.ts`.**
 2026-09-12 — The hero's target lines carry no unit: "of 2,000" under the calories and "of 33" under the spend (Andrei's call after the 7.4 phone test). The number above each already says kcal or lei.
 2026-09-12 — Meal rows: "Meal"/"Snack" in the mockup's pale green and coral (`--meal-label`, `--snack-label`), time, the names; calories and cost on the right; the macro letters underneath. An empty meal says "empty".
 
@@ -643,7 +646,8 @@ of scope for the rewrite. **Done 2026-09-11:** Andrei ran the review himself; se
   every recipe ingredient, for the food search and the replace flows — so they'd be cut
   at 1,000 rows the same way. Not changed in 7.5b: at one person's shopping that's years
   away (recipe ingredients get there first, at around a hundred recipes). When one gets
-  close, the fix is the same `everyRow` from `lib/pages.ts`.
+  close, the fix is the same `everyRow` from `lib/pages.ts`. **Done in 7.5b after all,
+  2026-09-12:** Andrei didn't want it left for later.
 - The hold on the "+" has nothing on screen to say it exists. The mockups don't show a
   hint either; it's in `architecture.md`.
 - Search matching is exact about accents: "ciorba" won't find "ciorbă". It always

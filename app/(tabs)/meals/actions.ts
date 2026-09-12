@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/supabase";
+import { allRows } from "@/lib/pages";
 import { dayFor, localTimestamp } from "@/lib/day";
 import { readAmount, readMeal } from "@/lib/meal-fields";
 import { currentVersion } from "@/lib/replacements";
@@ -72,8 +73,14 @@ export async function repeatMeal(
         .select("product_id, recipe_id, quantity, quantity_unit, servings")
         .eq("meal_id", sourceId)
         .order("id", { ascending: true }),
-      supabase.from("products").select("id, retired, replaced_by"),
-      supabase.from("recipes").select("id, retired, replaced_by"),
+      // Every product and recipe, a page at a time (lib/pages.ts), to follow
+      // anything retired to what replaced it.
+      allRows((from, to) =>
+        supabase.from("products").select("id, retired, replaced_by").order("id").range(from, to),
+      ),
+      allRows((from, to) =>
+        supabase.from("recipes").select("id, retired, replaced_by").order("id").range(from, to),
+      ),
     ]);
 
   if (!source) return { ok: false, message: "That meal no longer exists." };

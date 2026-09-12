@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/supabase";
+import { allRows } from "@/lib/pages";
 import {
   costOf,
   divideNutrition,
@@ -65,7 +66,10 @@ export default async function RecipePage({ params }: PageProps<"/recipes/[id]">)
       .select("id, product_id, quantity")
       .eq("recipe_id", recipeId)
       .order("id", { ascending: true }),
-    supabase.from("products").select(PRODUCT_COLUMNS).order("name", { ascending: true }),
+    // Every product, a page at a time (lib/pages.ts): one question stops at 1,000 rows.
+    allRows((from, to) =>
+      supabase.from("products").select(PRODUCT_COLUMNS).order("name").order("id").range(from, to),
+    ),
     supabase.from("recipes").select("id, name").eq("replaced_by", recipeId),
   ]);
 

@@ -22,3 +22,19 @@ export async function everyRow<T>(ask: (from: number, to: number) => Page<T>): P
     if (!data || data.length < PAGE) return rows;
   }
 }
+
+// The same, answering the way a single Supabase question does — { data, error }
+// — so it drops into code that already handles that shape.
+export async function allRows<T>(
+  ask: (from: number, to: number) => Page<T>,
+): Promise<{ data: T[] | null; error: { message: string } | null }> {
+  try {
+    return { data: await everyRow(ask), error: null };
+  } catch (error) {
+    return { data: null, error: { message: error instanceof Error ? error.message : String(error) } };
+  }
+}
+
+// The rule, from 2026-09-12: any question that isn't held small by what it
+// asks for — one day, one item, the last few — goes through everyRow or
+// allRows, in an order that includes the id so no two rows can tie.

@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/supabase";
+import { allRows } from "@/lib/pages";
 import { readRecipe, readCookedWeight, toNumber, round } from "@/lib/recipe-fields";
 import { currentVersion } from "@/lib/replacements";
 
@@ -44,7 +45,11 @@ export async function linesForCopy(recipeId: number): Promise<
         .select("id, product_id, quantity")
         .eq("recipe_id", recipeId)
         .order("id", { ascending: true }),
-      supabase.from("products").select("id, name, retired, replaced_by"),
+      // Every product, a page at a time (lib/pages.ts), to follow anything
+      // retired to what replaced it.
+      allRows((from, to) =>
+        supabase.from("products").select("id, name, retired, replaced_by").order("id").range(from, to),
+      ),
     ]);
 
   if (linesError) throw new Error(linesError.message);

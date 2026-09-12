@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { db } from "@/lib/supabase";
+import { allRows } from "@/lib/pages";
 import { recipeTotals, round, type PricedProduct } from "@/lib/nutrition";
 import { RecipeSearch, type RecipeRow } from "./recipe-search";
 import { NutritionHeader } from "../headers";
@@ -17,12 +18,21 @@ export default async function RecipesPage() {
   // worked out here rather than stored — three queries for the whole list, all
   // at once, and never a stale number.
   const [{ data, error }, { data: lines }, { data: products }] = await Promise.all([
-    supabase
-      .from("recipes")
-      .select("id, name, servings, cooked_weight, retired")
-      .order("name", { ascending: true }),
-    supabase.from("recipe_items").select("recipe_id, product_id, quantity"),
-    supabase.from("products").select(PRODUCT_COLUMNS),
+    // Each read a page at a time (lib/pages.ts): one question stops at 1,000 rows.
+    allRows((from, to) =>
+      supabase
+        .from("recipes")
+        .select("id, name, servings, cooked_weight, retired")
+        .order("name")
+        .order("id")
+        .range(from, to),
+    ),
+    allRows((from, to) =>
+      supabase.from("recipe_items").select("recipe_id, product_id, quantity").order("id").range(from, to),
+    ),
+    allRows((from, to) =>
+      supabase.from("products").select(PRODUCT_COLUMNS).order("id").range(from, to),
+    ),
   ]);
 
   const productsById = new Map(

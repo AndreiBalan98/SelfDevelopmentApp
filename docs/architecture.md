@@ -117,7 +117,7 @@ lib/
   log-dates.ts       reads which dates have each of the four logs
   pages.ts           reads every row of something 1,000 at a time — Supabase
                      never hands over more in one go, and says nothing when it
-                     stops. Used by the backup and the calendar
+                     stops. Used by everything that reads a whole table
   replacements.ts    following oats → oats 2 → oats 3 to whatever you buy today
 supabase/
   migrations/        SQL you run by hand in the Supabase editor, numbered in order
@@ -830,6 +830,14 @@ that; it was found while testing the calendar, after about two weeks of real log
 very likely before any table reached 1,000 rows, though that was never checked against
 the real database. A page that fails fails the whole export, the
 same as a table would.
+
+The same goes for the rest of the app. **Anything that reads a whole table goes through
+`lib/pages.ts`**: the backup, the calendar, the Products and Recipes lists, the food
+search inside a meal, a recipe's ingredient search, and following retired items to their
+replacements when a meal is repeated or a recipe replaced. Everything else asks for
+something held small by the question itself — one day, one item, the last fourteen
+entries — and can never reach 1,000. Anything new that reads a whole table has to use it
+too.
 
 **The reminder.** `settings.last_export_at` records when you last exported. The
 Export row in Settings reads `Last export: N days ago`, and a dot sits on the Settings

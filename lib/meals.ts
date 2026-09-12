@@ -9,6 +9,7 @@
 // divided by its servings — none of which is stored anywhere.
 
 import { db } from "@/lib/supabase";
+import { allRows } from "@/lib/pages";
 import {
   divideNutrition,
   mealTotals,
@@ -53,9 +54,16 @@ export async function loadCatalogue(): Promise<Catalogue> {
   const [{ data: products }, { data: recipes }, { data: recipeItems }] = await Promise.all([
     // The whole products table: it's one person's shopping, and fetching it
     // once beats a query per line.
-    supabase.from("products").select(PRODUCT_COLUMNS).order("name", { ascending: true }),
-    supabase.from("recipes").select("id, name, servings, retired").order("name", { ascending: true }),
-    supabase.from("recipe_items").select("recipe_id, product_id, quantity"),
+    // Each read a page at a time (lib/pages.ts): one question stops at 1,000 rows.
+    allRows((from, to) =>
+      supabase.from("products").select(PRODUCT_COLUMNS).order("name").order("id").range(from, to),
+    ),
+    allRows((from, to) =>
+      supabase.from("recipes").select("id, name, servings, retired").order("name").order("id").range(from, to),
+    ),
+    allRows((from, to) =>
+      supabase.from("recipe_items").select("recipe_id, product_id, quantity").order("id").range(from, to),
+    ),
   ]);
 
   const productRows = (products ?? []) as ProductRow[];
