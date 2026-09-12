@@ -4,9 +4,9 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Phase 7, step 7.1 (speed and scroll bugs) is built and waiting for Andrei to test it on
-the phone.** Phases 1–6 are complete and the app has been in daily use since 2026-09-01.
-Step 7.0 (the plan rewrite) is committed. No library has been added in phase 7.
+**Phase 7, step 7.2 (the app shell) is built and waiting for Andrei to test it on the
+phone.** Steps 7.0 and 7.1 are done and committed. Phases 1–6 are complete and the app
+has been in daily use since 2026-09-01. No library has been added in phase 7.
 
 ### How phase 7 got here
 
@@ -24,35 +24,48 @@ wins on behaviour, the mockups win on looks.
 Every item of the old phase 7 checklist is accounted for in the table at the top of the
 plan's phase 7 section. Nothing was dropped silently.
 
-`architecture.md` was deliberately **not** changed. It describes the app as it stands,
-and none of the app has changed yet; it's updated step by step as the code is.
+`architecture.md` describes the app as it stands, and is updated step by step as the
+code changes — not ahead of it.
 
 **Phase 8 (gym) stays out of scope**, apart from the Workout placeholder tab in phase 7.
 Don't design it or raise it.
 
 ## Waiting on me (Andrei)
 
-1. **Commit and push step 7.1, then test it on the phone.** What to check:
-   - **Meal builder:** open a meal with a few lines, scroll down to the search box, type.
-     Results appear as you type, and the page stays where it is. Type an amount, tap
-     Add: the line appears in the list above, the search box empties, and the page does
-     not jump to the top.
-   - **Recipe builder:** the same, on a recipe nobody has eaten yet.
-   - **Products and Recipes lists:** scroll down a little, type in the search box — no
-     jump. "Show retired" still shows the old versions.
-   - **Skeletons:** from the home screen, open each screen. Grey pulsing blocks under the
-     real title should appear the moment you tap, then fill in. The day arrows on Meals,
-     and tapping an older entry on Weight, Sleep or Cigarettes, should do the same.
-   - **Saving:** save a weigh-in — no skeleton, and "Saved …" stays on screen.
-   - **Speed in general:** does any tap still feel slow? If so, which one.
+1. **Commit and push step 7.2, then test it on the phone.** What to check:
+   - **Opening the app** lands on Nutrition → Today, with the tab bar along the bottom:
+     moon, cigarette, salad, gear. The home screen and the Backup screen are gone.
+   - **The tab bar** sits clear of the iPhone's home indicator (the line at the very
+     bottom), with its background running down behind it. Nothing at the bottom of a
+     long screen is hidden behind the bar.
+   - **Each tab's colour:** Sleep's buttons blue, Smoking's amber, Nutrition's green,
+     Settings' grey. The lit icon matches.
+   - **Sub-tabs:** Today · Recipes · Products · Weight switch between the four screens.
+   - **Red dots:** open the app before logging the morning's weight — a dot on the salad
+     icon and on Weight. Save the weight and both go straight away. Same for sleep (moon)
+     and yesterday's cigarettes (cigarette). Settings shows a dot only if the last export
+     is 7+ days old (amber) or 14+ (red).
+   - **Smoking** opens on yesterday. **Settings** holds the targets and "Export
+     everything", with "Last export: …" beside it; exporting still works.
+   - **Coming back:** leave the app in the background for a while, come back — the dots
+     and "Today" should be current.
+   - **Rubber-band bounce:** pull a screen past its top and bottom. The bounce is left on,
+     as iOS does it; the colour behind it now matches the app. If it looks wrong, it can
+     be switched off with one line.
+2. **Decide: should Delete buttons and error messages stay red?** See the end of the step
+   7.2 report — the new rule says red means three things only, and these are neither.
 
-Migrations 0001–0004 have all been run. Step 7.1 has no migration.
+Migrations 0001–0004 have all been run. Steps 7.1 and 7.2 have no migration.
 
 Andrei will enter his August cigarette history himself, when he chooses. It isn't
 tracked here and doesn't need raising.
 
 ## Done
 
+- 2026-09-12 — **Phase 7 step 7.1 complete: speed and scroll bugs.** Vercel moved to
+  Dublin beside Supabase; every search box filters on the phone; Add redraws in place
+  instead of jumping to the top; a loading skeleton on every screen. Tested on the phone
+  and approved.
 - 2026-09-12 — **Phase 7 step 7.0 complete: the plan is rewritten.** Andrei's
   `phase-7-spec.md` merged into Part 5 of the plan as "Phase 7 — in detail", and the
   parts of the plan it replaced rewritten. Then every open point settled one at a time,
@@ -162,8 +175,8 @@ stands, differs from it in four places:
 | Step | Work |
 |---|---|
 | 7.0 | Rewrite the plan and this file from the spec; proposals *(done)* |
-| 7.1 | Speed and scroll bugs: check where Vercel and Supabase each run, stop search and Add jumping to the top, make taps faster *(built, waiting on the phone test)* |
-| 7.2 | App shell: new palette, tab bar with icons (Sleep · Smoking · Nutrition · Settings), Nutrition opens by default with its four sub-tabs over the existing screens, Sleep, Smoking and Weight moved to the 04:00 day, the smoking form opening on yesterday, red dots for missing logs, the backup dot, Settings tab holding the current targets and the export, old home screen and `/export` retired, rubber-band check |
+| 7.1 | Speed and scroll bugs: check where Vercel and Supabase each run, stop search and Add jumping to the top, make taps faster *(done)* |
+| 7.2 | App shell: new palette, tab bar with icons (Sleep · Smoking · Nutrition · Settings), Nutrition opens by default with its four sub-tabs over the existing screens, Sleep, Smoking and Weight moved to the 04:00 day, the smoking form opening on yesterday, red dots for missing logs, the backup dot, Settings tab holding the current targets and the export, old home screen and `/export` retired, rubber-band check *(built, waiting on the phone test)* |
 | 7.3 | Settings: migration 0005 with every new field, the full Settings tab, timezone in the export, and the Workout tab with its countdown |
 | 7.4 | Nutrition → Today: target rules, hero, nutrient bars with the fat split, meal rows, day details, "+" with tap and hold |
 | 7.5 | Calendar heatmap with the streak and the days-logged counter |
@@ -241,10 +254,14 @@ For a session picking this up cold, after reading the plan and this file:
 
 - The app is Next.js 16 at the repo root, deployed on Vercel, tested by Andrei on an
   iPhone home screen. `npm run build` and `npm run lint` both pass.
-- Screens so far: `/login` (the PIN screen), `/` (a list of destinations), `/weight`,
-  `/products` (list, `new`, `[id]`), `/recipes` (list, `new`, `[id]`), `/meals` (a day
-  with its totals, and `[id]`), `/sleep`, `/smoking`, `/settings` (the five targets) and
-  `/export`. The temporary `/check` page has been deleted.
+- Screens so far: `/login` (the PIN screen, outside the tabs), then everything else
+  inside `app/(tabs)/` with the tab bar: `/meals` (Nutrition → Today, and `[id]`),
+  `/recipes` (list, `new`, `[id]`), `/products` (list, `new`, `[id]`), `/weight`,
+  `/sleep`, `/smoking`, `/settings` (the five targets and the export). `/` sends you to
+  `/meals`. The home screen and `/export` were removed in step 7.2.
+- The shell lives in `app/(tabs)/layout.tsx`; the red dots are worked out in
+  `lib/status.ts`. Colours are CSS variables in `app/globals.css`, one per tab and one
+  per nutrient; Tailwind knows them by name (`text-sleep`, `bg-protein`, `text-faint`…).
 - Everything except `/login`, the icons and the manifest is behind the PIN — including
   `/api/export`, which is the URL that hands over the whole database.
 - Every screen that reads the database has a `loading.tsx` skeleton next to it, and
@@ -343,6 +360,14 @@ scrolling, skeletons, what a tap does:
   there. The scroll checks did.
 - Don't stop the test server with `pkill -f "next start …"`: it matches the shell
   running the command and kills that too. Find the process number with `ss -ltnp`.
+- To test anything that depends on the time of day (the 04:00 rule, red dots), start the
+  test server with its clock shifted: a preload given through
+  `NODE_OPTIONS="--require <file>"` that replaces `Date` with a subclass offset to the
+  wanted instant. Copy `Date.parse` and `Date.UTC` onto the subclass by hand — Next.js
+  re-wraps `Date` and loses inherited ones. Nothing to install. Step 7.2 checked 02:30
+  and 04:30 this way.
+- The test copy's `next.config.ts` has to keep the real one's `redirects`; add
+  `typescript.ignoreBuildErrors` to a copy of it rather than replacing it.
 
 From step 3, on dates specifically:
 
@@ -478,6 +503,19 @@ of scope for the rewrite. **Done 2026-09-11:** Andrei ran the review himself; se
 2026-09-12 — **Every screen that reads the database has a loading skeleton** (`loading.tsx` beside it, built from `app/skeleton.tsx`): the real title, headings and labels, with grey pulsing blocks where the data will go. Andrei asked for skeletons specifically, over a plain "Loading…". Meals, Weight, Sleep and Cigarettes also show theirs when the date changes without leaving the screen, through a boundary keyed on the date. Saving never shows one. **When a phase 7 step redesigns a screen, it redesigns that screen's skeleton too.**
 2026-09-12 — The skeleton blocks appear at once and pulse, rather than fading in after a delay. On the date-keyed screens one skeleton is swapped for an identical one partway through arriving, and a fade-in would make that swap blink. On a real connection every load is long enough to see them anyway.
 2026-09-12 — The meal, day and recipe screens ask the database their independent questions all at once instead of one after another. The product screen still asks three in a row; it isn't opened often enough to matter.
+2026-09-12 — **Every screen behind the PIN moved into `app/(tabs)/`** (step 7.2), a folder whose name never appears in an address — so every URL stayed the same. It's how the tab bar goes on every screen except the login. Nutrition's four sub-tabs are the existing screens at their existing addresses (`/meals`, `/recipes`, `/products`, `/weight`), not new ones.
+2026-09-12 — `/` is sent to `/meals` by `next.config.ts`, before any page is drawn. The installed home-screen app points at `/`, and iOS keeps that address, so it has to go on working. A successful login goes straight to `/meals`.
+2026-09-12 — The surfaces and text greys are the mockups' (`#1c1c1f` screen, `#26262a` card, `#303035` raised, text `#ededed` / `#a9a9ae` / `#77777c`), replacing the old blue-black. The mockups win on looks. The old "muted" text maps to the mockups' secondary grey `#a9a9ae`, not the darker `#77777c`, so existing small text stays readable; the darker one is `faint`, for inactive tab icons and units.
+2026-09-12 — Each tab's colour reaches its buttons and links through one variable, `--accent`: Nutrition's green by default, switched by a one-line layout in the Sleep, Smoking and Settings folders. Buttons keep black text on every accent — it reads better than white on the green and the amber.
+2026-09-12 — The red dots are read once by the tab shell, and shared with the tab bar and the Weight sub-tab. They're refreshed by every save and delete (checked: the shell redraws with the screen), by exporting, and **whenever the app comes back to the front** — because iOS often keeps a home-screen app in memory overnight and would otherwise hand back yesterday's dots and yesterday's "today". Added for the dots' sake; it's not in the plan as a feature.
+2026-09-12 — A dot is shown only when the database answered and the entry isn't there. If a question fails, no dot — a false alarm would teach you to ignore them.
+2026-09-12 — Until Sleep and Smoking get their "+" buttons (steps 7.11 and 7.8), their missing-log dot sits on the tab icon only. The plan wants it on both; the second place doesn't exist yet.
+2026-09-12 — Tapping the Nutrition icon always goes to Today, not to whichever sub-tab was last open.
+2026-09-12 — The tab bar is 12 px above the icons and at least 28 px below, or the iPhone's safe area if that's larger — about the mockups' 68 px on a phone with a home indicator. The app now extends under the home indicator (`viewportFit: "cover"`) so the bar's background runs down behind it.
+2026-09-12 — Tab titles are 18 px semibold, as the mockups draw them; the plan's summary said "about 16 px, medium". Looks go to the mockups.
+2026-09-12 — The rubber-band bounce is left as iOS does it. What changed is the colour behind it, which now matches the app. Switching the bounce off is one line (`overscroll-behavior: none`) if the phone test says so.
+2026-09-12 — "Today" and "Yesterday" labels (`dayLabel`) go by the 04:00 day too, so a meal's header agrees with the day screen between midnight and 04:00. `today()` — the plain calendar date — is now used only for the backup's age.
+2026-09-12 — The backup line reads `Last export: N days ago` / `Never exported`, and "never" is red. It sits on the Export row in Settings, which is where the button lives now.
 
 ## Deferred
 
@@ -521,6 +559,9 @@ of scope for the rewrite. **Done 2026-09-11:** Andrei ran the review himself; se
   wildcard rather than a literal character. Harmless today; escape the term if it ever
   reads as a bug. **Moot from step 7.1:** searching happens on the phone as plain text
   matching, with no wildcards.
+- The Settings targets still carry their phase 5 hints ("A floor — the bar fills as you
+  get there", "not a limit"), which phase 7's ceilings and ±10% zones contradict. They're
+  rewritten with the rest of Settings in step 7.3, which is where the new rules land.
 - Search matching is exact about accents: "ciorba" won't find "ciorbă". It always
   was. Worth changing only if it bites.
 - There is no confirmation step on any Delete button — a product, a weigh-in, a

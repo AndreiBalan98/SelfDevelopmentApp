@@ -27,6 +27,8 @@ export function dateIn(instant: Date): string {
   return `${part("year")}-${part("month")}-${part("day")}`;
 }
 
+// The plain calendar date. Only the backup's age goes by it; anything logged
+// goes by the 04:00 day instead (dayFor), so that at 00:30 it's still yesterday.
 export function today(): string {
   return dateIn(new Date());
 }
@@ -147,7 +149,8 @@ export function weekdayName(date: string): string {
 }
 
 // What to call a day on screen: "Today", "Yesterday", or "Tuesday 2 September".
-export function dayLabel(date: string, from: string = today()): string {
+// "Today" is the 04:00 day, the same one the rest of the app goes by.
+export function dayLabel(date: string, from: string = dayFor(new Date())): string {
   const away = daysBetween(from, date);
   if (away === 0) return "Today";
   if (away === -1) return "Yesterday";

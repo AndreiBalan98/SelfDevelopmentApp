@@ -25,7 +25,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0b0d10",
+  themeColor: "#1c1c1f",
+  // Lets the tab bar's background run down behind the iPhone's home indicator,
+  // with its icons kept clear of it (the tab bar pads itself by the safe area).
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

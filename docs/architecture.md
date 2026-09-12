@@ -43,25 +43,33 @@ app/                 every screen, and the server code behind it
   layout.tsx         the frame every page sits inside: fonts, colours, page title,
                      and the tags that make iOS treat this as an installed app
   globals.css        the colour palette and base styling for the whole app
-  skeleton.tsx       the grey building blocks every loading screen is made of
-  loading.tsx        (here and in most screen folders) that screen's skeleton —
-                     what shows the instant you tap, while its data loads
-  page.tsx           the home screen: one line per destination
-  login/             the PIN screen
-  weight/            logging a weigh-in, and the last fortnight of them
-  products/          what you buy: list and search, add, edit, replace
-    new/             the add form — also the replace form, pre-filled
-    [id]/            one product
-  recipes/           what you cook: list and search, add, edit, replace
-    new/             the add form — also the replace form, pre-filled
-    [id]/            one recipe: its ingredients and what a serving works out at
-  meals/             what you ate: one day at a time, with the day's totals
-    [id]/            one meal: what was in it, when, and how it was
-  sleep/             a night: two times, a score, and the last fortnight
-  smoking/           a day's count, the last fortnight, and the two averages
-  settings/          the five targets a day is measured against
-  export/            the backup screen
+  login/             the PIN screen — outside (tabs), so it has no tab bar
   api/export/        the URL that builds the backup file itself
+  (tabs)/            every screen behind the PIN. The brackets mean the folder
+                     name never appears in an address: /meals, not /tabs/meals
+    layout.tsx       the shell: reads the red dots, puts the tab bar underneath
+    tab-bar.tsx      the bar along the bottom: four icons, the dots on them
+    headers.tsx      a tab's title, and Nutrition's four sub-tabs
+    status.tsx       hands the dots to the tab bar and the Weight sub-tab
+    refresh-on-return.tsx  redraws the screen when the app comes back to the front
+    icons.tsx        the Tabler icons the app uses, copied in, with their licence
+    skeleton.tsx     the grey building blocks every loading screen is made of
+    loading.tsx      (in each screen folder) that screen's skeleton — what shows
+                     the instant you tap, while its data loads
+    meals/           Nutrition → Today: one day at a time, with the day's totals
+      [id]/          one meal: what was in it, when, and how it was
+    recipes/         Nutrition → Recipes: list and search, add, edit, replace
+      new/           the add form — also the replace form, pre-filled
+      [id]/          one recipe: its ingredients and what a serving works out at
+    products/        Nutrition → Products: list and search, add, edit, replace
+      new/           the add form — also the replace form, pre-filled
+      [id]/          one product
+    weight/          Nutrition → Weight: a weigh-in, and the last fortnight
+    sleep/           the Sleep tab: a night, two times, a score, the last fortnight
+    smoking/         the Smoking tab: a day's count, the last fortnight, averages
+    settings/        the Settings tab: the five targets, and the backup
+    (sleep, smoking and settings each have a one-line layout.tsx that gives
+     their screens the tab's colour)
   manifest.ts        the app's name, colours and icons, for the home screen
   icon.png           browser tab icon
   apple-icon.png     the home screen icon on iOS
@@ -87,6 +95,7 @@ lib/
   nutrition.ts       all the food arithmetic: scaling a product to a quantity,
                      adding up a recipe, per serving, cost, shrinkage, meals
   settings.ts        reading the one settings row and the targets on it
+  status.ts          what the red dots say: which logs are missing, backup age
   targets.ts         measuring a day against a target, for the bars
   sleep.ts           how long a night was, including crossing midnight
   series.ts          averages over a run of days, honest about the gaps
@@ -97,7 +106,7 @@ supabase/
                      against. Not migrations; run only when you want them.
 docs/                the plan, this map, and the progress board
 package.json         the list of libraries the app depends on
-next.config.ts       Next.js settings — empty, nothing needed yet
+next.config.ts       Next.js settings: sends "/" to Nutrition → Today
 tsconfig.json        TypeScript settings, including the `@/` import shortcut
 eslint.config.mjs    the code checker's rules
 postcss.config.mjs   wires Tailwind into the stylesheet build
@@ -127,7 +136,7 @@ so they appear straight away; without them, a tap left the old screen sitting th
 until the new one had finished loading, which read as a tap that hadn't registered.
 
 Screens that change date without being left — the day arrows on meals, tapping an
-older entry on weight, sleep and cigarettes — show their skeleton too. Those pages
+older entry on weight, sleep and smoking — show their skeleton too. Those pages
 wrap everything below the date in a boundary tied to that date, so a new date means a
 fresh skeleton rather than the old date lingering on screen.
 
@@ -148,6 +157,48 @@ Until 2026-09-12 every pause in typing asked the server to search again, and eve
 answer arrived as a reloaded page, which jumped you back to the top. Adding a food to
 a meal or an ingredient to a recipe did the same. Now Add saves, and the screen redraws
 around the new line without moving.
+
+## The shell: tabs, and the red dots
+
+Every screen behind the PIN sits above a **tab bar** of four icons, left to right:
+Sleep, Smoking, Nutrition, Settings. (Workout joins in step 7.3.) The tab you're in is
+lit in its own colour; the others are grey. The app always opens on **Nutrition →
+Today**: "/" is sent straight to `/meals`, and so is a successful login.
+
+Nutrition has four **sub-tabs** under its title — Today, Recipes, Products, Weight —
+which are the existing screens at their existing addresses. A screen further in (one
+meal, one product) keeps the tab bar but not the sub-tabs, and has its own way back.
+
+**Each tab has a colour** — Sleep blue, Smoking amber, Nutrition green, Settings grey —
+used for its icon and for the buttons and links on its screens. Nutrition's green is
+the default; the Sleep, Smoking and Settings folders each switch it with a one-line
+layout, so no individual screen has to know.
+
+**The red dots** say a log is missing, using the same 04:00 day as meals:
+
+| Dot on | When |
+|---|---|
+| Sleep icon | last night isn't logged (the night stored under today's date) |
+| Smoking icon | yesterday isn't logged — smoking is always a day behind |
+| Nutrition icon, and the Weight sub-tab | today's weigh-in isn't logged |
+| Settings icon | amber once the last export is 7+ days old, red at 14+ or never |
+
+Meals never get one: a skipped meal and a forgotten one look the same. A question the
+database can't answer gives no dot rather than a false alarm. The dot inside Sleep and
+Smoking goes on their "+" button, which arrives when those tabs are redesigned (steps
+7.11 and 7.8); until then it's on the icon only.
+
+The dots are read once, by the shell (`lib/status.ts`). Moving between tabs doesn't
+re-read them — the shell stays put while the screens inside it change — so they're
+brought up to date by the things that can change them: every save or delete redraws
+the shell along with the screen, and so does exporting. **Whenever the app comes back
+to the front**, the screen and the dots are redrawn too, because iOS often keeps a
+home-screen app in memory overnight and hands back yesterday's idea of what today is.
+
+**Sleep, Smoking and Weight go by the 04:00 day**, like meals: for their dots, the day
+their forms open on, and what counts as "a future date". At 00:30 it's still
+yesterday, so no sleep dot goes up for a night that hasn't been slept. The Smoking form
+opens on yesterday, the day its dot asks for.
 
 ## The PIN gate
 
@@ -219,7 +270,7 @@ Save. Nothing points at a weigh-in, so changing one rewrites no history; this is
 
 Changing the date reloads the screen for that date, so the field always shows what
 was actually logged rather than a number left over from the day you were just
-looking at.
+looking at. It opens on today by the 04:00 day, and lives under Nutrition → Weight.
 
 Refused, with a message rather than a crash: a future date, an empty or nonsensical
 weight, zero, and negatives. A comma is read as a decimal point, because the iPhone
@@ -427,7 +478,7 @@ previous day is visible rather than surprising.
 
 Pick the morning you woke up, type the two times, tap a score out of ten, save. The
 last fortnight underneath, each tappable to change and deletable, with the average
-length of the last seven nights above them.
+length of the last seven nights above them. It opens on this morning by the 04:00 day.
 
 The same shape as weight, and safe for the same reason: nothing in the database points
 at a night, so every entry stays editable and deletable forever. Logging the same night
@@ -447,11 +498,13 @@ line under the fields says which it decided.
 A night can be logged with only a score, or only a note. There's then nothing to
 measure, and the list shows a dash rather than inventing a length.
 
-## Cigarettes
+## Smoking
 
 A day, a count, an optional note, and the last fortnight underneath. The weight
 screen's shape, on purpose: there is no bulk-entry grid and no backfill mode, because a
-month of history is being entered a day at a time.
+month of history is being entered a day at a time. It opens on **yesterday** by the
+04:00 day — smoking is logged at the end of the day, usually the next morning — so a
+count can't land on today unless you change the date.
 
 **Zero is a real entry, and an empty box is not.** The schema is explicit that a day
 with no row means "not logged" while a row holding zero means "smoked nothing", and
@@ -492,15 +545,12 @@ work for **any** day. Backfilling Saturday shows Saturday's totals; looking back
 last week shows last week's. A today-only screen would have needed a second copy of the
 same arithmetic for every other day.
 
-The home screen's Meals line shows the day's calories so far, because that's the number
-the app is most often opened to check.
-
 ### The bars
 
-Every bar is the same colour, including the ones you have gone past, and there is no
-amber and no red anywhere on this screen. Part 5 of the plan rules out anything red or
-scolding about what was eaten; amber is reserved for "your backup is overdue", which is
-an actual problem. Going over a target fills the bar and says so in numbers.
+Every bar is the same colour (Nutrition's green), including the ones you have gone
+past, and there is no amber and no red anywhere on this screen. Going over a target
+fills the bar and says so in numbers. Step 7.4 replaces this with phase 7's target
+rules: nutrient colours, ±10% zones, and red on the part that's over.
 
 The five targets point in three directions and the wording under each bar says which:
 
@@ -515,8 +565,8 @@ is backwards.
 
 ### Setting them
 
-`/settings` holds the five numbers, all optional, all clearable back to empty. Empty
-means "not decided yet", which is deliberately not the same as zero.
+The Settings tab holds the five numbers, all optional, all clearable back to empty.
+Empty means "not decided yet", which is deliberately not the same as zero.
 
 They live in the database rather than in the code because the plan expects them to be
 revised once there's enough weight and food history to estimate a real TDEE — and if
@@ -626,8 +676,8 @@ is gone permanently. The file this produces is the only copy of your history tha
 exists anywhere else, which is why it was built third, before any screen that
 creates data worth losing.
 
-**What it does.** One button reads every row out of all nine tables and hands you a
-single file, `life-tracker-2026-09-01.json`. On the phone that opens the iOS share
+**What it does.** One button, "Export everything" in the Settings tab, reads every
+row out of all nine tables and hands you a single file, `life-tracker-2026-09-01.json`. On the phone that opens the iOS share
 sheet — Save to Files, AirDrop to the laptop, mail it to yourself. In a desktop
 browser, where there is no share sheet, it downloads instead.
 
@@ -643,9 +693,10 @@ means working from this file by hand.
 rather than handing you a file with a table quietly missing. A backup that looks
 complete and isn't is worse than no backup.
 
-**The reminder.** `settings.last_export_at` records when you last exported, and the
-home screen reads it: quiet under a week, amber at a week, red at a fortnight. It
-lives in the database rather than on the phone because iOS wipes a home-screen
+**The reminder.** `settings.last_export_at` records when you last exported. The
+Export row in Settings reads `Last export: N days ago`, and a dot sits on the Settings
+tab icon: quiet under a week, amber at a week, red at a fortnight — and red if you've
+never exported, which is the worst case. It lives in the database rather than on the phone because iOS wipes a home-screen
 app's stored data after roughly a week of not opening it — exactly when the
 reminder would need to be shouting.
 
@@ -682,9 +733,13 @@ first.
 
 ## Choices worth knowing about
 
-**Dark only.** The palette is a handful of CSS variables at the top of
-`app/globals.css`. Changing a colour there changes it everywhere. There's no light
-theme to keep in sync.
+**Dark only.** The palette is a set of CSS variables at the top of
+`app/globals.css`: the surfaces and text greys from the phase 7 mockups, one colour
+per tab, the fixed nutrient colours, and red and amber. Changing a colour there
+changes it everywhere. There's no light theme to keep in sync.
+
+**Red means three things only**: a missing log, a missed target, or a backup 14+ days
+old. Amber means only a backup that's getting old. Nothing else is either.
 
 **Tailwind.** Styling is written as short class names directly on the markup rather
 than in separate stylesheets. It means one file to look at per screen instead of two.

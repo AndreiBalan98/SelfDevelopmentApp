@@ -1,56 +1,118 @@
 @import "tailwindcss";
 
 /* Dark by default. There is no light theme — the app is only ever used on a
-   phone, usually at night. */
+   phone, usually at night. The values come from docs/phase-7-mockups.html,
+   which is the reference for how the app looks. */
 :root {
-  --background: #0b0d10;
-  --surface: #14181d;
-  --border: #242a31;
-  --foreground: #e8eaed;
-  --muted: #8b949e;
-  --accent: #4ea1ff;
-  /* Only ever used to say a backup is overdue. Nothing in this app scolds you
-     about what you ate. */
-  --warn: #e0a33e;
-  --danger: #e5675f;
+  /* Surfaces, from the back forward: the screen, a card on it, and a raised
+     piece on a card (the active segment of the Nutrition sub-tabs). */
+  --background: #1c1c1f;
+  --surface: #26262a;
+  --raised: #303035;
+  /* Hairlines: dividers, and the stronger one for tracks and outlines. */
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  /* Text: main, secondary, and the quietest (inactive tab icons, units). */
+  --foreground: #ededed;
+  --muted: #a9a9ae;
+  --faint: #77777c;
+
+  /* One colour per tab, for its icon, charts and highlights. */
+  --sleep: #378add;
+  --smoking: #ef9f27;
+  --nutrition: #639922;
+  --workout: #d85a30;
+  --settings: #cfcfd4;
+
+  /* The colour of whichever tab you're in. Nutrition's by default; the Sleep,
+     Smoking and Settings folders each set their own (see [data-tab] below). */
+  --accent: var(--nutrition);
+
+  /* Fixed nutrient colours, the same everywhere they appear. */
+  --protein: #7f77dd;
+  --carbs: #ef9f27;
+  --added-sugar: #378add;
+  --fibre: #639922;
+  --fat: #1d9e75;
+  --saturated: #0f6e56;
+  --unsaturated: #5dcaa5;
+
+  /* Red means a missing log, a missed target, or a backup 14+ days old. Amber
+     means only a backup that's getting old. Nothing else is ever either. */
+  --danger: #e24b4a;
+  --warn: #ef9f27;
+  /* The ±10% target zone, used at about 30% opacity. */
+  --zone: #97c459;
+  /* Meals against snacks, in comparisons. */
+  --meal: #639922;
+  --snack: #d85a30;
+}
+
+[data-tab="sleep"] {
+  --accent: var(--sleep);
+}
+[data-tab="smoking"] {
+  --accent: var(--smoking);
+}
+[data-tab="settings"] {
+  --accent: var(--settings);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-surface: var(--surface);
+  --color-raised: var(--raised);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
+  --color-faint: var(--faint);
   --color-accent: var(--accent);
-  --color-warn: var(--warn);
+  --color-sleep: var(--sleep);
+  --color-smoking: var(--smoking);
+  --color-nutrition: var(--nutrition);
+  --color-workout: var(--workout);
+  --color-settings: var(--settings);
+  --color-protein: var(--protein);
+  --color-carbs: var(--carbs);
+  --color-added-sugar: var(--added-sugar);
+  --color-fibre: var(--fibre);
+  --color-fat: var(--fat);
+  --color-saturated: var(--saturated);
+  --color-unsaturated: var(--unsaturated);
   --color-danger: var(--danger);
+  --color-warn: var(--warn);
+  --color-zone: var(--zone);
+  --color-meal: var(--meal);
+  --color-snack: var(--snack);
   --font-sans: var(--font-geist-sans);
 }
 
 html {
   color-scheme: dark;
+  /* Also the colour you see when a screen is pulled past its top or bottom and
+     springs back, so the bounce never shows a different colour behind the app. */
+  background: var(--background);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  /* Keeps content clear of the iPhone's home indicator bar when the app is
-     running from the home screen. Zero in a normal browser tab. */
-  padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* The grey blocks in a loading skeleton (app/skeleton.tsx). They pulse gently
-   until the data arrives. They appear at once rather than fading in: on some
-   screens one skeleton is swapped for an identical one partway through a load,
-   and a fade would turn that swap into a visible blink. */
+/* The grey blocks in a loading skeleton (app/(tabs)/skeleton.tsx). They pulse
+   gently until the data arrives. They appear at once rather than fading in: on
+   some screens one skeleton is swapped for an identical one partway through a
+   load, and a fade would turn that swap into a visible blink. */
 .bone {
   border-radius: 0.375rem;
-  background: var(--border);
+  background: var(--raised);
   animation: bone-pulse 1.4s ease-in-out infinite;
 }
 
 @keyframes bone-pulse {
   50% {
-    background: color-mix(in srgb, var(--border) 50%, var(--surface));
+    background: color-mix(in srgb, var(--raised) 45%, var(--surface));
   }
 }

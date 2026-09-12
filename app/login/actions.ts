@@ -114,5 +114,6 @@ export async function submitPin(
     maxAge: SESSION_MAX_AGE_SECONDS,
   });
 
-  redirect("/");
+  // Straight to Nutrition → Today, where the app always opens.
+  redirect("/meals");
 }

@@ -77,7 +77,8 @@ export type BackupStatus = {
   level: BackupLevel;
 };
 
-// Quiet under a week, amber at a week, red at a fortnight.
+// Quiet under a week, amber at a week, red at a fortnight — and red if there has
+// never been one, which is the worst case of all.
 export async function backupStatus(): Promise<BackupStatus> {
   let lastExportAt: string | null;
 
@@ -91,16 +92,16 @@ export async function backupStatus(): Promise<BackupStatus> {
     if (error) throw new Error(error.message);
     lastExportAt = data?.last_export_at ?? null;
   } catch {
-    // The database being unreachable is not something the home screen should
-    // crash over — it says so and carries on.
-    return { label: "Backup status unavailable", level: "unknown" };
+    // The database being unreachable is not something a screen should crash
+    // over — it says so and carries on.
+    return { label: "Last export: unknown", level: "unknown" };
   }
 
-  if (!lastExportAt) return { label: "No backup yet", level: "never" };
+  if (!lastExportAt) return { label: "Never exported", level: "never" };
 
   const days = daysBetween(dateIn(new Date(lastExportAt)), today());
   const when = days <= 0 ? "today" : days === 1 ? "yesterday" : `${days} days ago`;
   const level: BackupLevel = days >= 14 ? "late" : days >= 7 ? "warn" : "ok";
 
-  return { label: `Backed up ${when}`, level };
+  return { label: `Last export: ${when}`, level };
 }
