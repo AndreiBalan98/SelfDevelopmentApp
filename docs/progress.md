@@ -4,11 +4,14 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Phase 7 step 7.5b (nothing cut off at 1,000 rows — the backup, then at Andrei's
-request every other whole-table read) is built and checked here, waiting for Andrei to
-push and check it on the phone.** Steps 7.0–7.5 are done and
-approved. Phases 1–6 are complete and the app has been in daily use since
-2026-09-01. No library has been added in phase 7.
+**Phase 7 steps 7.0–7.5b are done, tested on the phone and approved. Next is step 7.6
+("where did it come from?" panels on Today), when Andrei says go.** Phases 1–6 are
+complete and the app has been in daily use since 2026-09-01. No library has been added
+in phase 7. Session ended 2026-09-12.
+
+Where phase 7 stands (estimated 2026-09-12): 8 of 19 steps done; about 45% by code
+(about 4,350 lines written of an estimated 9,500) and about 40% by time (about 7 hours
+spent, 9–12 to go). The chart and stats steps — 7.8, 7.11, 7.13 — are the heavy ones.
 
 ### How phase 7 got here
 
@@ -34,9 +37,10 @@ Don't design it or raise it.
 
 ## Waiting on me (Andrei)
 
-1. **Commit, push, and check on the phone**: take one export, and open Products,
-   Recipes, a recipe, and a meal's food search — all should work exactly as before. No
-   SQL. Then approve 7.5b or ask for changes.
+1. **Commit this file** — it records 7.5b as approved and the session's end.
+2. **Say go for step 7.6**, and confirm one detail with it: in a "where did it come
+   from?" panel, a recipe counts as one item ("Burritos") rather than being split into
+   its ingredients, as the mockup shows.
 
 Migrations 0001–0005 have all been run. Steps 7.1, 7.2, 7.4 and 7.4b had no migration.
 
@@ -45,6 +49,10 @@ tracked here and doesn't need raising.
 
 ## Done
 
+- 2026-09-12 — **Phase 7 step 7.5b complete: nothing is cut off at 1,000 rows.** The
+  backup reads every table a page at a time, and so does everything else that reads a
+  whole table (`lib/pages.ts`). Found while testing 7.5; extended to the whole app at
+  Andrei's request. Tested on the phone and approved.
 - 2026-09-12 — **Phase 7 step 7.5 complete: the calendar heatmap.** A sheet from Today's
   calendar icon: a dot per day by how many of the four logs exist, the logging streak
   (one grace day per Monday–Sunday week) and the days-logged counter, a month at a time.
@@ -189,7 +197,7 @@ stands, differs from it in four places:
 | 7.4 | Nutrition → Today: target rules, hero, nutrient bars with the fat split, meal rows, day details, "+" with tap and hold *(done)* |
 | 7.4b | Restyle one meal's screen (`/meals/[id]`) to the new look: its lines, the food search, time, day, type, note, score. Works exactly as now *(done)* |
 | 7.5 | Calendar heatmap with the streak and the days-logged counter *(done)* |
-| 7.5b | The backup reads every table 1,000 rows at a time, so it's never cut off at Supabase's 1,000-row limit; found while testing 7.5. Extended at Andrei's request to every whole-table read in the app *(built; waiting on the phone check)* |
+| 7.5b | The backup reads every table 1,000 rows at a time, so it's never cut off at Supabase's 1,000-row limit; found while testing 7.5. Extended at Andrei's request to every whole-table read in the app *(done)* |
 | 7.6 | "Where did it come from?" panels (on Today; the stats section reuses them later) |
 | 7.7 | Recipes and Products: sort pills, lei per 30 g protein and per 1,000 kcal, and Duplicate; restyle both lists, the add / edit / replace forms and the recipe screen |
 | 7.8 | Smoking tab: the shared range control and the chart base with its rotate button, proven on the bar chart with its two averages, and the list; restyle the entry form behind the "+" |
