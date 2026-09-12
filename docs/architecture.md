@@ -557,8 +557,8 @@ today), and "Back to today" appears when you're elsewhere. The calendar icon has
 phone's own date picker hidden over it, for jumping further; step 7.5 turns it into the
 calendar heatmap.
 
-**The hero** is calories, large, with the day's spend beside it, each with "of 2,000" /
-"of 33 lei" underneath. **The bars** are protein, carbs, added sugar, fibre and fat, in
+**The hero** is calories, large, with the day's spend beside it, each with its target
+underneath and no unit repeated: "of 2,000", "of 33". **The bars** are protein, carbs, added sugar, fibre and fat, in
 that order, each in its own colour, with the amount against the target on the right —
 "118 / 150 g · 17 to zone", "38 / 30 g max · 8 over", or a green tick inside the zone.
 The fat bar is split into saturated and unsaturated, with a line underneath:

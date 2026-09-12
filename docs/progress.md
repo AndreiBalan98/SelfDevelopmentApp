@@ -4,8 +4,9 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Phase 7 step 7.4 (Nutrition → Today) is built and checked here, waiting for Andrei to
-push and test it on the phone.** Steps 7.0–7.3 are done and approved. Phases 1–6 are
+**Phase 7 step 7.4 (Nutrition → Today) was tested on the phone; one fix is made (no
+"lei" in the spend's target line) and waiting on its check. Andrei also owes a decision
+on when the old-look screens are restyled.** Steps 7.0–7.3 are done and approved. Phases 1–6 are
 complete and the app has been in daily use since 2026-09-01. No library has been added
 in phase 7.
 
@@ -33,10 +34,11 @@ Don't design it or raise it.
 
 ## Waiting on me (Andrei)
 
-1. **Commit, push and test step 7.4 on the phone**, then approve it or ask for
-   changes. No SQL this time.
-2. **Glance at the small calls** listed with the step (and under Decisions), and say
-   if any is wrong.
+1. **Commit, push and check the one fix to 7.4** — the spend's target line reads
+   "of 33", not "of 33 lei" — then approve 7.4 or ask for more changes. No SQL.
+2. **Decide when the old-look screens are restyled.** The proposal is under Next →
+   "Restyling the screens that still have the old look". Once decided, it moves into
+   the step table and Decisions.
 
 Migrations 0001–0005 have all been run. Steps 7.1, 7.2 and 7.4 had no migration.
 
@@ -173,7 +175,7 @@ stands, differs from it in four places:
 | 7.1 | Speed and scroll bugs: check where Vercel and Supabase each run, stop search and Add jumping to the top, make taps faster *(done)* |
 | 7.2 | App shell: new palette, tab bar with icons (Sleep · Smoking · Nutrition · Settings), Nutrition opens by default with its four sub-tabs over the existing screens, Sleep, Smoking and Weight moved to the 04:00 day, the smoking form opening on yesterday, red dots for missing logs, the backup dot, Settings tab holding the current targets and the export, old home screen and `/export` retired, rubber-band check *(done)* |
 | 7.3 | Settings: migration 0005 with every new field, the full Settings tab, timezone in the export, and the Workout tab with its countdown *(done)* |
-| 7.4 | Nutrition → Today: target rules, hero, nutrient bars with the fat split, meal rows, day details, "+" with tap and hold *(built; waiting on the phone test)* |
+| 7.4 | Nutrition → Today: target rules, hero, nutrient bars with the fat split, meal rows, day details, "+" with tap and hold *(tested on the phone; one fix made, waiting on its check)* |
 | 7.5 | Calendar heatmap with the streak and the days-logged counter |
 | 7.6 | "Where did it come from?" panels (on Today; the stats section reuses them later) |
 | 7.7 | Recipes and Products: sort pills, lei per 30 g protein and per 1,000 kcal, and Duplicate |
@@ -186,6 +188,26 @@ stands, differs from it in four places:
 | 7.14 | Stats, part 2: meals vs snacks, days on target |
 | 7.15 | Stats, part 3: timing card |
 | 7.16 | Milestones |
+
+### Restyling the screens that still have the old look — proposed, waiting on Andrei
+
+Andrei asked on 2026-09-12 that every screen be made congruent with the new design,
+and for a proposed moment for each. They already have the new colours (step 7.2) but
+the old layout: bordered boxes, larger headings, full-width stacked fields. The rule
+proposed: **a screen is restyled in the step that already touches it**, so nothing is
+reworked twice; the one screen no step touches gets its own small step.
+
+| Screen | Proposed moment | Why then |
+|---|---|---|
+| One meal (`/meals/[id]`): its lines, the food search, time, day, type, note, score | **New step 7.4b, next** | Opened from Today several times a day, so the jump from the new look to the old is the most visible one. No other step touches it |
+| Products and Recipes: lists, add, edit, replace, and the recipe screen with its ingredients | **7.7** | That step already rebuilds both lists (sort pills, value numbers) and adds Duplicate, which opens the add form |
+| Smoking entry form and its list | **7.8** | The screen becomes the chart; the form moves behind a "+" |
+| Weight entry form and its list | **7.9** | Same, for weight |
+| Sleep entry form and its list | **7.11** | Same, for sleep |
+| The PIN screen | **7.16**, with milestones | Seen about four times a year; nothing else touches it |
+
+Each restyle keeps the screen working exactly as it does now — only the look changes —
+and brings its loading skeleton with it.
 
 ### Details to settle at the step that builds them
 
@@ -535,6 +557,7 @@ of scope for the rewrite. **Done 2026-09-11:** Andrei ran the review himself; se
 2026-09-12 — The "+" icon is black on the green, following the 7.2 rule that buttons keep black text on every accent. The mockup draws it pale; say if you'd rather have that.
 2026-09-12 — Hold is half a second. The sheet leaves room at the bottom and the "+" stays on top of the dim, so the finger that held it lifts off the button and never over a meal — otherwise letting go could repeat one by accident. A finger sliding off the button cancels; tapping the "+" while the sheet is open closes it; a right-click opens it on a computer. The sheet lists the same ten recent meals as before and scrolls on a small phone.
 2026-09-12 — Removed from Today, following the mockups: the "Add a meal" button and the "Repeat something recent" list (both now the "+"), and the two small print notes (under the recent list, and "anything a product doesn't state is added up as zero" under the day details). That rule itself still holds and is in the plan.
+2026-09-12 — The hero's target lines carry no unit: "of 2,000" under the calories and "of 33" under the spend (Andrei's call after the 7.4 phone test). The number above each already says kcal or lei.
 2026-09-12 — Meal rows: "Meal"/"Snack" in the mockup's pale green and coral (`--meal-label`, `--snack-label`), time, the names; calories and cost on the right; the macro letters underneath. An empty meal says "empty".
 
 ## Deferred
@@ -589,7 +612,8 @@ of scope for the rewrite. **Done 2026-09-11:** Andrei ran the review himself; se
   7.4.**
 - A meal's own screen (`/meals/[id]`) is untouched by 7.4 and keeps its old look. The
   plan restyles the entry screens "to the new look" but no step names them; worth
-  deciding when, rather than doing it on the side.
+  deciding when, rather than doing it on the side. **Picked up 2026-09-12:** Andrei
+  wants every old-look screen restyled; the proposed timing is under Next.
 - The hold on the "+" has nothing on screen to say it exists. The mockups don't show a
   hint either; it's in `architecture.md`.
 - Search matching is exact about accents: "ciorba" won't find "ciorbă". It always

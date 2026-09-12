@@ -97,7 +97,9 @@ function Hero({
           {targets.daily_budget === null ? (
             <SetTarget />
           ) : (
-            `of ${targets.daily_budget.toLocaleString("en-GB")} lei`
+            // No unit here, the same as "of 2,000" under the calories: the
+            // number above already says lei.
+            `of ${targets.daily_budget.toLocaleString("en-GB")}`
           )}
         </p>
       </div>
