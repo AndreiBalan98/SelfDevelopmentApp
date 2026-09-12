@@ -162,6 +162,24 @@ export function longDate(date: string, from: string = dayFor(new Date())): strin
   return `${weekdayName(date)}, ${dayAndMonth}`;
 }
 
+// The Today screen's date row: "Today, 11 Sep", "Yesterday, 10 Sep",
+// "Wednesday, 9 Sep" — with the year when it isn't the current one.
+export function dateRowLabel(date: string, from: string = dayFor(new Date())): string {
+  // Written out rather than left to the phone's language settings, which spell
+  // September "Sept" in British English.
+  const month = SHORT_MONTHS[Number(date.slice(5, 7)) - 1];
+  const year = date.slice(0, 4) === from.slice(0, 4) ? "" : ` ${date.slice(0, 4)}`;
+
+  const away = daysBetween(from, date);
+  const name = away === 0 ? "Today" : away === -1 ? "Yesterday" : weekdayName(date);
+
+  return `${name}, ${Number(date.slice(8, 10))} ${month}${year}`;
+}
+
+const SHORT_MONTHS = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
 // What to call a day on screen: "Today", "Yesterday", or "Tuesday 2 September".
 // "Today" is the 04:00 day, the same one the rest of the app goes by.
 export function dayLabel(date: string, from: string = dayFor(new Date())): string {

@@ -1,44 +1,160 @@
-// Measuring a day against a target.
+// Measuring a day against a target: the phase 7 rules (plan, Part 5 →
+// Nutrition → Today → Target rules).
 //
-// The five targets point in three different directions — calories and money are
-// budgets to spend, protein and fibre are floors to reach, added sugar is a
-// ceiling to stay under — but a bar fills the same way for all of them. Only
-// the wording underneath differs.
+// Two kinds of target:
 //
-// Nothing here ever returns a colour or a warning. Part 5 of the plan rules out
-// anything red or scolding about what was eaten, so going over a target fills
-// the bar and says so in plain numbers, and that is all it does.
+// - A ceiling — calories on a cut, daily spend, added sugar — is fine anywhere
+//   under the limit and red once over it.
+// - A zone — protein, carbs, fibre, fat, and calories on maintain or bulk — is a
+//   value to land around: ±10% of the target. Inside it gets a tick. Above it,
+//   the part past the zone is red. Below it is neutral while the day is still
+//   going and red once the day is over.
+//
+// A target that isn't set is never measured, so it is never red.
+//
+// Red means a missed target here, and nothing else. These functions only say
+// what happened; the screen decides how it looks.
 
-export type Direction = "budget" | "floor" | "ceiling";
+import type { GoalPhase } from "@/lib/types";
 
-export type Progress = {
-  // 0 to 1, for how far along the bar is drawn. Clamped, so eating double
-  // doesn't draw a bar twice as wide as its box.
-  fraction: number;
-  // Past the target. Used for wording, never for colour.
-  over: boolean;
-  // Reached, for a floor. "over" and "reached" are the same event read two
-  // different ways, which is why they're separate words.
-  reached: boolean;
+export type Kind = "ceiling" | "zone";
+
+export type Status =
+  // A ceiling not yet reached.
+  | "under"
+  // A ceiling gone past, or a zone overshot.
+  | "over"
+  // Inside a zone.
+  | "inside"
+  // Short of a zone.
+  | "below";
+
+export type Judgement = {
+  target: number;
+  kind: Kind;
+  status: Status;
+  // The number is red.
+  red: boolean;
+  // How far off, always positive: "17 to zone", "8 over". Zero when inside
+  // a zone or under a ceiling.
+  gap: number;
+  // Where red starts on the bar: the ceiling itself, or the top of the zone.
+  redFrom: number;
 };
 
-export function progress(value: number, target: number | null): Progress | null {
+// ±10%, so a zone is 90% to 110% of the target, both ends included.
+export const ZONE = 0.1;
+
+// Floating-point slack, so 110% of 60 (66.00000000000001) still counts 66 as
+// inside.
+const EPSILON = 1e-9;
+
+// `finished` is whether the day is over. Being short of a zone only turns red
+// once it is: today you're still eating.
+export function judge(
+  value: number,
+  target: number | null,
+  kind: Kind,
+  finished: boolean,
+): Judgement | null {
   if (target === null || target <= 0) return null;
 
-  const ratio = value / target;
+  if (kind === "ceiling") {
+    const over = value > target + EPSILON;
+    return {
+      target,
+      kind,
+      status: over ? "over" : "under",
+      red: over,
+      gap: over ? value - target : 0,
+      redFrom: target,
+    };
+  }
+
+  const low = target * (1 - ZONE);
+  const high = target * (1 + ZONE);
+
+  if (value > high + EPSILON) {
+    return { target, kind, status: "over", red: true, gap: value - high, redFrom: high };
+  }
+  if (value < low - EPSILON) {
+    return { target, kind, status: "below", red: finished, gap: low - value, redFrom: high };
+  }
+  return { target, kind, status: "inside", red: false, gap: 0, redFrom: high };
+}
+
+// Calories change kind with the goal: a ceiling on a cut, a zone on maintain or
+// bulk. With no goal picked there's no rule to measure by, so they aren't
+// measured at all.
+export function calorieKind(phase: GoalPhase | null): Kind | null {
+  if (phase === "cut") return "ceiling";
+  if (phase === "maintain" || phase === "bulk") return "zone";
+  return null;
+}
+
+// The bar's track spans 130% of the target, so the zone and anything over it
+// stay visible. Every position is a percentage of the track, clamped to it.
+export const TRACK = 1.3;
+
+export type Bar = {
+  // The nutrient-coloured part, from the left.
+  fill: number;
+  // The red part past the ceiling or the zone: where it starts and its width.
+  redLeft: number;
+  redWidth: number;
+  // The thin line at the target.
+  mark: number;
+  // The zone band, for a zone target.
+  zone: { left: number; width: number } | null;
+};
+
+export function bar(value: number, judgement: Judgement): Bar {
+  const span = judgement.target * TRACK;
+  const at = (amount: number) => Math.max(0, Math.min(100, (amount / span) * 100));
+
+  const end = at(value);
+  const redStart = at(judgement.redFrom);
+  const over = judgement.status === "over";
 
   return {
-    fraction: Math.max(0, Math.min(1, ratio)),
-    over: ratio > 1,
-    reached: ratio >= 1,
+    fill: over ? redStart : end,
+    redLeft: redStart,
+    redWidth: over ? end - redStart : 0,
+    mark: at(judgement.target),
+    zone:
+      judgement.kind === "zone"
+        ? {
+            left: at(judgement.target * (1 - ZONE)),
+            width: at(judgement.target * (1 + ZONE)) - at(judgement.target * (1 - ZONE)),
+          }
+        : null,
   };
 }
 
-// What to write under a bar: "of 2400", "of 140 g", "of 40 g at most".
-export function targetNote(target: number, unit: string, direction: Direction): string {
-  const amount = `${target}${unit ? ` ${unit}` : ""}`;
+// The fat ratio, saturated : unsaturated, written 1 : N. It's a ceiling on the
+// saturated share: with a goal of 1 : N, saturated fat is over when it's more
+// than 1 ÷ (1 + N) of all the fat — a third at the default 1 : 2.
+// Unsaturated is simply everything that isn't saturated.
+export type FatSplit = {
+  saturated: number;
+  unsaturated: number;
+  // N in "1 : N" for what was eaten. Null when there's no saturated fat to
+  // divide by.
+  perSaturated: number | null;
+  // Over the goal. False when there's no goal, or no fat.
+  over: boolean;
+};
 
-  if (direction === "ceiling") return `of ${amount} at most`;
-  if (direction === "floor") return `of ${amount} at least`;
-  return `of ${amount}`;
+export function fatSplit(fat: number, saturated: number, goal: number | null): FatSplit {
+  // Saturated can't be more than the fat it's part of; a product typed that way
+  // would be a typo, and the bar shouldn't draw it.
+  const sat = Math.min(Math.max(saturated, 0), Math.max(fat, 0));
+  const unsaturated = Math.max(fat - sat, 0);
+
+  return {
+    saturated: sat,
+    unsaturated,
+    perSaturated: sat > 0 ? unsaturated / sat : null,
+    over: goal !== null && goal > 0 && fat > 0 && sat / fat > 1 / (1 + goal) + EPSILON,
+  };
 }

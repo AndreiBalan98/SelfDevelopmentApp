@@ -8,30 +8,40 @@
 
 import { db } from "@/lib/supabase";
 import type { SettingsValues } from "@/lib/settings-fields";
+import type { GoalPhase } from "@/lib/types";
 
-// The five targets the day screen measures against today. Step 7.4 brings in
-// the rest (carbs, fat, the fat ratio, and the goal phase that decides how
-// calories are judged).
+// What the day screen measures against: every target, and the goal phase that
+// decides whether calories are a ceiling or a zone.
 export type Targets = {
   calorie_target: number | null;
+  daily_budget: number | null;
   protein_target: number | null;
+  carbs_target: number | null;
   added_sugar_max: number | null;
   fibre_target: number | null;
-  daily_budget: number | null;
+  fat_target: number | null;
+  unsat_per_sat: number | null;
+  goal_phase: GoalPhase | null;
 };
 
 export const NO_TARGETS: Targets = {
   calorie_target: null,
+  daily_budget: null,
   protein_target: null,
+  carbs_target: null,
   added_sugar_max: null,
   fibre_target: null,
-  daily_budget: null,
+  fat_target: null,
+  unsat_per_sat: null,
+  goal_phase: null,
 };
 
 export async function readTargets(): Promise<Targets> {
   const { data, error } = await db()
     .from("settings")
-    .select("calorie_target, protein_target, added_sugar_max, fibre_target, daily_budget")
+    .select(
+      "calorie_target, daily_budget, protein_target, carbs_target, added_sugar_max, fibre_target, fat_target, unsat_per_sat, goal_phase",
+    )
     .eq("id", 1)
     .maybeSingle();
 

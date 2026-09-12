@@ -103,7 +103,8 @@ lib/
                      the form on the phone needs them and must never load
                      anything that talks to the database
   status.ts          what the red dots say: which logs are missing, backup age
-  targets.ts         measuring a day against a target, for the bars
+  targets.ts         the target rules: ceilings, ±10% zones, the fat ratio, and
+                     where each part of a bar is drawn
   sleep.ts           how long a night was, including crossing midnight
   series.ts          averages over a run of days, honest about the gaps
   replacements.ts    following oats → oats 2 → oats 3 to whatever you buy today
@@ -407,17 +408,17 @@ behind.
 
 ## Meals
 
-What you ate. The screen shows **one day at a time** — arrows either side, a date box
-for jumping further, and "Back to today". Step 4 puts the day's totals and progress
-against targets on this same screen rather than building a second one.
+What you ate. Nutrition → Today shows **one day at a time**, with the day's totals
+against the targets on the same screen (see Nutrition → Today, below).
 
 "Today" here means the day you're currently logging towards, not the calendar date. At
 02:00 you are still filling in yesterday, and the screen agrees with you.
 
-**Add a meal creates it there and then** — time set to now, type "meal", day worked out
-by the 04:00 rule — and drops you straight inside it. There is no form standing between
-you and typing what you ate, because this is the screen used several times a day, often
-while eating. A mis-tap leaves an empty meal on the list, which is one tap to delete.
+**Tapping the "+" creates a meal there and then** — time set to now, type "meal", day
+worked out by the 04:00 rule — and drops you straight inside it. There is no form
+standing between you and typing what you ate, because this is the screen used several
+times a day, often while eating. A mis-tap leaves an empty meal on the list, which is
+one tap to delete.
 
 **One search box for products and recipes together**, recipes marked with a tag and
 their calories a serving. Retired ones are left out, including when backfilling. The
@@ -440,8 +441,8 @@ Everything else is grams or millilitres, with no toggle to get wrong.
 
 ### Repeating a meal
 
-Two ways in. **Repeat this today**, at the bottom of any past meal. And **Repeat
-something recent** on the day screen, under Add a meal: the last few things you ate,
+Two ways in. **Repeat this today**, at the bottom of any past meal. And **holding the
+"+"** on Today, which opens "Repeat something recent": the last ten things you ate,
 most recent first, with identical ones shown once so a fortnight of the same breakfast
 takes one row. Either way it copies onto the day you're looking at and opens the new
 meal, because the portion is usually the thing that differs.
@@ -542,38 +543,70 @@ that was, which the screen says out loud when the window isn't full: "7 h 23 m a
 over the 6 you logged". Filling the gaps with zero would flatter a cigarette count.
 Treating a half-empty window as complete would lie about it.
 
-## The day's totals, and the targets
+## Nutrition → Today
 
-At the top of the day screen: calories as a headline with a bar, then protein, fibre,
-added sugar and money as compact rows. At the bottom, below the meals, the full nine
-figures for the day as plain numbers.
+Top to bottom: the date row, the hero, the nutrient bars, the meals, and the day
+details. The round green "+" floats above the tab bar.
 
-It sits on the day screen rather than on a separate "Today" page so that the totals
-work for **any** day. Backfilling Saturday shows Saturday's totals; looking back at
-last week shows last week's. A today-only screen would have needed a second copy of the
-same arithmetic for every other day.
+It works for **any** day, not only today. Backfilling Saturday shows Saturday's
+totals; looking back at last week shows last week's. A today-only screen would have
+needed a second copy of the same arithmetic for every other day.
 
-### The bars
+**The date row** reads `‹ Today, 12 Sep ›`. The arrows step a day at a time (never past
+today), and "Back to today" appears when you're elsewhere. The calendar icon has the
+phone's own date picker hidden over it, for jumping further; step 7.5 turns it into the
+calendar heatmap.
 
-Every bar is the same colour (Nutrition's green), including the ones you have gone
-past, and there is no amber and no red anywhere on this screen. Going over a target
-fills the bar and says so in numbers. Step 7.4 replaces this with phase 7's target
-rules: nutrient colours, ±10% zones, and red on the part that's over.
+**The hero** is calories, large, with the day's spend beside it, each with "of 2,000" /
+"of 33 lei" underneath. **The bars** are protein, carbs, added sugar, fibre and fat, in
+that order, each in its own colour, with the amount against the target on the right —
+"118 / 150 g · 17 to zone", "38 / 30 g max · 8 over", or a green tick inside the zone.
+The fat bar is split into saturated and unsaturated, with a line underneath:
+`Sat 26 g · Unsat 40 g · 1 : 1.5 (goal 1 : 2)`.
 
-The five targets point in three directions and the wording under each bar says which:
+**Each meal** is two lines: "Meal · 13:30 · Burritos   540 kcal · 6.34 lei", then the
+macros as coloured letters — P protein, C carbs, S added sugar, Fi fibre, Fa fat. Tap
+one to open it. **Day details** are the full label figures in EU order, "of which"
+lines indented, and the cost.
 
-- **Budgets** — calories, money: "of 2400 kcal".
-- **Floors** — protein, fibre: "of 140 g at least", and "· there" once reached.
-- **Ceiling** — added sugar: "of 40 g at most", and "· past it" once over.
+### The target rules
 
-**A target you haven't set shows the number with no bar** and a quiet link to the
-targets screen. Not a hidden row, and never a bar reading "0% of 0" — you want to watch
-a number for a fortnight before deciding what it ought to be, and hiding it until then
-is backwards.
+All in `lib/targets.ts`, as pure arithmetic, checked against the mockup's own numbers.
 
-The day screen still reads only five targets (calories, protein, fibre, added sugar,
-spend) and still uses the wording above. Step 7.4 moves it to the phase 7 rules and
-brings in the rest of what Settings now holds.
+- **Ceilings** — calories on a cut, daily spend, added sugar — are fine anywhere under
+  the limit, and red once over it.
+- **Zones** — protein, carbs, fibre, fat, and calories on maintain or bulk — are ±10%
+  of the target, both ends included. Inside gets a green tick. Above, the part past
+  the zone is red and so is the number. Below is neutral today, because you're still
+  eating, and red on a past day.
+- **The fat ratio** is a ceiling on the saturated share: with a goal of 1 : N,
+  saturated is over when it's more than 1 ÷ (1 + N) of the fat — a third at 1 : 2.
+  Only the ratio turns red, never the fat bar for it.
+
+Bars keep their colour: red is only ever the part that's over, and the number. Each
+track spans 130% of the target, so the zone (a pale green band) and any overflow stay
+visible, and a thin line marks the target.
+
+**A target you haven't set** shows its number with no bar, never turns red, and says
+"set a target", linking to Settings. **With no goal picked**, calories aren't measured
+either — there's no way to know whether they're a ceiling or a zone — and the hero says
+"pick a goal".
+
+**A past day with no meals is never red.** It's a day that wasn't logged, not a day of
+eating nothing — the same rule the averages follow.
+
+### The "+"
+
+**Tap** creates a meal there and then — time set to now, day by the 04:00 rule — and
+drops you inside it. **Hold** it for half a second and a sheet of recent meals slides
+up; tap one to copy it onto the day you're looking at (see Repeating a meal). Tapping
+the dimmed screen closes the sheet.
+
+The sheet leaves room at the bottom so the button stays uncovered, on top of the dim.
+That's deliberate: the finger that held the button lifts off the button, never over a
+meal, so letting go can't repeat anything by accident. A finger that slides off the
+button while pressing does nothing. iOS's long-press magnifier and menu are switched
+off on it.
 
 ## Settings
 

@@ -4,9 +4,10 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Phase 7 steps 7.0–7.3 are done, tested on the phone and approved. Next is step 7.4
-(Nutrition → Today), when Andrei says go.** Phases 1–6 are complete and the app has
-been in daily use since 2026-09-01. No library has been added in phase 7.
+**Phase 7 step 7.4 (Nutrition → Today) is built and checked here, waiting for Andrei to
+push and test it on the phone.** Steps 7.0–7.3 are done and approved. Phases 1–6 are
+complete and the app has been in daily use since 2026-09-01. No library has been added
+in phase 7.
 
 ### How phase 7 got here
 
@@ -32,12 +33,12 @@ Don't design it or raise it.
 
 ## Waiting on me (Andrei)
 
-1. **Commit this file** — it records 7.3 as approved.
-2. **Say go for step 7.4**: Nutrition → Today on the phase 7 target rules — the hero,
-   the nutrient bars with the fat split, the new meal rows, the day details, and the
-   "+" with tap and hold.
+1. **Commit, push and test step 7.4 on the phone**, then approve it or ask for
+   changes. No SQL this time.
+2. **Glance at the small calls** listed with the step (and under Decisions), and say
+   if any is wrong.
 
-Migrations 0001–0005 have all been run. Steps 7.1 and 7.2 had no migration.
+Migrations 0001–0005 have all been run. Steps 7.1, 7.2 and 7.4 had no migration.
 
 Andrei will enter his August cigarette history himself, when he chooses. It isn't
 tracked here and doesn't need raising.
@@ -172,7 +173,7 @@ stands, differs from it in four places:
 | 7.1 | Speed and scroll bugs: check where Vercel and Supabase each run, stop search and Add jumping to the top, make taps faster *(done)* |
 | 7.2 | App shell: new palette, tab bar with icons (Sleep · Smoking · Nutrition · Settings), Nutrition opens by default with its four sub-tabs over the existing screens, Sleep, Smoking and Weight moved to the 04:00 day, the smoking form opening on yesterday, red dots for missing logs, the backup dot, Settings tab holding the current targets and the export, old home screen and `/export` retired, rubber-band check *(done)* |
 | 7.3 | Settings: migration 0005 with every new field, the full Settings tab, timezone in the export, and the Workout tab with its countdown *(done)* |
-| 7.4 | Nutrition → Today: target rules, hero, nutrient bars with the fat split, meal rows, day details, "+" with tap and hold |
+| 7.4 | Nutrition → Today: target rules, hero, nutrient bars with the fat split, meal rows, day details, "+" with tap and hold *(built; waiting on the phone test)* |
 | 7.5 | Calendar heatmap with the streak and the days-logged counter |
 | 7.6 | "Where did it come from?" panels (on Today; the stats section reuses them later) |
 | 7.7 | Recipes and Products: sort pills, lei per 30 g protein and per 1,000 kcal, and Duplicate |
@@ -525,6 +526,16 @@ of scope for the rewrite. **Done 2026-09-11:** Andrei ran the review himself; se
 2026-09-12 — The Workout tab follows the mockup: no title, the barbell in a coral circle, the countdown centred. The in-between cases the plan didn't word are "Gym starts in 1 day" and "Gym starts today". "Change the date in Settings" is a link. Days are counted on the 04:00 day, so at 01:00 on the start date it still says "in 1 day".
 2026-09-12 — The export's timezone is `tz`, placed after `exported_at`, and comes from the same constant `lib/day.ts` uses for every date, so the two can't disagree.
 2026-09-12 — The day screen reads `fibre_target` under its new name but is otherwise untouched until step 7.4 — it still shows five targets with the phase 5 wording.
+2026-09-12 — **Step 7.4: the target rules live in `lib/targets.ts`** as pure functions (judge a value, where each part of a bar goes, the fat split), replacing the phase 5 budgets and floors. Checked in the scratchpad against the mockup's own drawn percentages (protein 60.5%, carbs 73.7%, sugar 76.9% plus 20.5% red, fibre 72.5%) and the edges: exactly 90% and 110% of a target are inside the zone, exactly at a ceiling is fine, exactly a third saturated at 1 : 2 is fine.
+2026-09-12 — With no goal phase picked, calories aren't measured at all — no tick, no red — and the hero says "pick a goal" with a link to Settings. There's no way to know whether they're a ceiling or a zone, and guessing would make a rule you never chose.
+2026-09-12 — A past day with no meals logged is never red on Today, though every zone would otherwise read as missed. It's a day that wasn't logged, not a day of eating nothing — the same rule the stats follow.
+2026-09-12 — "17 to zone" and "8 over" are rounded the ordinary way, like the amounts beside them, so the sum on screen adds up (54 − 8 = 46, not 47); never shown as 0. Whole numbers on the bars; the day details keep their decimals, as before.
+2026-09-12 — The date row reads "Today, 12 Sep" / "Yesterday, 11 Sep" / "Wednesday, 9 Sep", with the year added only for another year. Month names are written out in the code, because the phone's British English says "Sept".
+2026-09-12 — Until the calendar heatmap (7.5), the calendar icon opens the phone's own date picker, hidden over the icon. The old visible date box is gone.
+2026-09-12 — The "+" icon is black on the green, following the 7.2 rule that buttons keep black text on every accent. The mockup draws it pale; say if you'd rather have that.
+2026-09-12 — Hold is half a second. The sheet leaves room at the bottom and the "+" stays on top of the dim, so the finger that held it lifts off the button and never over a meal — otherwise letting go could repeat one by accident. A finger sliding off the button cancels; tapping the "+" while the sheet is open closes it; a right-click opens it on a computer. The sheet lists the same ten recent meals as before and scrolls on a small phone.
+2026-09-12 — Removed from Today, following the mockups: the "Add a meal" button and the "Repeat something recent" list (both now the "+"), and the two small print notes (under the recent list, and "anything a product doesn't state is added up as zero" under the day details). That rule itself still holds and is in the plan.
+2026-09-12 — Meal rows: "Meal"/"Snack" in the mockup's pale green and coral (`--meal-label`, `--snack-label`), time, the names; calories and cost on the right; the macro letters underneath. An empty meal says "empty".
 
 ## Deferred
 
@@ -574,7 +585,13 @@ of scope for the rewrite. **Done 2026-09-11:** Andrei ran the review himself; se
   **Done in 7.3:** each line now says "ceiling" or "±10%".
 - Until step 7.4, Settings and Today disagree on wording: Settings calls protein and
   fibre ±10% zones, while Today still says "at least" and fills its bars the phase 5
-  way. Today is rebuilt on the new rules in 7.4, which is the step for it.
+  way. Today is rebuilt on the new rules in 7.4, which is the step for it. **Done in
+  7.4.**
+- A meal's own screen (`/meals/[id]`) is untouched by 7.4 and keeps its old look. The
+  plan restyles the entry screens "to the new look" but no step names them; worth
+  deciding when, rather than doing it on the side.
+- The hold on the "+" has nothing on screen to say it exists. The mockups don't show a
+  hint either; it's in `architecture.md`.
 - Search matching is exact about accents: "ciorba" won't find "ciorbă". It always
   was. Worth changing only if it bites.
 - There is no confirmation step on any Delete button — a product, a weigh-in, a

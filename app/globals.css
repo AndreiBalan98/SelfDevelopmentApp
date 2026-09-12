@@ -52,6 +52,9 @@
   /* Meals against snacks, in comparisons. */
   --meal: #639922;
   --snack: #d85a30;
+  /* The same two, lightened for the words "Meal" and "Snack" on a dark row. */
+  --meal-label: #c0dd97;
+  --snack-label: #f0997b;
 }
 
 [data-tab="sleep"] {
@@ -95,6 +98,8 @@
   --color-zone: var(--zone);
   --color-meal: var(--meal);
   --color-snack: var(--snack);
+  --color-meal-label: var(--meal-label);
+  --color-snack-label: var(--snack-label);
   --font-sans: var(--font-geist-sans);
 }
 
