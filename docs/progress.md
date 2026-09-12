@@ -4,8 +4,9 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Phase 7, step 7.2 (the app shell) is built and waiting for Andrei to test it on the
-phone.** Steps 7.0 and 7.1 are done and committed. Phases 1–6 are complete and the app
+**Phase 7, step 7.2 (the app shell) is committed and tested; two follow-up fixes from
+the phone test are built and waiting on Andrei** (plain Delete buttons and errors, a
+clearer active sub-tab). Steps 7.0 and 7.1 are done and committed. Phases 1–6 are complete and the app
 has been in daily use since 2026-09-01. No library has been added in phase 7.
 
 ### How phase 7 got here
@@ -32,28 +33,12 @@ Don't design it or raise it.
 
 ## Waiting on me (Andrei)
 
-1. **Commit and push step 7.2, then test it on the phone.** What to check:
-   - **Opening the app** lands on Nutrition → Today, with the tab bar along the bottom:
-     moon, cigarette, salad, gear. The home screen and the Backup screen are gone.
-   - **The tab bar** sits clear of the iPhone's home indicator (the line at the very
-     bottom), with its background running down behind it. Nothing at the bottom of a
-     long screen is hidden behind the bar.
-   - **Each tab's colour:** Sleep's buttons blue, Smoking's amber, Nutrition's green,
-     Settings' grey. The lit icon matches.
-   - **Sub-tabs:** Today · Recipes · Products · Weight switch between the four screens.
-   - **Red dots:** open the app before logging the morning's weight — a dot on the salad
-     icon and on Weight. Save the weight and both go straight away. Same for sleep (moon)
-     and yesterday's cigarettes (cigarette). Settings shows a dot only if the last export
-     is 7+ days old (amber) or 14+ (red).
-   - **Smoking** opens on yesterday. **Settings** holds the targets and "Export
-     everything", with "Last export: …" beside it; exporting still works.
-   - **Coming back:** leave the app in the background for a while, come back — the dots
-     and "Today" should be current.
-   - **Rubber-band bounce:** pull a screen past its top and bottom. The bounce is left on,
-     as iOS does it; the colour behind it now matches the app. If it looks wrong, it can
-     be switched off with one line.
-2. **Decide: should Delete buttons and error messages stay red?** See the end of the step
-   7.2 report — the new rule says red means three things only, and these are neither.
+1. **Commit and push the two step 7.2 fixes, then check them on the phone:**
+   - Nutrition's sub-tabs: the one you're on is now clearly lighter than the others.
+   - Delete and Remove buttons, and error messages (type letters into the weight box and
+     save), are no longer red. The only red left is the dots and an overdue backup.
+2. **Say go for step 7.3** (Settings: migration 0005, the full Settings tab, the timezone
+   in the export, and the Workout tab) once those look right.
 
 Migrations 0001–0004 have all been run. Steps 7.1 and 7.2 have no migration.
 
@@ -62,6 +47,12 @@ tracked here and doesn't need raising.
 
 ## Done
 
+- 2026-09-12 — **Phase 7 step 7.2 complete: the app shell.** Tab bar with four icons and
+  red dots, the mockups' palette, Nutrition opening by default with its four sub-tabs,
+  Sleep, Smoking and Weight on the 04:00 day, Smoking opening on yesterday, the export
+  moved into Settings, the home screen and `/export` removed. Tested on the phone and
+  approved; two follow-up fixes from that test (below, under Decisions) are waiting on
+  their own check.
 - 2026-09-12 — **Phase 7 step 7.1 complete: speed and scroll bugs.** Vercel moved to
   Dublin beside Supabase; every search box filters on the phone; Add redraws in place
   instead of jumping to the top; a loading skeleton on every screen. Tested on the phone
@@ -176,7 +167,7 @@ stands, differs from it in four places:
 |---|---|
 | 7.0 | Rewrite the plan and this file from the spec; proposals *(done)* |
 | 7.1 | Speed and scroll bugs: check where Vercel and Supabase each run, stop search and Add jumping to the top, make taps faster *(done)* |
-| 7.2 | App shell: new palette, tab bar with icons (Sleep · Smoking · Nutrition · Settings), Nutrition opens by default with its four sub-tabs over the existing screens, Sleep, Smoking and Weight moved to the 04:00 day, the smoking form opening on yesterday, red dots for missing logs, the backup dot, Settings tab holding the current targets and the export, old home screen and `/export` retired, rubber-band check *(built, waiting on the phone test)* |
+| 7.2 | App shell: new palette, tab bar with icons (Sleep · Smoking · Nutrition · Settings), Nutrition opens by default with its four sub-tabs over the existing screens, Sleep, Smoking and Weight moved to the 04:00 day, the smoking form opening on yesterday, red dots for missing logs, the backup dot, Settings tab holding the current targets and the export, old home screen and `/export` retired, rubber-band check *(done)* |
 | 7.3 | Settings: migration 0005 with every new field, the full Settings tab, timezone in the export, and the Workout tab with its countdown |
 | 7.4 | Nutrition → Today: target rules, hero, nutrient bars with the fat split, meal rows, day details, "+" with tap and hold |
 | 7.5 | Calendar heatmap with the streak and the days-logged counter |
@@ -516,6 +507,8 @@ of scope for the rewrite. **Done 2026-09-11:** Andrei ran the review himself; se
 2026-09-12 — The rubber-band bounce is left as iOS does it. What changed is the colour behind it, which now matches the app. Switching the bounce off is one line (`overscroll-behavior: none`) if the phone test says so.
 2026-09-12 — "Today" and "Yesterday" labels (`dayLabel`) go by the 04:00 day too, so a meal's header agrees with the day screen between midnight and 04:00. `today()` — the plain calendar date — is now used only for the backup's age.
 2026-09-12 — The backup line reads `Last export: N days ago` / `Never exported`, and "never" is red. It sits on the Export row in Settings, which is where the button lives now.
+2026-09-12 — **Delete and Remove buttons and error messages are no longer red** (Andrei's call after the 7.2 phone test). Red means a missing log, a missed target or an overdue backup, and nothing else — a screen full of red Delete buttons would teach the eye to skip red. Error messages are plain white text; bordered Delete/Remove buttons are plain like any other button; the small "Delete" links in the weight, sleep and smoking lists are grey, quieter than the numbers beside them. Anything new must follow the same rule: `text-danger` / `bg-danger` only for those three meanings.
+2026-09-12 — The chosen Nutrition sub-tab is `#636366` with a medium-weight label, instead of the mockups' `#303035`, which Andrei found almost impossible to tell from the track on the phone. `#636366` is the grey iOS uses for its own selected segment. A deliberate departure from the mockups, at Andrei's request.
 
 ## Deferred
 

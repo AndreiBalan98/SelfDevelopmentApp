@@ -88,7 +88,7 @@ export function SettingsForm({ targets }: { targets: Targets }) {
 
         {result && (
           <span
-            className={`text-sm ${result.ok ? "text-muted" : "text-danger"}`}
+            className={`text-sm ${result.ok ? "text-muted" : "text-foreground"}`}
             aria-live="polite"
           >
             {result.message}

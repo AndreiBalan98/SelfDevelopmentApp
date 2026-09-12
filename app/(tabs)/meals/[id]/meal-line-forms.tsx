@@ -102,7 +102,7 @@ export function AddProductLine({
         </span>
       </div>
 
-      {result && !result.ok && <p className="text-sm text-danger">{result.message}</p>}
+      {result && !result.ok && <p className="text-sm text-foreground">{result.message}</p>}
     </form>
   );
 }
@@ -157,7 +157,7 @@ export function AddRecipeLine({
         </span>
       </div>
 
-      {result && !result.ok && <p className="text-sm text-danger">{result.message}</p>}
+      {result && !result.ok && <p className="text-sm text-foreground">{result.message}</p>}
     </form>
   );
 }
@@ -219,7 +219,7 @@ export function EditMealLine({
           <button
             type="submit"
             disabled={removing}
-            className={`${SMALL_BUTTON} text-danger`}
+            className={SMALL_BUTTON}
           >
             {removing ? "…" : "Remove"}
           </button>
@@ -227,7 +227,7 @@ export function EditMealLine({
       </div>
 
       {failure && (
-        <p className={`text-sm ${failure.ok ? "text-muted" : "text-danger"}`}>
+        <p className={`text-sm ${failure.ok ? "text-muted" : "text-foreground"}`}>
           {failure.message}
         </p>
       )}
@@ -246,12 +246,12 @@ export function DeleteMealButton({ id, day }: { id: number; day: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg border border-border bg-surface px-4 py-3 text-sm text-danger disabled:opacity-50"
+        className="rounded-lg border border-border bg-surface px-4 py-3 text-sm disabled:opacity-50"
       >
         {pending ? "…" : "Delete this meal"}
       </button>
 
-      {result && !result.ok && <p className="text-sm text-danger">{result.message}</p>}
+      {result && !result.ok && <p className="text-sm text-foreground">{result.message}</p>}
     </form>
   );
 }

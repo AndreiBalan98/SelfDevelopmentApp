@@ -16,7 +16,7 @@ export function DeleteButton({ id }: { id: number }) {
         type="submit"
         disabled={pending}
         aria-label="Delete this weigh-in"
-        className="text-sm text-danger disabled:opacity-50"
+        className="text-sm text-muted disabled:opacity-50"
       >
         {pending ? "…" : result && !result.ok ? "Failed" : "Delete"}
       </button>

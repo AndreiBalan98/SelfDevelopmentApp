@@ -128,7 +128,7 @@ export function SleepForm({ date, today, existing }: Props) {
 
       {result && (
         <p
-          className={`text-sm ${result.ok ? "text-muted" : "text-danger"}`}
+          className={`text-sm ${result.ok ? "text-muted" : "text-foreground"}`}
           aria-live="polite"
         >
           {result.message}

@@ -68,7 +68,7 @@ export function AddLineForm({
         </span>
       </div>
 
-      {result && !result.ok && <p className="text-sm text-danger">{result.message}</p>}
+      {result && !result.ok && <p className="text-sm text-foreground">{result.message}</p>}
     </form>
   );
 }
@@ -131,7 +131,7 @@ export function EditLineForm({
           <button
             type="submit"
             disabled={removing}
-            className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm text-danger disabled:opacity-50"
+            className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm disabled:opacity-50"
           >
             {removing ? "…" : "Remove"}
           </button>
@@ -139,7 +139,7 @@ export function EditLineForm({
       </div>
 
       {failure && (
-        <p className={`text-sm ${failure.ok ? "text-muted" : "text-danger"}`}>
+        <p className={`text-sm ${failure.ok ? "text-muted" : "text-foreground"}`}>
           {failure.message}
         </p>
       )}

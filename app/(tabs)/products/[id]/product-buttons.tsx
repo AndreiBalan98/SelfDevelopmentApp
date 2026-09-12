@@ -22,7 +22,7 @@ export function RetireButton({ id, retired }: { id: number; retired: boolean }) 
         {pending ? "…" : retired ? "Put back in use" : "Retire"}
       </button>
 
-      {result && !result.ok && <p className="text-sm text-danger">{result.message}</p>}
+      {result && !result.ok && <p className="text-sm text-foreground">{result.message}</p>}
     </form>
   );
 }
@@ -40,12 +40,12 @@ export function DeleteButton({ id }: { id: number }) {
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg border border-border bg-surface px-4 py-3 text-sm text-danger disabled:opacity-50"
+        className="rounded-lg border border-border bg-surface px-4 py-3 text-sm disabled:opacity-50"
       >
         {pending ? "…" : "Delete"}
       </button>
 
-      {result && !result.ok && <p className="text-sm text-danger">{result.message}</p>}
+      {result && !result.ok && <p className="text-sm text-foreground">{result.message}</p>}
     </form>
   );
 }

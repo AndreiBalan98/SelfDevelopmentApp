@@ -17,12 +17,12 @@ export function DeleteButton({ id }: { id: number }) {
         type="submit"
         disabled={pending}
         aria-label="Delete this day"
-        className="text-xs text-danger disabled:opacity-50"
+        className="text-xs text-muted disabled:opacity-50"
       >
         {pending ? "…" : "Delete"}
       </button>
 
-      {result && !result.ok && <span className="text-xs text-danger">{result.message}</span>}
+      {result && !result.ok && <span className="text-xs text-foreground">{result.message}</span>}
     </form>
   );
 }

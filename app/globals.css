@@ -9,6 +9,10 @@
   --background: #1c1c1f;
   --surface: #26262a;
   --raised: #303035;
+  /* The chosen segment of a segmented control (Nutrition's sub-tabs). Lighter
+     than the mockups' #303035, which was barely distinguishable from its track;
+     this is the grey iOS uses for its own selected segment. */
+  --segment: #636366;
   /* Hairlines: dividers, and the stronger one for tracks and outlines. */
   --border: rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.16);
@@ -63,6 +67,7 @@
   --color-background: var(--background);
   --color-surface: var(--surface);
   --color-raised: var(--raised);
+  --color-segment: var(--segment);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
   --color-foreground: var(--foreground);

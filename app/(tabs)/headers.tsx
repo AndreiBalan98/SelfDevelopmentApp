@@ -42,7 +42,7 @@ export function NutritionHeader({ active }: { active: SubTab }) {
             href={tab.href}
             aria-current={tab.key === active ? "page" : undefined}
             className={`relative flex-1 rounded-[7px] py-1.5 text-center text-xs ${
-              tab.key === active ? "bg-raised text-foreground" : "text-muted"
+              tab.key === active ? "bg-segment font-medium text-foreground" : "text-muted"
             }`}
           >
             {tab.label}

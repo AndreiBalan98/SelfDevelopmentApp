@@ -20,7 +20,7 @@ export function RepeatButton({ sourceId, day }: { sourceId: number; day: string 
         {pending ? "…" : "Repeat this today"}
       </button>
 
-      {result && !result.ok && <p className="text-sm text-danger">{result.message}</p>}
+      {result && !result.ok && <p className="text-sm text-foreground">{result.message}</p>}
     </form>
   );
 }
@@ -66,7 +66,7 @@ export function RepeatRow({
         </button>
       </div>
 
-      {result && !result.ok && <p className="text-sm text-danger">{result.message}</p>}
+      {result && !result.ok && <p className="text-sm text-foreground">{result.message}</p>}
     </form>
   );
 }

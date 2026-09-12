@@ -164,7 +164,7 @@ export function MealDetailsForm({ id, date, time, day, type, note, score }: Prop
         </button>
 
         {result && (
-          <span className={`text-sm ${result.ok ? "text-muted" : "text-danger"}`}>
+          <span className={`text-sm ${result.ok ? "text-muted" : "text-foreground"}`}>
             {result.message}
           </span>
         )}

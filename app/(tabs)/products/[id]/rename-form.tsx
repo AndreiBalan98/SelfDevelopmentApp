@@ -40,7 +40,7 @@ export function RenameForm({ id, name }: { id: number; name: string }) {
       </label>
 
       {result && (
-        <p className={`text-sm ${result.ok ? "text-muted" : "text-danger"}`}>
+        <p className={`text-sm ${result.ok ? "text-muted" : "text-foreground"}`}>
           {result.message}
         </p>
       )}

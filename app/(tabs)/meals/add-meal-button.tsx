@@ -20,7 +20,7 @@ export function AddMealButton({ day }: { day: string }) {
         {pending ? "…" : "Add a meal"}
       </button>
 
-      {result && !result.ok && <p className="text-sm text-danger">{result.message}</p>}
+      {result && !result.ok && <p className="text-sm text-foreground">{result.message}</p>}
     </form>
   );
 }
