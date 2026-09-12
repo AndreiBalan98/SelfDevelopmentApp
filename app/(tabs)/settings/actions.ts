@@ -2,11 +2,66 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/supabase";
+import {
+  ACTIVITY_LEVELS,
+  GOAL_PHASES,
+  SEXES,
+  settingsAsText,
+  type SettingsText,
+  type SettingsValues,
+} from "@/lib/settings-fields";
+import { dateIn } from "@/lib/day";
 
-export type Result = { ok: boolean; message: string };
+// What the screen gets back. On success, `saved` is every field exactly as it
+// was stored — rounded, and with a comma read as a decimal point — so the form
+// shows what the database holds rather than what was typed.
+export type Result =
+  | { ok: true; message: string; saved: SettingsText }
+  | { ok: false; message: string };
+
+type NumberField = {
+  name:
+    | "calorie_target"
+    | "protein_target"
+    | "carbs_target"
+    | "added_sugar_max"
+    | "fibre_target"
+    | "fat_target"
+    | "unsat_per_sat"
+    | "daily_budget"
+    | "goal_weight"
+    | "height_cm"
+    | "birth_year";
+  label: string;
+  decimals: number;
+  // The database refuses zero for these, so it's caught here with a message.
+  aboveZero: boolean;
+  min: number;
+  max: number;
+};
+
+// The upper and lower limits are only there to catch a slipped finger — a
+// calorie target of 22000, a height of 18 — not to tell you what's sensible.
+function numberFields(): NumberField[] {
+  const thisYear = Number(dateIn(new Date()).slice(0, 4));
+
+  return [
+    { name: "goal_weight", label: "Goal weight", decimals: 2, aboveZero: true, min: 0, max: 500 },
+    { name: "calorie_target", label: "Calories", decimals: 0, aboveZero: true, min: 0, max: 20000 },
+    { name: "daily_budget", label: "Daily spend", decimals: 2, aboveZero: false, min: 0, max: 100000 },
+    { name: "protein_target", label: "Protein", decimals: 1, aboveZero: false, min: 0, max: 1000 },
+    { name: "carbs_target", label: "Carbs", decimals: 1, aboveZero: false, min: 0, max: 2000 },
+    { name: "added_sugar_max", label: "Added sugar", decimals: 1, aboveZero: false, min: 0, max: 1000 },
+    { name: "fibre_target", label: "Fibre", decimals: 1, aboveZero: false, min: 0, max: 1000 },
+    { name: "fat_target", label: "Fat", decimals: 1, aboveZero: false, min: 0, max: 1000 },
+    { name: "unsat_per_sat", label: "The fat ratio", decimals: 2, aboveZero: true, min: 0, max: 20 },
+    { name: "height_cm", label: "Height", decimals: 1, aboveZero: true, min: 50, max: 300 },
+    { name: "birth_year", label: "Birth year", decimals: 0, aboveZero: true, min: 1900, max: thisYear },
+  ];
+}
 
 // The iPhone number pad offers a comma in some layouts. Empty means genuinely
-// empty — no target — which is not the same as zero.
+// empty — not decided — which is not the same as zero.
 function toNumber(raw: FormDataEntryValue | null): number | null | "bad" {
   const text = String(raw ?? "").trim().replace(",", ".");
   if (!text) return null;
@@ -15,56 +70,95 @@ function toNumber(raw: FormDataEntryValue | null): number | null | "bad" {
   return value;
 }
 
-const FIELDS = [
-  { name: "calorie_target", label: "Calorie target", decimals: 0, max: 20000, aboveZero: true },
-  { name: "protein_target", label: "Protein target", decimals: 1, max: 1000, aboveZero: false },
-  { name: "added_sugar_max", label: "Added sugar limit", decimals: 1, max: 1000, aboveZero: false },
-  { name: "fibre_min", label: "Fibre target", decimals: 1, max: 1000, aboveZero: false },
-  { name: "daily_budget", label: "Daily budget", decimals: 2, max: 100000, aboveZero: false },
-] as const;
-
 function round(value: number, decimals: number): number {
   const factor = 10 ** decimals;
   return Math.round(value * factor) / factor;
 }
 
-export async function saveTargets(
+// One of a fixed list of choices, or empty. Anything else means the form sent
+// something it never offered.
+function toChoice<T extends string>(
+  raw: FormDataEntryValue | null,
+  choices: Array<{ value: T }>,
+): T | null | "bad" {
+  const text = String(raw ?? "").trim();
+  if (!text) return null;
+  return choices.find((choice) => choice.value === text)?.value ?? "bad";
+}
+
+// A real calendar date, "2026-10-04", or empty.
+function toDate(raw: FormDataEntryValue | null): string | null | "bad" {
+  const text = String(raw ?? "").trim();
+  if (!text) return null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return "bad";
+  const parsed = new Date(`${text}T12:00:00Z`);
+  if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== text) return "bad";
+  return text;
+}
+
+export async function saveSettings(
   _previous: Result | null,
   form: FormData,
 ): Promise<Result> {
-  // Written out one field at a time rather than built up in a loose object, so
-  // that a mistyped column name is caught here rather than silently saving
-  // nothing.
-  const cleaned = new Map<string, number | null>();
+  const numbers = new Map<NumberField["name"], number | null>();
 
-  for (const field of FIELDS) {
+  for (const field of numberFields()) {
     const value = toNumber(form.get(field.name));
 
     if (value === "bad") return { ok: false, message: `${field.label} isn't a number.` };
 
-    if (value !== null) {
-      // The database refuses a calorie target of zero, and a negative anything.
-      // Catching it here means a message rather than an error.
-      if (field.aboveZero && value <= 0) {
-        return { ok: false, message: `${field.label} has to be more than zero, or empty.` };
-      }
-      if (value < 0 || value > field.max) {
-        return { ok: false, message: `${field.label} doesn't look right.` };
-      }
+    if (value === null) {
+      numbers.set(field.name, null);
+      continue;
     }
 
-    cleaned.set(field.name, value === null ? null : round(value, field.decimals));
+    if (field.aboveZero && value <= 0) {
+      return { ok: false, message: `${field.label} has to be more than zero, or empty.` };
+    }
+    if (field.name === "birth_year" && !Number.isInteger(value)) {
+      return { ok: false, message: "Birth year has to be a whole year, like 1995." };
+    }
+    if (value < field.min || value > field.max) {
+      return { ok: false, message: `${field.label} doesn't look right.` };
+    }
+
+    numbers.set(field.name, round(value, field.decimals));
   }
+
+  const goalPhase = toChoice(form.get("goal_phase"), GOAL_PHASES);
+  const sex = toChoice(form.get("sex"), SEXES);
+  const activityLevel = toChoice(form.get("activity_level"), ACTIVITY_LEVELS);
+  const gymStartDate = toDate(form.get("gym_start_date"));
+
+  if (goalPhase === "bad") return { ok: false, message: "That goal isn't one of the three." };
+  if (sex === "bad") return { ok: false, message: "That isn't one of the choices for sex." };
+  if (activityLevel === "bad") return { ok: false, message: "That activity level isn't one of the four." };
+  if (gymStartDate === "bad") return { ok: false, message: "The gym start date isn't a date." };
+
+  // Written out one column at a time rather than built up in a loose object,
+  // so that a mistyped column name is caught here rather than silently saving
+  // nothing.
+  const values: SettingsValues = {
+    goal_phase: goalPhase,
+    goal_weight: numbers.get("goal_weight") ?? null,
+    calorie_target: numbers.get("calorie_target") ?? null,
+    daily_budget: numbers.get("daily_budget") ?? null,
+    protein_target: numbers.get("protein_target") ?? null,
+    carbs_target: numbers.get("carbs_target") ?? null,
+    added_sugar_max: numbers.get("added_sugar_max") ?? null,
+    fibre_target: numbers.get("fibre_target") ?? null,
+    fat_target: numbers.get("fat_target") ?? null,
+    unsat_per_sat: numbers.get("unsat_per_sat") ?? null,
+    height_cm: numbers.get("height_cm") ?? null,
+    birth_year: numbers.get("birth_year") ?? null,
+    sex,
+    activity_level: activityLevel,
+    gym_start_date: gymStartDate,
+  };
 
   const { data: changed, error } = await db()
     .from("settings")
-    .update({
-      calorie_target: cleaned.get("calorie_target") ?? null,
-      protein_target: cleaned.get("protein_target") ?? null,
-      added_sugar_max: cleaned.get("added_sugar_max") ?? null,
-      fibre_min: cleaned.get("fibre_min") ?? null,
-      daily_budget: cleaned.get("daily_budget") ?? null,
-    })
+    .update(values)
     .eq("id", 1)
     .select("id");
 
@@ -78,6 +172,7 @@ export async function saveTargets(
 
   revalidatePath("/settings");
   revalidatePath("/meals");
+  revalidatePath("/workout");
 
-  return { ok: true, message: "Saved." };
+  return { ok: true, message: "Saved.", saved: settingsAsText(values) };
 }

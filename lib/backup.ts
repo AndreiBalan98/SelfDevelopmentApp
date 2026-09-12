@@ -1,5 +1,5 @@
 import { db } from "@/lib/supabase";
-import { dateIn, daysBetween, today } from "@/lib/day";
+import { TIME_ZONE, dateIn, daysBetween, today } from "@/lib/day";
 
 // The backup: reading every row out of the database, and remembering when that
 // last happened.
@@ -30,6 +30,7 @@ type ExportFile = {
   app: string;
   format: number;
   exported_at: string;
+  tz: string;
   tables: Record<string, unknown[]>;
 };
 
@@ -55,9 +56,14 @@ export async function buildExport(): Promise<
     payload: {
       app: "life-tracker",
       // Bumped only if the shape of this file ever changes, so an old backup can
-      // still be recognised for what it is.
+      // still be recognised for what it is. Adding a field, like tz below,
+      // changes nothing already in the file, so it stays 1.
       format: 1,
       exported_at: new Date().toISOString(),
+      // Every timestamp in the file is UTC, but which day a meal counts towards
+      // (the 04:00 rule), and every date, is local time here. Without this the
+      // file couldn't be read back correctly by anyone who didn't already know.
+      tz: TIME_ZONE,
       tables,
     },
   };

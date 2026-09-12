@@ -30,7 +30,8 @@
   --settings: #cfcfd4;
 
   /* The colour of whichever tab you're in. Nutrition's by default; the Sleep,
-     Smoking and Settings folders each set their own (see [data-tab] below). */
+     Smoking, Workout and Settings folders each set their own (see [data-tab]
+     below). */
   --accent: var(--nutrition);
 
   /* Fixed nutrient colours, the same everywhere they appear. */
@@ -58,6 +59,9 @@
 }
 [data-tab="smoking"] {
   --accent: var(--smoking);
+}
+[data-tab="workout"] {
+  --accent: var(--workout);
 }
 [data-tab="settings"] {
   --accent: var(--settings);

@@ -4,9 +4,10 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Phase 7 steps 7.0–7.2 are done, committed and tested on the phone. Next is step 7.3
-(Settings), when Andrei says go.** Phases 1–6 are complete and the app has been in daily
-use since 2026-09-01. No library has been added in phase 7. Session ended 2026-09-12.
+**Phase 7 step 7.3 (Settings and the Workout tab) is built and checked here, waiting
+for Andrei to run migration 0005, push, and test it on the phone.** Steps 7.0–7.2 are
+done and approved. Phases 1–6 are complete and the app has been in daily use since
+2026-09-01. No library has been added in phase 7.
 
 ### How phase 7 got here
 
@@ -32,13 +33,15 @@ Don't design it or raise it.
 
 ## Waiting on me (Andrei)
 
-1. **Commit this file** — it records the session's end.
-2. **Say go for step 7.3**: migration 0005 with every new settings field, the full
-   Settings tab, the timezone in the export, and the Workout tab with its countdown.
-   It will produce a `.sql` file for you to run in the Supabase SQL editor before the
-   new Settings screen can work.
+1. **Run `supabase/migrations/0005_settings_phase_7.sql`** in the Supabase SQL editor,
+   then **commit and push straight away**. The order matters: the new screens need
+   the new columns, and between running it and the new version going live, the old
+   version shows no fibre target on Today and its Settings screen can't save. Nothing
+   is lost either way.
+2. **Test step 7.3 on the phone** and approve it or ask for changes.
 
-Migrations 0001–0004 have all been run. Steps 7.1 and 7.2 have no migration.
+Migrations 0001–0004 have all been run; 0005 is written and waiting. Steps 7.1 and 7.2
+had no migration.
 
 Andrei will enter his August cigarette history himself, when he chooses. It isn't
 tracked here and doesn't need raising.
@@ -166,7 +169,7 @@ stands, differs from it in four places:
 | 7.0 | Rewrite the plan and this file from the spec; proposals *(done)* |
 | 7.1 | Speed and scroll bugs: check where Vercel and Supabase each run, stop search and Add jumping to the top, make taps faster *(done)* |
 | 7.2 | App shell: new palette, tab bar with icons (Sleep · Smoking · Nutrition · Settings), Nutrition opens by default with its four sub-tabs over the existing screens, Sleep, Smoking and Weight moved to the 04:00 day, the smoking form opening on yesterday, red dots for missing logs, the backup dot, Settings tab holding the current targets and the export, old home screen and `/export` retired, rubber-band check *(done)* |
-| 7.3 | Settings: migration 0005 with every new field, the full Settings tab, timezone in the export, and the Workout tab with its countdown |
+| 7.3 | Settings: migration 0005 with every new field, the full Settings tab, timezone in the export, and the Workout tab with its countdown *(built; waiting on the migration and the phone test)* |
 | 7.4 | Nutrition → Today: target rules, hero, nutrient bars with the fat split, meal rows, day details, "+" with tap and hold |
 | 7.5 | Calendar heatmap with the streak and the days-logged counter |
 | 7.6 | "Where did it come from?" panels (on Today; the stats section reuses them later) |
@@ -246,8 +249,9 @@ For a session picking this up cold, after reading the plan and this file:
 - Screens so far: `/login` (the PIN screen, outside the tabs), then everything else
   inside `app/(tabs)/` with the tab bar: `/meals` (Nutrition → Today, and `[id]`),
   `/recipes` (list, `new`, `[id]`), `/products` (list, `new`, `[id]`), `/weight`,
-  `/sleep`, `/smoking`, `/settings` (the five targets and the export). `/` sends you to
-  `/meals`. The home screen and `/export` were removed in step 7.2.
+  `/sleep`, `/smoking`, `/workout` (the countdown), `/settings` (goal, every target,
+  body figures, gym date, export). `/` sends you to `/meals`. The home screen and
+  `/export` were removed in step 7.2.
 - The shell lives in `app/(tabs)/layout.tsx`; the red dots are worked out in
   `lib/status.ts`. Colours are CSS variables in `app/globals.css`, one per tab and one
   per nutrient; Tailwind knows them by name (`text-sleep`, `bg-protein`, `text-faint`…).
@@ -267,13 +271,14 @@ For a session picking this up cold, after reading the plan and this file:
   5 was committed as five steps, one per approved step, plus the two side fixes.
 - Four environment variables, in `.env.local` and in Vercel: `SUPABASE_URL`,
   `SUPABASE_SECRET_KEY`, `PIN_HASH`, `SESSION_SECRET`.
-- Migrations `0001` to `0004` have all been run. A new migration means a new
-  numbered file in `supabase/migrations/` for Andrei to paste in himself.
+- Migrations `0001` to `0004` have all been run; `0005` (step 7.3) is written and
+  waiting. A new migration means a new numbered file in `supabase/migrations/` for
+  Andrei to paste in himself.
 
 - Git: Andrei runs every git command. Reading history (`git log`, `git status`,
   `git show`) is fine and useful; anything that writes is not.
 
-Worth knowing about how this has gone so far: **nine** mistakes were caught only
+Worth knowing about how this has gone so far: **ten** mistakes were caught only
 because things were tested rather than assumed — a batch of constraint tests that
 silently proved nothing; a login flow that would have let anyone in with the lockout
 switched off if the database were unreachable; an export that would have saved the
@@ -282,8 +287,10 @@ Postgres error code; a `Database` type that silently switched off all table-name
 checking; a product replacement that reported success while leaving an orphan; a
 deletion refusal that blamed the wrong thing, telling you a recipe had been eaten when
 what actually blocked it was an older recipe pointing at it; a date helper that
-stored every meal logged before the October clock change an hour late; and a meal
-search box that was meant to empty itself after Add but had never once done so. Every
+stored every meal logged before the October clock change an hour late; a meal
+search box that was meant to empty itself after Add but had never once done so; and
+(step 7.3) a Settings form that, after any save, went on showing your chosen goal and
+sex while quietly holding the old ones, ready to send them with the next Save. Every
 one of them looked fine. Test against the real thing before reporting a step as done.
 
 ### How to test database code without touching Supabase
@@ -507,6 +514,16 @@ of scope for the rewrite. **Done 2026-09-11:** Andrei ran the review himself; se
 2026-09-12 — The backup line reads `Last export: N days ago` / `Never exported`, and "never" is red. It sits on the Export row in Settings, which is where the button lives now.
 2026-09-12 — **Delete and Remove buttons and error messages are no longer red** (Andrei's call after the 7.2 phone test). Red means a missing log, a missed target or an overdue backup, and nothing else — a screen full of red Delete buttons would teach the eye to skip red. Error messages are plain white text; bordered Delete/Remove buttons are plain like any other button; the small "Delete" links in the weight, sleep and smoking lists are grey, quieter than the numbers beside them. Anything new must follow the same rule: `text-danger` / `bg-danger` only for those three meanings.
 2026-09-12 — The chosen Nutrition sub-tab is `#636366` with a medium-weight label, instead of the mockups' `#303035`, which Andrei found almost impossible to tell from the track on the phone. `#636366` is the grey iOS uses for its own selected segment. A deliberate departure from the mockups, at Andrei's request.
+2026-09-12 — Migration 0005 wraps itself in `begin … commit`, unlike 0001–0004, so a failure part-way leaves nothing half-done and it can simply be run again. Checked against a throwaway Postgres: the fibre target keeps its value under the new name, the fat ratio starts at 2 on the existing row, every new rule refuses its bad value, a second run fails without changing anything, and `seed.sql` / `wipe.sql` (updated for the rename) still run clean.
+2026-09-12 — New settings columns follow the existing pattern: plain numbers with "not negative" / "above zero" rules, and `goal_phase`, `sex` and `activity_level` as text with a list of allowed values rather than database enums. Every one is optional. `unsat_per_sat` starts at 2 and can be emptied like any other target. Goal and sex have no default: nothing is highlighted until you pick one, rather than the app assuming a phase you never chose.
+2026-09-12 — Settings is one screen with one Save, as before, rather than saving each box as you leave it. It checks everything before writing anything, and a refusal keeps everything you typed. After a save the boxes show what was stored (a comma read as a decimal point, rounded to what the column holds).
+2026-09-12 — The Settings form is sent by hand, not through React's form `action`. That route resets the form after every save, and for the goal buttons and the two dropdowns it did so without redrawing them — the screen showed your choice while the next Save sent the old one. Found by testing, fixed, and the check re-run. Worth remembering for any future form with radio buttons or dropdowns.
+2026-09-12 — If the settings row can't be read, the Settings screen says so instead of drawing empty boxes, because one tap of Save on an empty form would wipe every real setting. The export button still works on that screen regardless.
+2026-09-12 — Settings follows the mockup's layout: small grey headings over rounded cards, each line with its box on the right, nutrient names in their colours, and "· ceiling" / "· ±10%" after each target. The Calories line changes between the two as the goal is tapped, and says neither until a goal is picked. The old paragraphs above the targets and under the export button are gone, as the mockup has none.
+2026-09-12 — Sex and activity level are the phone's own pickers, shown as the value with a small ›, as the mockup draws activity level. Both offer "Not set". The gym date is the phone's own date picker, with a small Clear beside it once a date is set, since the iPhone picker has no reliable way to empty itself.
+2026-09-12 — The Workout tab follows the mockup: no title, the barbell in a coral circle, the countdown centred. The in-between cases the plan didn't word are "Gym starts in 1 day" and "Gym starts today". "Change the date in Settings" is a link. Days are counted on the 04:00 day, so at 01:00 on the start date it still says "in 1 day".
+2026-09-12 — The export's timezone is `tz`, placed after `exported_at`, and comes from the same constant `lib/day.ts` uses for every date, so the two can't disagree.
+2026-09-12 — The day screen reads `fibre_target` under its new name but is otherwise untouched until step 7.4 — it still shows five targets with the phase 5 wording.
 
 ## Deferred
 
@@ -553,6 +570,10 @@ of scope for the rewrite. **Done 2026-09-11:** Andrei ran the review himself; se
 - The Settings targets still carry their phase 5 hints ("A floor — the bar fills as you
   get there", "not a limit"), which phase 7's ceilings and ±10% zones contradict. They're
   rewritten with the rest of Settings in step 7.3, which is where the new rules land.
+  **Done in 7.3:** each line now says "ceiling" or "±10%".
+- Until step 7.4, Settings and Today disagree on wording: Settings calls protein and
+  fibre ±10% zones, while Today still says "at least" and fills its bars the phase 5
+  way. Today is rebuilt on the new rules in 7.4, which is the step for it.
 - Search matching is exact about accents: "ciorba" won't find "ciorbă". It always
   was. Worth changing only if it bites.
 - There is no confirmation step on any Delete button — a product, a weigh-in, a

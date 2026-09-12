@@ -79,7 +79,7 @@ export function DayTotals({
   const anyMissing =
     targets.calorie_target === null ||
     targets.protein_target === null ||
-    targets.fibre_min === null ||
+    targets.fibre_target === null ||
     targets.added_sugar_max === null ||
     targets.daily_budget === null;
 
@@ -120,7 +120,7 @@ export function DayTotals({
           value={nutrition.fibre}
           unit="g"
           decimals={1}
-          target={targets.fibre_min}
+          target={targets.fibre_target}
           direction="floor"
         />
         <Row

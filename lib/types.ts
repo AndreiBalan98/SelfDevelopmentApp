@@ -15,37 +15,46 @@
 
 type Nullable<T> = T | null;
 
+export type GoalPhase = "cut" | "maintain" | "bulk";
+export type Sex = "male" | "female";
+export type ActivityLevel = "sedentary" | "light" | "moderate" | "very_active";
+
+// Every column the Settings tab edits (all but the id, the hidden 04:00
+// boundary, and the two timestamps). Shared by Row, Insert and Update below.
+type SettingsFields = {
+  calorie_target: Nullable<number>;
+  protein_target: Nullable<number>;
+  carbs_target: Nullable<number>;
+  added_sugar_max: Nullable<number>;
+  fibre_target: Nullable<number>;
+  fat_target: Nullable<number>;
+  unsat_per_sat: Nullable<number>;
+  daily_budget: Nullable<number>;
+  goal_phase: Nullable<GoalPhase>;
+  goal_weight: Nullable<number>;
+  height_cm: Nullable<number>;
+  birth_year: Nullable<number>;
+  sex: Nullable<Sex>;
+  activity_level: Nullable<ActivityLevel>;
+  gym_start_date: Nullable<string>;
+};
+
 export type Database = {
   public: {
     Tables: {
       settings: {
-        Row: {
+        Row: SettingsFields & {
           id: number;
-          calorie_target: Nullable<number>;
-          protein_target: Nullable<number>;
-          added_sugar_max: Nullable<number>;
-          fibre_min: Nullable<number>;
-          daily_budget: Nullable<number>;
           day_boundary_hour: number;
           created_at: string;
           last_export_at: Nullable<string>;
         };
-        Insert: {
+        Insert: Partial<SettingsFields> & {
           id?: number;
-          calorie_target?: Nullable<number>;
-          protein_target?: Nullable<number>;
-          added_sugar_max?: Nullable<number>;
-          fibre_min?: Nullable<number>;
-          daily_budget?: Nullable<number>;
           day_boundary_hour?: number;
           last_export_at?: Nullable<string>;
         };
-        Update: {
-          calorie_target?: Nullable<number>;
-          protein_target?: Nullable<number>;
-          added_sugar_max?: Nullable<number>;
-          fibre_min?: Nullable<number>;
-          daily_budget?: Nullable<number>;
+        Update: Partial<SettingsFields> & {
           day_boundary_hour?: number;
           last_export_at?: Nullable<string>;
         };

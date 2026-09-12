@@ -48,7 +48,7 @@ app/                 every screen, and the server code behind it
   (tabs)/            every screen behind the PIN. The brackets mean the folder
                      name never appears in an address: /meals, not /tabs/meals
     layout.tsx       the shell: reads the red dots, puts the tab bar underneath
-    tab-bar.tsx      the bar along the bottom: four icons, the dots on them
+    tab-bar.tsx      the bar along the bottom: five icons, the dots on them
     headers.tsx      a tab's title, and Nutrition's four sub-tabs
     status.tsx       hands the dots to the tab bar and the Weight sub-tab
     refresh-on-return.tsx  redraws the screen when the app comes back to the front
@@ -67,9 +67,12 @@ app/                 every screen, and the server code behind it
     weight/          Nutrition → Weight: a weigh-in, and the last fortnight
     sleep/           the Sleep tab: a night, two times, a score, the last fortnight
     smoking/         the Smoking tab: a day's count, the last fortnight, averages
-    settings/        the Settings tab: the five targets, and the backup
-    (sleep, smoking and settings each have a one-line layout.tsx that gives
-     their screens the tab's colour)
+    workout/         the Workout tab: a countdown to the gym start date, until
+                     phase 8 builds the real thing
+    settings/        the Settings tab: the goal, every target, the body figures,
+                     the gym start date, and the backup
+    (sleep, smoking, workout and settings each have a one-line layout.tsx that
+     gives their screens the tab's colour)
   manifest.ts        the app's name, colours and icons, for the home screen
   icon.png           browser tab icon
   apple-icon.png     the home screen icon on iOS
@@ -95,6 +98,10 @@ lib/
   nutrition.ts       all the food arithmetic: scaling a product to a quantity,
                      adding up a recipe, per serving, cost, shrinkage, meals
   settings.ts        reading the one settings row and the targets on it
+  settings-fields.ts the Settings tab's fixed choices (cut / maintain / bulk,
+                     the activity levels), kept apart from settings.ts because
+                     the form on the phone needs them and must never load
+                     anything that talks to the database
   status.ts          what the red dots say: which logs are missing, backup age
   targets.ts         measuring a day against a target, for the bars
   sleep.ts           how long a night was, including crossing midnight
@@ -160,19 +167,19 @@ around the new line without moving.
 
 ## The shell: tabs, and the red dots
 
-Every screen behind the PIN sits above a **tab bar** of four icons, left to right:
-Sleep, Smoking, Nutrition, Settings. (Workout joins in step 7.3.) The tab you're in is
-lit in its own colour; the others are grey. The app always opens on **Nutrition →
+Every screen behind the PIN sits above a **tab bar** of five icons, left to right:
+Sleep, Smoking, Nutrition, Workout, Settings. The tab you're in is lit in its own
+colour; the others are grey. The app always opens on **Nutrition →
 Today**: "/" is sent straight to `/meals`, and so is a successful login.
 
 Nutrition has four **sub-tabs** under its title — Today, Recipes, Products, Weight —
 which are the existing screens at their existing addresses. A screen further in (one
 meal, one product) keeps the tab bar but not the sub-tabs, and has its own way back.
 
-**Each tab has a colour** — Sleep blue, Smoking amber, Nutrition green, Settings grey —
-used for its icon and for the buttons and links on its screens. Nutrition's green is
-the default; the Sleep, Smoking and Settings folders each switch it with a one-line
-layout, so no individual screen has to know.
+**Each tab has a colour** — Sleep blue, Smoking amber, Nutrition green, Workout coral,
+Settings grey — used for its icon and for the buttons and links on its screens.
+Nutrition's green is the default; the Sleep, Smoking, Workout and Settings folders each
+switch it with a one-line layout, so no individual screen has to know.
 
 **The red dots** say a log is missing, using the same 04:00 day as meals:
 
@@ -183,7 +190,8 @@ layout, so no individual screen has to know.
 | Nutrition icon, and the Weight sub-tab | today's weigh-in isn't logged |
 | Settings icon | amber once the last export is 7+ days old, red at 14+ or never |
 
-Meals never get one: a skipped meal and a forgotten one look the same. A question the
+Meals never get one: a skipped meal and a forgotten one look the same. Workout never
+gets one either — there's nothing to log there yet. A question the
 database can't answer gives no dot rather than a false alarm. The dot inside Sleep and
 Smoking goes on their "+" button, which arrives when those tabs are redesigned (steps
 7.11 and 7.8); until then it's on the icon only.
@@ -563,18 +571,57 @@ targets screen. Not a hidden row, and never a bar reading "0% of 0" — you want
 a number for a fortnight before deciding what it ought to be, and hiding it until then
 is backwards.
 
-### Setting them
+The day screen still reads only five targets (calories, protein, fibre, added sugar,
+spend) and still uses the wording above. Step 7.4 moves it to the phase 7 rules and
+brings in the rest of what Settings now holds.
 
-The Settings tab holds the five numbers, all optional, all clearable back to empty.
-Empty means "not decided yet", which is deliberately not the same as zero.
+## Settings
 
-They live in the database rather than in the code because the plan expects them to be
-revised once there's enough weight and food history to estimate a real TDEE — and if
-changing them meant opening the Supabase SQL editor, they would quietly go stale.
+The Settings tab is one screen, in five cards, following the mockups:
+
+- **Goal** — cut, maintain or bulk, and a goal weight. The goal decides how calories
+  are judged: a ceiling on a cut, a ±10% zone on maintain or bulk. The Calories line
+  under Daily targets changes its label as you tap between them.
+- **Daily targets** — calories, daily spend, protein, carbs, added sugar, fibre, fat,
+  and the fat ratio written 1 : N (you type the N; it starts at 2). Each line says
+  what kind of target it is: "ceiling" or "±10%". Nutrients are in their own colours.
+- **Body, for the formula estimate** — height, birth year, sex, activity level. Step
+  7.10 uses these for the Mifflin–St Jeor comparison.
+- **Workout** — the gym start date the Workout tab counts down to.
+- **Data** — the export button and how long ago the last one was.
+
+**Everything on it is optional and can be emptied.** Empty means "not decided yet",
+which is deliberately not the same as zero — a target that isn't set is never
+measured against and never turns red. The goal and sex have no "empty" once chosen;
+until the first time, nothing is highlighted.
+
+**One Save for the whole screen.** It checks every box before writing any of them —
+a number that isn't one, a zero where zero makes no sense, a birth year in the future,
+a height of 18 — and refuses with a message naming the box, leaving everything you
+typed in place. On success the boxes show what was actually stored: a comma read as a
+decimal point, and rounded to what the column holds.
+
+**If the settings can't be read, the screen says so rather than showing empty
+boxes.** Save sends every field at once, so a blank form after a failed read would
+wipe every real setting in one tap.
+
+All of this lives in the database rather than in the code because the plan expects
+the targets to be revised once there's enough history to estimate a real TDEE — and
+if changing them meant opening the Supabase SQL editor, they would quietly go stale.
 
 `day_boundary_hour` is deliberately not on that screen. It's the one setting that
-changes how data is read rather than what it's measured against, and it deserves its
-own conversation.
+changes how data is read rather than what it's measured against.
+
+`fibre_min` was renamed `fibre_target` by migration 0005: fibre is now a zone to land
+in, not a floor, and a column name that says the opposite of what it holds is how a
+wrong number reaches every screen.
+
+## Workout
+
+A placeholder until phase 8. A coral barbell and a countdown to the gym start date
+from Settings: "Gym starts in 22 days", then "today", then "Gym started 5 days ago ·
+workout tracking is coming". With no date set it asks for one and links to Settings.
+Days are counted on the 04:00 day, like everything else.
 
 ## Dates, and the two mornings a year they go wrong
 
@@ -642,7 +689,8 @@ is drawn.
 marked unique. That uniqueness is doing real work: it's what makes double-logging the
 same day impossible rather than merely unlikely.
 
-**Settings** — one row that can never become two.
+**Settings** — one row that can never become two, holding everything on the Settings
+tab.
 
 ### What the database refuses to do
 
@@ -683,6 +731,12 @@ browser, where there is no share sheet, it downloads instead.
 
 `login_attempts` is deliberately left out. It's a list of timestamps the lockout
 uses and nothing more: worthless in a backup, and nothing you'd want restored.
+
+The file also says which timezone it belongs to (`"tz": "Europe/Bucharest"`). Every
+timestamp in it is UTC, but every date — and which day a late meal counts towards —
+is Bucharest time, so without it the file couldn't be read back correctly by anyone
+who didn't already know. It's still `format: 1`: adding a field changes nothing
+already in the file.
 
 The tables are written in the order a restore would have to put them back — a thing
 always appears after whatever it points at — so the file can be turned back into

@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { MoonIcon, SaladIcon, SettingsIcon, SmokingIcon } from "./icons";
+import { BarbellIcon, MoonIcon, SaladIcon, SettingsIcon, SmokingIcon } from "./icons";
 import { Dot, useStatus } from "./status";
 
 type Tab = {
-  key: "sleep" | "smoking" | "nutrition" | "settings";
+  key: "sleep" | "smoking" | "nutrition" | "workout" | "settings";
   label: string;
   href: string;
   icon: ReactNode;
@@ -16,21 +16,22 @@ type Tab = {
   activeColour: string;
 };
 
-// Left to right, as the plan orders them. Workout joins between Nutrition and
-// Settings in step 7.3.
+// Left to right, as the plan orders them.
 const TABS: Tab[] = [
   { key: "sleep", label: "Sleep", href: "/sleep", icon: <MoonIcon size={26} />, activeColour: "text-sleep" },
   { key: "smoking", label: "Smoking", href: "/smoking", icon: <SmokingIcon size={26} />, activeColour: "text-smoking" },
   { key: "nutrition", label: "Nutrition", href: "/meals", icon: <SaladIcon size={26} />, activeColour: "text-nutrition" },
+  { key: "workout", label: "Workout", href: "/workout", icon: <BarbellIcon size={26} />, activeColour: "text-workout" },
   { key: "settings", label: "Settings", href: "/settings", icon: <SettingsIcon size={26} />, activeColour: "text-settings" },
 ];
 
-// Which tab a screen belongs to. Everything that isn't Sleep, Smoking or
-// Settings is part of Nutrition: Today, Recipes, Products, Weight, and the
+// Which tab a screen belongs to. Everything that isn't Sleep, Smoking, Workout
+// or Settings is part of Nutrition: Today, Recipes, Products, Weight, and the
 // screens behind them.
 function activeTab(pathname: string): Tab["key"] {
   if (pathname.startsWith("/sleep")) return "sleep";
   if (pathname.startsWith("/smoking")) return "smoking";
+  if (pathname.startsWith("/workout")) return "workout";
   if (pathname.startsWith("/settings")) return "settings";
   return "nutrition";
 }
@@ -48,6 +49,8 @@ export function TabBar() {
     sleep: status?.sleepMissing ? "danger" : null,
     smoking: status?.smokingMissing ? "danger" : null,
     nutrition: status?.weightMissing ? "danger" : null,
+    // The placeholder has nothing to log, so nothing to miss.
+    workout: null,
     settings:
       status?.backup === "late" || status?.backup === "never"
         ? "danger"

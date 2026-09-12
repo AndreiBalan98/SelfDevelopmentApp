@@ -36,7 +36,7 @@ begin
     calorie_target  = null,
     protein_target  = null,
     added_sugar_max = null,
-    fibre_min       = null,
+    fibre_target    = null,
     daily_budget    = null
   where id = 1;
 

@@ -236,7 +236,7 @@ begin
     calorie_target  = 2200,
     protein_target  = 150,
     added_sugar_max = 40,
-    fibre_min       = 30,
+    fibre_target    = 30,
     daily_budget    = 45
   where id = 1;
 

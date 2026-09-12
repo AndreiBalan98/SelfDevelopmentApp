@@ -5,7 +5,7 @@
 // entries by an hour twice a year and quietly corrupt totals around midnight.
 // Nothing in the app should build a date string any other way.
 
-const TIME_ZONE = "Europe/Bucharest";
+export const TIME_ZONE = "Europe/Bucharest";
 
 // A meal before 04:00 counts towards the day before. The column
 // settings.day_boundary_hour exists to make this changeable later; nothing can
@@ -146,6 +146,20 @@ export function weekdayName(date: string): string {
     timeZone: "UTC",
     weekday: "long",
   }).format(new Date(`${date}T12:00:00Z`));
+}
+
+// "Sunday, 4 October", with the year added when it isn't the current one.
+export function longDate(date: string, from: string = dayFor(new Date())): string {
+  const sameYear = date.slice(0, 4) === from.slice(0, 4);
+
+  const dayAndMonth = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "UTC",
+    day: "numeric",
+    month: "long",
+    year: sameYear ? undefined : "numeric",
+  }).format(new Date(`${date}T12:00:00Z`));
+
+  return `${weekdayName(date)}, ${dayAndMonth}`;
 }
 
 // What to call a day on screen: "Today", "Yesterday", or "Tuesday 2 September".

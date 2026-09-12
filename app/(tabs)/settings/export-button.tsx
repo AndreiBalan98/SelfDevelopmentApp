@@ -108,8 +108,8 @@ export function ExportButton({ lastExport }: { lastExport: BackupStatus }) {
         type="button"
         onClick={run}
         disabled={busy}
-        className="flex items-center justify-between gap-3 rounded-lg bg-surface px-4 py-3.5
-                   text-left disabled:opacity-50"
+        className="flex items-center justify-between gap-3 rounded-xl bg-surface px-3.5 py-3.5
+                   text-left text-sm disabled:opacity-50"
       >
         <span className="flex items-center gap-2">
           <DownloadIcon size={18} />
