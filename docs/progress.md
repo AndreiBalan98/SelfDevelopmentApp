@@ -4,10 +4,9 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Phase 7 step 7.3 (Settings and the Workout tab) is built and checked here, waiting
-for Andrei to run migration 0005, push, and test it on the phone.** Steps 7.0–7.2 are
-done and approved. Phases 1–6 are complete and the app has been in daily use since
-2026-09-01. No library has been added in phase 7.
+**Phase 7 steps 7.0–7.3 are done, tested on the phone and approved. Next is step 7.4
+(Nutrition → Today), when Andrei says go.** Phases 1–6 are complete and the app has
+been in daily use since 2026-09-01. No library has been added in phase 7.
 
 ### How phase 7 got here
 
@@ -33,21 +32,24 @@ Don't design it or raise it.
 
 ## Waiting on me (Andrei)
 
-1. **Run `supabase/migrations/0005_settings_phase_7.sql`** in the Supabase SQL editor,
-   then **commit and push straight away**. The order matters: the new screens need
-   the new columns, and between running it and the new version going live, the old
-   version shows no fibre target on Today and its Settings screen can't save. Nothing
-   is lost either way.
-2. **Test step 7.3 on the phone** and approve it or ask for changes.
+1. **Commit this file** — it records 7.3 as approved.
+2. **Say go for step 7.4**: Nutrition → Today on the phase 7 target rules — the hero,
+   the nutrient bars with the fat split, the new meal rows, the day details, and the
+   "+" with tap and hold.
 
-Migrations 0001–0004 have all been run; 0005 is written and waiting. Steps 7.1 and 7.2
-had no migration.
+Migrations 0001–0005 have all been run. Steps 7.1 and 7.2 had no migration.
 
 Andrei will enter his August cigarette history himself, when he chooses. It isn't
 tracked here and doesn't need raising.
 
 ## Done
 
+- 2026-09-12 — **Phase 7 step 7.3 complete: Settings and the Workout tab.** Migration
+  0005 (run by Andrei) renames `fibre_min` to `fibre_target` and adds carbs and fat
+  targets, the fat ratio, goal phase and weight, body figures and the gym start date.
+  The Settings tab holds all of it in the mockup's five cards, with one Save; the
+  Workout tab counts down to the gym date; the export carries `tz`. Tested on the phone
+  and approved, along with the small calls listed under Decisions.
 - 2026-09-12 — **Phase 7 step 7.2 complete: the app shell.** Tab bar with four icons and
   red dots, the mockups' palette, Nutrition opening by default with its four sub-tabs,
   Sleep, Smoking and Weight on the 04:00 day, Smoking opening on yesterday, the export
@@ -169,7 +171,7 @@ stands, differs from it in four places:
 | 7.0 | Rewrite the plan and this file from the spec; proposals *(done)* |
 | 7.1 | Speed and scroll bugs: check where Vercel and Supabase each run, stop search and Add jumping to the top, make taps faster *(done)* |
 | 7.2 | App shell: new palette, tab bar with icons (Sleep · Smoking · Nutrition · Settings), Nutrition opens by default with its four sub-tabs over the existing screens, Sleep, Smoking and Weight moved to the 04:00 day, the smoking form opening on yesterday, red dots for missing logs, the backup dot, Settings tab holding the current targets and the export, old home screen and `/export` retired, rubber-band check *(done)* |
-| 7.3 | Settings: migration 0005 with every new field, the full Settings tab, timezone in the export, and the Workout tab with its countdown *(built; waiting on the migration and the phone test)* |
+| 7.3 | Settings: migration 0005 with every new field, the full Settings tab, timezone in the export, and the Workout tab with its countdown *(done)* |
 | 7.4 | Nutrition → Today: target rules, hero, nutrient bars with the fat split, meal rows, day details, "+" with tap and hold |
 | 7.5 | Calendar heatmap with the streak and the days-logged counter |
 | 7.6 | "Where did it come from?" panels (on Today; the stats section reuses them later) |
@@ -271,9 +273,8 @@ For a session picking this up cold, after reading the plan and this file:
   5 was committed as five steps, one per approved step, plus the two side fixes.
 - Four environment variables, in `.env.local` and in Vercel: `SUPABASE_URL`,
   `SUPABASE_SECRET_KEY`, `PIN_HASH`, `SESSION_SECRET`.
-- Migrations `0001` to `0004` have all been run; `0005` (step 7.3) is written and
-  waiting. A new migration means a new numbered file in `supabase/migrations/` for
-  Andrei to paste in himself.
+- Migrations `0001` to `0005` have all been run. A new migration means a new
+  numbered file in `supabase/migrations/` for Andrei to paste in himself.
 
 - Git: Andrei runs every git command. Reading history (`git log`, `git status`,
   `git show`) is fine and useful; anything that writes is not.
