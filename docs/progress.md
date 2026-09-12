@@ -4,10 +4,9 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Phase 7, step 7.2 (the app shell) is committed and tested; two follow-up fixes from
-the phone test are built and waiting on Andrei** (plain Delete buttons and errors, a
-clearer active sub-tab). Steps 7.0 and 7.1 are done and committed. Phases 1–6 are complete and the app
-has been in daily use since 2026-09-01. No library has been added in phase 7.
+**Phase 7 steps 7.0–7.2 are done, committed and tested on the phone. Next is step 7.3
+(Settings), when Andrei says go.** Phases 1–6 are complete and the app has been in daily
+use since 2026-09-01. No library has been added in phase 7. Session ended 2026-09-12.
 
 ### How phase 7 got here
 
@@ -33,12 +32,11 @@ Don't design it or raise it.
 
 ## Waiting on me (Andrei)
 
-1. **Commit and push the two step 7.2 fixes, then check them on the phone:**
-   - Nutrition's sub-tabs: the one you're on is now clearly lighter than the others.
-   - Delete and Remove buttons, and error messages (type letters into the weight box and
-     save), are no longer red. The only red left is the dots and an overdue backup.
-2. **Say go for step 7.3** (Settings: migration 0005, the full Settings tab, the timezone
-   in the export, and the Workout tab) once those look right.
+1. **Commit this file** — it records the session's end.
+2. **Say go for step 7.3**: migration 0005 with every new settings field, the full
+   Settings tab, the timezone in the export, and the Workout tab with its countdown.
+   It will produce a `.sql` file for you to run in the Supabase SQL editor before the
+   new Settings screen can work.
 
 Migrations 0001–0004 have all been run. Steps 7.1 and 7.2 have no migration.
 
@@ -51,8 +49,8 @@ tracked here and doesn't need raising.
   red dots, the mockups' palette, Nutrition opening by default with its four sub-tabs,
   Sleep, Smoking and Weight on the 04:00 day, Smoking opening on yesterday, the export
   moved into Settings, the home screen and `/export` removed. Tested on the phone and
-  approved; two follow-up fixes from that test (below, under Decisions) are waiting on
-  their own check.
+  approved, then two follow-up fixes from that test — plain Delete buttons and errors,
+  a clearer chosen sub-tab — also tested and approved.
 - 2026-09-12 — **Phase 7 step 7.1 complete: speed and scroll bugs.** Vercel moved to
   Dublin beside Supabase; every search box filters on the phone; Add redraws in place
   instead of jumping to the top; a loading skeleton on every screen. Tested on the phone
