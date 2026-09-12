@@ -3,24 +3,10 @@
 
 import { db } from "@/lib/supabase";
 import type { LogDates } from "@/lib/logging";
+import { everyRow } from "@/lib/pages";
 
-// Supabase hands back at most 1,000 rows to any one question and says nothing
-// about the rest. A year of meals is well past that, so every list here is
-// read 1,000 rows at a time until a page comes back short.
-const PAGE = 1000;
-
-type Page<T> = PromiseLike<{ data: T[] | null; error: { message: string } | null }>;
-
-async function everyRow<T>(ask: (from: number, to: number) => Page<T>): Promise<T[]> {
-  const rows: T[] = [];
-
-  for (let from = 0; ; from += PAGE) {
-    const { data, error } = await ask(from, from + PAGE - 1);
-    if (error) throw new Error(error.message);
-    rows.push(...(data ?? []));
-    if (!data || data.length < PAGE) return rows;
-  }
-}
+// A year of meals is well past Supabase's 1,000 rows per question, so every
+// list here is read a page at a time (lib/pages.ts).
 
 // Null when the database couldn't be read: the calendar then says so, rather
 // than showing a history of empty days.

@@ -114,8 +114,10 @@ lib/
   series.ts          averages over a run of days, honest about the gaps
   logging.ts         how completely each day was logged, the logging streak and
                      the days-logged counter, and laying out a month
-  log-dates.ts       reads which dates have each of the four logs, 1,000 rows
-                     at a time (Supabase never hands over more in one go)
+  log-dates.ts       reads which dates have each of the four logs
+  pages.ts           reads every row of something 1,000 at a time — Supabase
+                     never hands over more in one go, and says nothing when it
+                     stops. Used by the backup and the calendar
   replacements.ts    following oats → oats 2 → oats 3 to whatever you buy today
 supabase/
   migrations/        SQL you run by hand in the Supabase editor, numbered in order
@@ -820,6 +822,14 @@ means working from this file by hand.
 **It's all or nothing.** If any single table can't be read, the whole export fails
 rather than handing you a file with a table quietly missing. A backup that looks
 complete and isn't is worse than no backup.
+
+**Every table is read 1,000 rows at a time** (`lib/pages.ts`). Supabase answers any one
+question with at most 1,000 rows and gives no sign that it stopped, so a table asked for
+in one go comes back cut short and looking whole. Until 2026-09-12 the export did exactly
+that; it was found while testing the calendar, after about two weeks of real logging —
+very likely before any table reached 1,000 rows, though that was never checked against
+the real database. A page that fails fails the whole export, the
+same as a table would.
 
 **The reminder.** `settings.last_export_at` records when you last exported. The
 Export row in Settings reads `Last export: N days ago`, and a dot sits on the Settings

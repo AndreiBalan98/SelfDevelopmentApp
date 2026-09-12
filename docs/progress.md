@@ -4,10 +4,9 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Phase 7 step 7.5 (the calendar heatmap, streak and days-logged counter) is built and
-checked here, waiting for Andrei to push and test it on the phone. Testing it found that
-the backup file is cut off at 1,000 rows per table — a decision is waiting on Andrei.**
-Steps 7.0–7.4b are done and approved. Phases 1–6 are complete and the app has been in daily use since
+**Phase 7 step 7.5b (the backup no longer cut off at 1,000 rows) is built and checked
+here, waiting for Andrei to push and check it on the phone.** Steps 7.0–7.5 are done and
+approved. Phases 1–6 are complete and the app has been in daily use since
 2026-09-01. No library has been added in phase 7.
 
 ### How phase 7 got here
@@ -34,19 +33,8 @@ Don't design it or raise it.
 
 ## Waiting on me (Andrei)
 
-1. **Decide about the backup being cut off at 1,000 rows (urgent).** Supabase answers
-   any one question with at most 1,000 rows and says nothing about the rest, and the
-   export asks for each table in one question. So once a table passes 1,000 rows, the
-   backup silently leaves the rest out while looking complete. Shown in the scratchpad:
-   1,126 meals in the database, exactly 1,000 in the file. `meal_items` gets there first
-   — at roughly 10–20 lines a day since 1 September, somewhere around October or
-   November. **Recommended: fix it next, as a small step 7.5b, before 7.6** — the export
-   reads each table 1,000 rows at a time (the same way step 7.5 reads the calendar's
-   dates) and refuses to hand over a file if any page fails. Alternative: raise
-   Supabase's "Max rows" setting in the dashboard — quicker, but it only moves the
-   cliff, and anything reading more than the new limit would be cut again.
-2. **Commit, push and test step 7.5 on the phone**, then approve it or ask for changes.
-   No SQL.
+1. **Commit, push, and take one export on the phone** to check it still arrives as
+   before. No SQL. Then approve 7.5b or ask for changes.
 
 Migrations 0001–0005 have all been run. Steps 7.1, 7.2, 7.4 and 7.4b had no migration.
 
@@ -55,6 +43,10 @@ tracked here and doesn't need raising.
 
 ## Done
 
+- 2026-09-12 — **Phase 7 step 7.5 complete: the calendar heatmap.** A sheet from Today's
+  calendar icon: a dot per day by how many of the four logs exist, the logging streak
+  (one grace day per Monday–Sunday week) and the days-logged counter, a month at a time.
+  Tested on the phone and approved.
 - 2026-09-12 — **Phase 7 step 7.4b complete: one meal's screen in the new look.** Cards
   and rows as on Today and Settings, the shared "Meal details" card, and the new look's
   building blocks in `app/(tabs)/ui.ts`. Works exactly as before. Tested on the phone
@@ -194,7 +186,8 @@ stands, differs from it in four places:
 | 7.3 | Settings: migration 0005 with every new field, the full Settings tab, timezone in the export, and the Workout tab with its countdown *(done)* |
 | 7.4 | Nutrition → Today: target rules, hero, nutrient bars with the fat split, meal rows, day details, "+" with tap and hold *(done)* |
 | 7.4b | Restyle one meal's screen (`/meals/[id]`) to the new look: its lines, the food search, time, day, type, note, score. Works exactly as now *(done)* |
-| 7.5 | Calendar heatmap with the streak and the days-logged counter *(built; waiting on the phone test)* |
+| 7.5 | Calendar heatmap with the streak and the days-logged counter *(done)* |
+| 7.5b | The backup reads every table 1,000 rows at a time, so it's never cut off at Supabase's 1,000-row limit; found while testing 7.5 *(built; waiting on the phone check)* |
 | 7.6 | "Where did it come from?" panels (on Today; the stats section reuses them later) |
 | 7.7 | Recipes and Products: sort pills, lei per 30 g protein and per 1,000 kcal, and Duplicate; restyle both lists, the add / edit / replace forms and the recipe screen |
 | 7.8 | Smoking tab: the shared range control and the chart base with its rotate button, proven on the bar chart with its two averages, and the list; restyle the entry form behind the "+" |
@@ -398,6 +391,10 @@ scrolling, skeletons, what a tap does:
   there. The scroll checks did.
 - Don't stop the test server with `pkill -f "next start …"`: it matches the shell
   running the command and kills that too. Find the process number with `ss -ltnp`.
+- **The stand-in caps every answer at 1,000 rows, like Supabase** (since 7.5), and
+  supports `.range()`. Without the cap, tests pass that would fail on the phone — which
+  is how the backup's cut-off went unnoticed. A file named `fail-table` in the scratchpad
+  holding a table name makes that table's second page fail, for all-or-nothing checks.
 - To test anything that depends on the time of day (the 04:00 rule, red dots), start the
   test server with its clock shifted: a preload given through
   `NODE_OPTIONS="--require <file>"` that replaces `Date` with a subclass offset to the
@@ -583,6 +580,8 @@ of scope for the rewrite. **Done 2026-09-11:** Andrei ran the review himself; se
 2026-09-12 — Step 7.5, the streak: a forgiven day keeps the streak alive but doesn't add to it, so "11 days" means eleven days with all four logs. Yesterday isn't a miss until today is over — its cigarettes are logged this morning — so an unfinished yesterday is neither counted nor held against you; otherwise the streak would break every morning before the smoking log went in. Checked in the scratchpad against hand-worked weeks: same-week and different-week misses, a Sunday–Monday pair, the start of history, the new year and the October clock change.
 2026-09-12 — The calendar heatmap is a sheet from the bottom, as the mockup draws it: month and arrows (never past this month), the streak and days-logged boxes, a Monday-first grid with a green dot per day at five strengths (none, 1, 2, 3, all four logs), future days dimmed and not tappable, the shown day outlined. Tapping a day opens it on Today. It replaces the phone's date picker behind the calendar icon, and is now the way to jump to a far-away day.
 2026-09-12 — The calendar's dates are read 1,000 rows at a time (`lib/log-dates.ts`), because Supabase answers any one question with at most 1,000 rows. Without it, a year of meals would have looked like months of days with no meals. The scratchpad stand-in now caps every answer at 1,000 rows the same way, so tests see what the phone sees.
+2026-09-12 — **The backup's 1,000-row cut-off is fixed in the code, as step 7.5b, straight after 7.5** (Andrei's decision), rather than by raising Supabase's "Max rows" setting, which would only move the cliff.
+2026-09-12 — Step 7.5b: reading every row 1,000 at a time lives in one place, `lib/pages.ts`, used by the backup and the calendar. The backup reads each table in id order, a page at a time; any page failing fails the whole export and leaves the last-export time alone. Checked in the scratchpad with Supabase's cap reproduced: tables of 0, 3, 1,000, 1,001, 2,000 and 2,500 rows, with gaps in the ids, each identical row for row to the database; no row twice; a failure on a second page gives an error and no file.
 2026-09-12 — The hero's target lines carry no unit: "of 2,000" under the calories and "of 33" under the spend (Andrei's call after the 7.4 phone test). The number above each already says kcal or lei.
 2026-09-12 — Meal rows: "Meal"/"Snack" in the mockup's pale green and coral (`--meal-label`, `--snack-label`), time, the names; calories and cost on the right; the macro letters underneath. An empty meal says "empty".
 
@@ -640,6 +639,11 @@ of scope for the rewrite. **Done 2026-09-11:** Andrei ran the review himself; se
   plan restyles the entry screens "to the new look" but no step names them; worth
   deciding when, rather than doing it on the side. **Picked up 2026-09-12:** Andrei
   wants every old-look screen restyled; the proposed timing is under Next.
+- Other screens read whole tables in one go too — every product, every recipe and
+  every recipe ingredient, for the food search and the replace flows — so they'd be cut
+  at 1,000 rows the same way. Not changed in 7.5b: at one person's shopping that's years
+  away (recipe ingredients get there first, at around a hundred recipes). When one gets
+  close, the fix is the same `everyRow` from `lib/pages.ts`.
 - The hold on the "+" has nothing on screen to say it exists. The mockups don't show a
   hint either; it's in `architecture.md`.
 - Search matching is exact about accents: "ciorba" won't find "ciorbă". It always

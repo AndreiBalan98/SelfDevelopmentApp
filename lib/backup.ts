@@ -1,5 +1,6 @@
 import { db } from "@/lib/supabase";
 import { TIME_ZONE, dateIn, daysBetween, today } from "@/lib/day";
+import { everyRow } from "@/lib/pages";
 
 // The backup: reading every row out of the database, and remembering when that
 // last happened.
@@ -42,14 +43,19 @@ export async function buildExport(): Promise<
   const supabase = db();
   const tables: Record<string, unknown[]> = {};
 
+  // Each table is read 1,000 rows at a time (lib/pages.ts). Asked for in one
+  // go, Supabase stops at 1,000 rows without saying so, and until 2026-09-12
+  // that's what this did: a backup with every table past 1,000 rows cut short,
+  // looking complete.
   for (const table of EXPORT_TABLES) {
-    const { data, error } = await supabase
-      .from(table)
-      .select("*")
-      .order("id", { ascending: true });
-
-    if (error) return { error: `Reading ${table} failed: ${error.message}` };
-    tables[table] = data ?? [];
+    try {
+      tables[table] = await everyRow((from, to) =>
+        supabase.from(table).select("*").order("id", { ascending: true }).range(from, to),
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      return { error: `Reading ${table} failed: ${message}` };
+    }
   }
 
   return {
