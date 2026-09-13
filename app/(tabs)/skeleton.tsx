@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { PlusIcon, ToggleLeftIcon } from "./icons";
 
 // Loading skeletons: what a screen shows the instant you tap through to it,
 // while the server is still fetching its data.
@@ -98,6 +99,55 @@ export function Rows({ rows, lines = 1 }: { rows: number; lines?: 1 | 2 }) {
         </div>
       ))}
     </div>
+  );
+}
+
+// The Products and Recipes lists (value-list.tsx) while they load: the toggle,
+// "+ New", the search box and the sort pills as they'll be, then rows with a
+// name and the two value numbers.
+export function ValueListBones({ noun, rows }: { noun: string; rows: number }) {
+  return (
+    <>
+      <div className="flex flex-col gap-2.5">
+        <div className="flex items-center justify-between text-[13px]">
+          <span className="flex items-center gap-1.5 text-muted">
+            <ToggleLeftIcon size={20} />
+            Show retired
+          </span>
+          <span className="flex items-center gap-1 text-accent">
+            <PlusIcon size={15} />
+            New {noun}
+          </span>
+        </div>
+        <div className="h-[2.625rem] rounded-[10px] bg-surface" />
+        <div className="flex flex-wrap gap-1.5 text-xs">
+          <span className="rounded-full border border-accent bg-accent/20 px-[11px] py-[5px] text-accent-pale">
+            A–Z
+          </span>
+          <span className="rounded-full border border-border-strong px-[11px] py-[5px] text-muted">
+            Cheapest protein
+          </span>
+          <span className="rounded-full border border-border-strong px-[11px] py-[5px] text-muted">
+            Cheapest calories
+          </span>
+        </div>
+      </div>
+
+      <div className="flex flex-col">
+        {Array.from({ length: rows }, (_, index) => (
+          <div
+            key={index}
+            className="flex items-center justify-between gap-3 border-t border-border py-3 first:border-t-0"
+          >
+            <Bone className="h-4 w-2/5" />
+            <div className="flex flex-col items-end gap-1.5">
+              <Bone className="h-4 w-24" />
+              <Bone className="h-3 w-20" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
   );
 }
 

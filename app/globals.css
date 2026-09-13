@@ -33,6 +33,9 @@
      Smoking, Workout and Settings folders each set their own (see [data-tab]
      below). */
   --accent: var(--nutrition);
+  /* The accent lightened, for text on a pill tinted in it — the chosen sort or
+     range. Nutrition's for now; the other tabs add theirs with their pills. */
+  --accent-pale: #c0dd97;
 
   /* Fixed nutrient colours, the same everywhere they appear. */
   --protein: #7f77dd;
@@ -81,6 +84,7 @@
   --color-muted: var(--muted);
   --color-faint: var(--faint);
   --color-accent: var(--accent);
+  --color-accent-pale: var(--accent-pale);
   --color-sleep: var(--sleep);
   --color-smoking: var(--smoking);
   --color-nutrition: var(--nutrition);

@@ -57,6 +57,8 @@ app/                 every screen, and the server code behind it
     ui.ts            the new look's building blocks — card, row, box, buttons,
                      segmented control — shared by every screen restyled to it,
                      so they can't drift apart
+    value-list.tsx   the Products and Recipes lists, which are one screen:
+                     search, sort pills, the retired toggle, the value numbers
     loading.tsx      (in each screen folder) that screen's skeleton — what shows
                      the instant you tap, while its data loads
     meals/           Nutrition → Today: one day at a time, with the day's totals
@@ -114,6 +116,8 @@ lib/
                      where each part of a bar is drawn
   sources.ts         which foods a number is made of, biggest first, and what
                      counts as "low protein"
+  value.ts           lei per 30 g of protein and per 1,000 kcal, what counts
+                     as "low calorie", and the two value sorts
   sleep.ts           how long a night was, including crossing midnight
   series.ts          averages over a run of days, honest about the gaps
   logging.ts         how completely each day was logged, the logging streak and
@@ -305,9 +309,37 @@ column holds — so what you see saved is what was stored.
 
 What you buy, entered once each. The list searches by name and hides retired
 products behind a toggle — that toggle is also how you read the price history,
-because oats → oats 2 → oats 3 is exactly what a kilo has cost you over time. Both the
-search and the toggle work on the phone, over every product the screen brought with
-it; neither survives leaving the screen.
+because oats → oats 2 → oats 3 is exactly what a kilo has cost you over time. The
+search, the sort and the toggle work on the phone, over every product the screen
+brought with it; none of them survives leaving the screen.
+
+### The list, and what each thing is worth
+
+The Products and Recipes lists are one screen with different things in it
+(`value-list.tsx`). At the top, "Show retired" and "+ New"; then the search box; then
+three sort pills — **A–Z · Cheapest protein · Cheapest calories** — opening on A–Z.
+
+Each row carries two value numbers, worked out when the screen is drawn
+(`lib/value.ts`):
+
+- **lei per 30 g of protein** — what 30 g of protein costs from this item.
+- **lei per 1,000 kcal** — what a thousand calories cost.
+
+The number the list is sorted by is the big one on the row. In the two value sorts the
+rows are numbered, cheapest first.
+
+A number that would be absurd is replaced by a label, and in that sort the item drops
+to the bottom, unnumbered and greyed, A–Z among itself:
+
+- **low protein** — protein supplies under 10% of the item's calories (at 4 kcal a
+  gram), or there's none at all. Honey, fruit, sweets, white rice, oil.
+- **low calorie** — under 20 kcal per 100 g or ml. Salt, spices, diet drinks, black
+  coffee.
+
+A product's numbers come from its package price and its per-100 figures. A recipe's come
+from its whole pan — every ingredient added up, 1 ml counted as 1 g — so they're known
+before the pan has been weighed, and the servings don't come into it. A recipe with no
+ingredients yet says so, and sits at the bottom of both value sorts.
 
 **The form follows the packet, not the database.** Energy, fat, of which saturates,
 carbohydrate, of which sugars, fibre, protein, salt — the order printed on an EU

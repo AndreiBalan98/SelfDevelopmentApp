@@ -4,8 +4,8 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Phase 7 steps 7.0–7.6 are done, tested on the phone and approved. Next is step 7.7
-(Recipes and Products), when Andrei says go.** Phases 1–6 are complete and the app has
+**Phase 7 step 7.7 (the Recipes and Products lists) is built and waiting for Andrei's
+phone test.** Steps 7.0–7.6 are done, tested on the phone and approved. Phases 1–6 are complete and the app has
 been in daily use since 2026-09-01. No library has been added in phase 7.
 
 Where phase 7 stands (estimated 2026-09-12, updated 2026-09-13): 9 of 19 steps done; about 45% by code
@@ -36,8 +36,14 @@ Don't design it or raise it.
 
 ## Waiting on me (Andrei)
 
-1. **Commit this file** — it records 7.6 as approved.
-2. **Say go for step 7.7**, with the decisions it needs (proposed at the start of it).
+1. **Commit and push step 7.7, then test it on the phone** (what to test is in the step
+   report), and approve it or ask for changes.
+2. **A decision on black coffee** (and anything like it): by the plan's rule it isn't
+   "low protein" — its sliver of protein is 20% of its sliver of calories — so it's
+   ranked in the protein sort at about 4,800 lei per 30 g. Proposed: treat anything "low
+   calorie" as "low protein" too. Not built; waiting on the answer.
+3. The small calls listed under Decisions for 7.7 (2026-09-13) — say if any should
+   change.
 
 Migrations 0001–0005 have all been run. Steps 7.1, 7.2, 7.4 and 7.4b had no migration.
 
@@ -202,7 +208,8 @@ stands, differs from it in four places:
 | 7.5 | Calendar heatmap with the streak and the days-logged counter *(done)* |
 | 7.5b | The backup reads every table 1,000 rows at a time, so it's never cut off at Supabase's 1,000-row limit; found while testing 7.5. Extended at Andrei's request to every whole-table read in the app *(done)* |
 | 7.6 | "Where did it come from?" panels (on Today; the stats section reuses them later) *(done)* |
-| 7.7 | Recipes and Products: sort pills, lei per 30 g protein and per 1,000 kcal, and Duplicate; restyle both lists, the add / edit / replace forms and the recipe screen |
+| 7.7 | Recipes and Products lists: sort pills, lei per 30 g protein and per 1,000 kcal, the "low protein" / "low calorie" labels; restyle both lists *(split from the old 7.7 on 2026-09-13; built, waiting for the phone test)* |
+| 7.7b | Duplicate on a product's and a recipe's screen; restyle the add / edit / replace forms, the product screen and the recipe screen |
 | 7.8 | Smoking tab: the shared range control and the chart base with its rotate button, proven on the bar chart with its two averages, and the list; restyle the entry form behind the "+" |
 | 7.9 | Weight: dots chart, averages, invented points, goal line, list; restyle the entry form behind the "+" |
 | 7.10 | TDEE estimate and the formula comparison |
@@ -240,9 +247,9 @@ Not needed now, and written here so they aren't lost:
 - **TDEE (7.10):** what counts as a "day of data" for the 7-day threshold and the
   accuracy label: days with a weigh-in, days with meals, or both. And what shows with
   fewer than three weigh-ins. A trend line needs two points and a ± range needs three.
-- **Duplicate (7.7):** where the button sits (next to Replace on the item's screen is the
-  obvious place), what the copy is called, and whether a duplicated recipe's retired
-  ingredients follow `replaced_by` to the current version the way Replace does.
+- **Duplicate (7.7b):** ~~where the button sits, what the copy is called, and whether a
+  duplicated recipe's retired ingredients follow `replaced_by`.~~ **Decided 2026-09-13**
+  (see Decisions): next to Replace, "(copy)", retired ingredients copied as they are.
 - **Streak (7.5):** ~~is "one missed day per week" counted per calendar week or across
   any seven days in a row?~~ **Decided 2026-09-12: per calendar week, Monday to Sunday.**
 - **Where did it come from (7.6):** ~~a recipe line counts as the recipe as a whole
@@ -604,6 +611,12 @@ of scope for the rewrite. **Done 2026-09-11:** Andrei ran the review himself; se
 2026-09-13 — **Each version of a product is its own row in a panel**: "Oats" and "Oats 2" stay apart, as stored, rather than being merged along the replacement chain (Andrei's decision). Simple, and honest about which version was eaten. The same food eaten twice in the range is one row, amounts added. Rows are grouped by the product's or recipe's id, so two items that happen to share a name stay apart.
 2026-09-13 — Step 7.6: the grouping, sorting, shares and the "low protein" rule live in `lib/sources.ts`, pure, and run on the phone from the day's foods, which come with the screen — so a panel opens instantly. Checked in the scratchpad: repeats merge, versions stay apart, a recipe eaten as 1 + 0.5 servings adds up, pieces convert, every panel's total equals the day's own total and its shares add to 100, zero rows are left out, ties go by name, exactly 5% gets the tag and 4.9% doesn't, exactly 10% of calories from protein isn't low protein. Then on the real screen at iPhone 13 and SE sizes against invented data: every panel's numbers, the tags, Show all, a very long name, a past day with no meals, and "set a target" still going to Settings.
 2026-09-13 — **Something with no protein at all counts as low protein, even with no calories** (a diet drink, salt). The plan's rule — protein under 10% of calories — can't be worked out without calories, and money spent on something with no protein is exactly what the spend tag is for. Anything with some protein and no calories isn't tagged. The Products and Recipes lists use the same function from 7.7.
+2026-09-13 — **Step 7.7 is split in two** (Andrei's decision): 7.7 is the two lists (sort pills, the two value numbers, the low-protein and low-calorie labels, the new look); 7.7b is Duplicate plus the new look for the forms and the product and recipe screens. About 2,000 lines of the oldest screens, and a problem in the forms shouldn't hold up the lists.
+2026-09-13 — **Duplicate sits next to Replace on the item's own screen**, for any item — used or not, retired or not (Andrei's decision). Chosen over a button on each list row, which would crowd rows that now carry two value numbers.
+2026-09-13 — **A duplicate is named "<name> (copy)"** (Andrei's decision), meant to be renamed before saving. Not "<name> 2", which in this app means the next version of the same thing and would muddle the price history; not an empty box, which would force typing every time.
+2026-09-13 — **A duplicated recipe copies its ingredients exactly as they are, retired ones included** (Andrei's decision, over following them to their replacements the way Replace does). Replace keeps following the chain; Duplicate doesn't.
+2026-09-13 — Step 7.7: the value numbers and the two value sorts live in `lib/value.ts`, pure; "low protein" is the same function the spend panel uses (`lib/sources.ts`). A product's numbers come from 100 of its unit, a recipe's from its whole pan (ingredients added up, 1 ml as 1 g), so servings and the cooked weight never come into them. Checked in the scratchpad against hand-worked numbers (eggs 5.95 lei / 30 g protein and 17.48 lei / 1,000 kcal; a burrito pan 5.78 and 18.44), the same answer from any amount, the edges (exactly 20 kcal per 100 isn't low calorie, exactly 10% protein isn't low protein), protein never stated counting as none, a recipe with no ingredients, and the sort orders. Then on the real screen at iPhone 13 and SE sizes against invented data: every sort, the retired toggle, search, a long name, the skeleton lining up with the loaded screen, row taps and "+ New".
+2026-09-13 — Step 7.7 small calls: **the lists open on A–Z** (the plan doesn't say; the mockup's pill is an illustration) — finding an item to open is the everyday job, and every row shows both numbers whatever the sort. The number the list is sorted by is the big one on the row (protein on A–Z, as the mockup draws it). Rows are numbered only in the two value sorts; items without that number go to the bottom unnumbered, greyed and A–Z, as the mockup draws honey. A number too absurd to show is replaced by its label wherever it would appear, so "low calorie" also shows on the small second line. **Rows follow the mockup and carry only the name and the two value numbers**: the old "price per 100 g" and "kcal" on a product row, and "4 servings · 250 g each" and kcal per serving on a recipe row, are gone from the lists (all still on the item's own screen). The list sits on the screen background with hairlines between rows, as the mockup draws it, rather than in a card. The big "Add a product/recipe" button at the bottom became "+ New product/recipe" at the top right, as the mockup draws it. Long names wrap rather than being cut short. The toggle is Tabler's toggle icon, green when on. Search sits between the toggle row and the pills (the plan: above the pills). The chosen pill's pale green is a new palette colour, `--accent-pale`, which 7.8 will give the other tabs.
 2026-09-13 — Step 7.6 small calls: the panel's bar follows the mockup, so a food taking half the total fills it (anything bigger is full too); calories and spend bars are Nutrition green, the nutrients their own colours. Grams under 10 show one decimal ("6.5 g") so a small amount isn't "0 g"; under 1% shows "<1%". The subtitle is the date row's own words: "Today, 13 Sep · 1,669 kcal total". "Show all" has no count and no "show fewer"; closing the panel resets it. Tapping the line under the fat bar opens saturated fat — the only place on Today that number is shown. The Day details figures aren't tappable: the plan lists the hero, the bars, the stats boxes and the chart bars. A past day with no meals says "Nothing logged for this day yet."; a food list with none of that nutrient says "None of it adds any fibre." A tapped number dims slightly while pressed, so a tap is visibly received.
 
 ## Deferred
