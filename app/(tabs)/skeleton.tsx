@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { PlusIcon, ToggleLeftIcon } from "./icons";
+import { PILL, PILL_CHOSEN, PILL_OTHER } from "./ui";
 
 // Loading skeletons: what a screen shows the instant you tap through to it,
 // while the server is still fetching its data.
@@ -102,6 +103,19 @@ export function Rows({ rows, lines = 1 }: { rows: number; lines?: 1 | 2 }) {
   );
 }
 
+// A row of pills as they'll be: the words are fixed, so they're real.
+export function Pills({ labels, chosen }: { labels: string[]; chosen: string }) {
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {labels.map((label) => (
+        <span key={label} className={`${PILL} ${label === chosen ? PILL_CHOSEN : PILL_OTHER}`}>
+          {label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 // The Products and Recipes lists (value-list.tsx) while they load: the toggle,
 // "+ New", the search box and the sort pills as they'll be, then rows with a
 // name and the two value numbers.
@@ -120,17 +134,7 @@ export function ValueListBones({ noun, rows }: { noun: string; rows: number }) {
           </span>
         </div>
         <div className="h-[2.625rem] rounded-[10px] bg-surface" />
-        <div className="flex flex-wrap gap-1.5 text-xs">
-          <span className="rounded-full border border-accent bg-accent/20 px-[11px] py-[5px] text-accent-pale">
-            A–Z
-          </span>
-          <span className="rounded-full border border-border-strong px-[11px] py-[5px] text-muted">
-            Cheapest protein
-          </span>
-          <span className="rounded-full border border-border-strong px-[11px] py-[5px] text-muted">
-            Cheapest calories
-          </span>
-        </div>
+        <Pills labels={["A–Z", "Cheapest protein", "Cheapest calories"]} chosen="A–Z" />
       </div>
 
       <div className="flex flex-col">

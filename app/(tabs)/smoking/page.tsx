@@ -1,145 +1,169 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { db } from "@/lib/supabase";
-import { dayFor, shiftDays } from "@/lib/day";
-import { averageOver, type Average } from "@/lib/series";
-import { SmokingForm } from "./smoking-form";
-import { DeleteButton } from "./delete-button";
-import Loading from "./loading";
-import { TabHeader } from "../headers";
+import { allRows } from "@/lib/pages";
+import { dayFor, shiftDays, weekdayName } from "@/lib/day";
+import { datesFrom, movingAverage } from "@/lib/chart";
+import { rangeLabel, rangeQuery, resolveRange, shortDate, type Range, type RangeKey } from "@/lib/range";
+import { HeaderAdd, TabHeader } from "../headers";
+import { RangeControl } from "../range-control";
+import { ChartFrame } from "../chart-frame";
+import { ChartBones } from "./chart-bones";
+import { LANDSCAPE, PORTRAIT, SmokingChart } from "./smoking-chart";
 
 export const dynamic = "force-dynamic";
 
-const RECENT_DAYS = 14;
-const SHORT_WINDOW = 4;
-const LONG_WINDOW = 7;
+const OPTIONS: RangeKey[] = ["7", "14", "28", "all", "custom"];
 
-// "9.3 a day", with the gap said out loud when the window isn't full. An average
-// over four of the last seven days is a different claim from one over seven.
-function describe(average: Average): string {
-  const rounded = (Math.round(average.average * 10) / 10).toFixed(1);
-  const shown = `${rounded} a day`;
-
-  if (average.counted === average.window) return shown;
-
-  return `${shown}, over the ${average.counted} you logged`;
-}
-
+// The Smoking tab: the range control, the chart, and the days under it.
+//
+// Smoking is logged a day behind, at the end of the day or the next morning,
+// so every range ends yesterday (by the 04:00 day) and today never shows. The
+// "+" opens the entry form (./day), with a red dot while yesterday is missing.
 export default async function SmokingPage({ searchParams }: PageProps<"/smoking">) {
-  const { date } = await searchParams;
-  // The 04:00 day, like meals.
+  const params = await searchParams;
   const now = dayFor(new Date());
-  // Smoking is always logged a day behind, so the form opens on yesterday —
-  // the day the red dot asks for — and a count can't land on today by default.
-  // Logging today early means changing the date.
-  const selected =
-    typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : shiftDays(now, -1);
+  const yesterday = shiftDays(now, -1);
 
-  // Keyed on the day, so picking another day swaps straight to the skeleton
-  // while it loads, rather than leaving the old day on screen.
+  // The first day ever logged, which is where "All" starts.
+  const { data: first } = await db()
+    .from("smoking")
+    .select("date")
+    .order("date", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  const range = resolveRange(params, {
+    options: OPTIONS,
+    fallback: "28",
+    end: yesterday,
+    earliest: first?.date ?? null,
+  });
+
+  // Carried to the entry form and back, so saving returns to the same range.
+  const back = rangeQuery(params);
+
   return (
-    <Suspense key={selected} fallback={<Loading />}>
-      <Smoking selected={selected} now={now} />
-    </Suspense>
+    <main className="flex-1 px-5 py-8 mx-auto w-full max-w-md flex flex-col gap-4">
+      <TabHeader title="Smoking">
+        <HeaderAdd href={`/smoking/day${back ? `?${back}` : ""}`} label="Log a day" dot="smokingMissing" />
+      </TabHeader>
+
+      <RangeControl options={OPTIONS} chosen={range.key} from={range.from} to={range.to} latest={yesterday} />
+
+      {/* Keyed on the days, so another range swaps straight to the skeleton
+          while it loads, and the pills above stay put. */}
+      <Suspense key={`${range.from}:${range.to}`} fallback={<ChartBones />}>
+        <Days range={range} now={now} back={back} everLogged={first !== null} />
+      </Suspense>
+    </main>
   );
 }
 
-async function Smoking({ selected, now }: { selected: string; now: string }) {
+// "Wed 9 Sep", with the year when it isn't this one.
+function rowDate(date: string, now: string): string {
+  return `${weekdayName(date).slice(0, 3)} ${shortDate(date, date.slice(0, 4) !== now.slice(0, 4))}`;
+}
+
+async function Days({
+  range,
+  now,
+  back,
+  everLogged,
+}: {
+  range: Range;
+  now: string;
+  back: string;
+  everLogged: boolean;
+}) {
   const supabase = db();
 
-  const [entry, recent] = await Promise.all([
-    supabase.from("smoking").select("count, notes").eq("date", selected).maybeSingle(),
+  // The days in the range, and the six before it, so the 7-day average has a
+  // full week behind it from the first day shown. Read a page at a time
+  // (lib/pages.ts): "All" can reach past Supabase's 1,000 rows.
+  const { data, error } = await allRows((from, to) =>
     supabase
       .from("smoking")
       .select("id, date, count, notes")
-      .order("date", { ascending: false })
-      .limit(RECENT_DAYS),
-  ]);
+      .gte("date", shiftDays(range.from, -6))
+      .lte("date", range.to)
+      .order("date", { ascending: true })
+      .order("id", { ascending: true })
+      .range(from, to),
+  );
 
-  const failure = entry.error?.message ?? recent.error?.message ?? null;
-  const days = recent.data ?? [];
+  if (error) {
+    return (
+      <p className="rounded-xl bg-surface p-3.5 text-sm">Could not reach the database: {error.message}</p>
+    );
+  }
 
-  const values = days.map((day) => ({ date: day.date, value: day.count }));
-  const shortRun = averageOver(values, now, SHORT_WINDOW);
-  const longRun = averageOver(values, now, LONG_WINDOW);
+  const rows = data ?? [];
+  const inRange = rows.filter((row) => row.date >= range.from);
 
-  // The trend, which the plan says is the point rather than the bad days. One
-  // comparison between two numbers already on screen, stated flatly — this is
-  // the only place in the app that interprets rather than reports, so it never
-  // congratulates and never scolds.
-  const direction =
-    shortRun && longRun && Math.abs(shortRun.average - longRun.average) >= 0.05
-      ? shortRun.average < longRun.average
-        ? "The last four days are below the week."
-        : "The last four days are above the week."
-      : null;
+  const label = `${rangeLabel(range.from, range.to, now)} · ${range.days} ${range.days === 1 ? "day" : "days"}`;
+
+  if (inRange.length === 0) {
+    return (
+      <div className="flex flex-col gap-1">
+        <span className="text-xs text-faint tabular-nums">{label}</span>
+        <p className="py-6 text-center text-[13px] text-muted">
+          {everLogged ? "Nothing logged in these days." : "Nothing logged yet. Tap + to log a day."}
+        </p>
+      </div>
+    );
+  }
+
+  const dates = datesFrom(range.from, range.to);
+  const counts = new Map(inRange.map((row) => [row.date, row.count]));
+  const entries = rows.map((row) => ({ date: row.date, value: row.count }));
+  const short = movingAverage(entries, dates, 4);
+  const long = movingAverage(entries, dates, 7);
+
+  const chart = { dates, counts, short, long };
 
   return (
-    <main className="flex-1 px-5 py-8 mx-auto w-full max-w-md flex flex-col gap-7">
-      <TabHeader title="Smoking" />
+    <>
+      <ChartFrame
+        title="Smoking"
+        label={label}
+        portrait={<SmokingChart {...chart} shape={PORTRAIT} />}
+        landscape={<SmokingChart {...chart} shape={LANDSCAPE} className="h-full w-full" />}
+      />
 
-      {failure ? (
-        <p className="rounded-lg border border-border bg-surface p-3 text-sm">
-          Could not reach the database: {failure}
-        </p>
-      ) : (
-        <>
-          {/* Keyed on the day so switching days resets the field rather than
-              leaving the previous day's number sitting in it. */}
-          <SmokingForm
-            key={selected}
-            date={selected}
-            today={now}
-            existing={entry.data ?? null}
-          />
+      <div className="-mt-2 flex flex-wrap gap-3 text-[11px] text-muted">
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block size-2 rounded-[2px] bg-smoking" />
+          Per day
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-[3px] w-3.5 rounded-full bg-average-4" />
+          4-day avg
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-[3px] w-3.5 rounded-full bg-average-7" />
+          7-day avg
+        </span>
+      </div>
 
-          {(shortRun || longRun) && (
-            <div className="-mt-3 flex flex-col gap-1 text-sm text-muted tabular-nums">
-              {shortRun && <p>Last {SHORT_WINDOW} days: {describe(shortRun)}</p>}
-              {longRun && <p>Last {LONG_WINDOW} days: {describe(longRun)}</p>}
-              {direction && <p className="text-foreground">{direction}</p>}
-            </div>
-          )}
-
-          <section className="flex flex-col gap-3">
-            <h2 className="text-sm font-medium text-muted">Last {RECENT_DAYS} days</h2>
-
-            {days.length === 0 ? (
-              <p className="text-sm text-muted">
-                Nothing logged yet. The first day goes in above.
-              </p>
-            ) : (
-              <ul className="rounded-lg border border-border bg-surface divide-y divide-[var(--border)]">
-                {days.map((day) => (
-                  <li
-                    key={day.id}
-                    className="flex items-baseline justify-between gap-3 px-3 py-2.5 text-sm"
-                  >
-                    <Link
-                      href={`/smoking?date=${day.date}`}
-                      className={`flex-1 ${day.date === selected ? "text-accent" : ""}`}
-                    >
-                      <span className="tabular-nums">{day.date}</span>
-                      {day.notes && (
-                        <span className="block text-xs text-muted">{day.notes}</span>
-                      )}
-                    </Link>
-
-                    <span className="tabular-nums">{day.count}</span>
-
-                    <DeleteButton id={day.id} />
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            <p className="text-xs text-muted">
-              A day that isn&rsquo;t here wasn&rsquo;t logged, which is not the same as a
-              day of none — a zero is a real entry and counts towards the averages.
-            </p>
-          </section>
-        </>
-      )}
-    </main>
+      {/* Newest first, only the days in the range, so it always matches the
+          chart. Tap one to change it. */}
+      <ul className="flex flex-col">
+        {[...inRange].reverse().map((day) => (
+          <li key={day.id} className="border-t border-border first:border-t-0">
+            <Link
+              href={`/smoking/day?date=${day.date}${back ? `&${back}` : ""}`}
+              className="flex items-baseline gap-3 py-2.5 text-[13px]"
+            >
+              <span className="min-w-0 flex-1">
+                <span className="tabular-nums">{rowDate(day.date, now)}</span>
+                {day.notes && <span className="text-xs text-faint"> · {day.notes}</span>}
+              </span>
+              <span className="font-semibold tabular-nums">{day.count}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }

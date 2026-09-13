@@ -32,6 +32,12 @@ export const SMALL_PRIMARY =
 // means a missing log, a missed target or an overdue backup, and nothing else.
 export const QUIET = "rounded-xl bg-surface px-4 py-3 text-sm disabled:opacity-50";
 
+// A pill: the sort on Products and Recipes, the shared range control. The chosen
+// one is tinted in the tab's colour.
+export const PILL = "rounded-full border px-[11px] py-[5px] text-xs";
+export const PILL_CHOSEN = "border-accent bg-accent/20 text-accent-pale";
+export const PILL_OTHER = "border-border-strong text-muted";
+
 // A grey track with the chosen segment raised, like Nutrition's sub-tabs.
 export const SEGMENTS = "flex rounded-[9px] bg-border p-0.5";
 export const SEGMENT = "flex-1 rounded-[7px] py-1.5 text-center text-xs";

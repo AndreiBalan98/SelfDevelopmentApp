@@ -52,6 +52,9 @@
   --warn: #ef9f27;
   /* The ±10% target zone, used at about 30% opacity. */
   --zone: #97c459;
+  /* The Smoking chart's two moving averages, as the mockups draw them. */
+  --average-4: #ededed;
+  --average-7: #d85a30;
   /* Meals against snacks, in comparisons. */
   --meal: #639922;
   --snack: #d85a30;
@@ -65,6 +68,7 @@
 }
 [data-tab="smoking"] {
   --accent: var(--smoking);
+  --accent-pale: #fac775;
 }
 [data-tab="workout"] {
   --accent: var(--workout);
@@ -100,6 +104,8 @@
   --color-danger: var(--danger);
   --color-warn: var(--warn);
   --color-zone: var(--zone);
+  --color-average-4: var(--average-4);
+  --color-average-7: var(--average-7);
   --color-meal: var(--meal);
   --color-snack: var(--snack);
   --color-meal-label: var(--meal-label);

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { sortByValue, type Sort, type Value } from "@/lib/value";
 import { PlusIcon, ToggleLeftIcon, ToggleRightIcon } from "./icons";
+import { PILL, PILL_CHOSEN, PILL_OTHER } from "./ui";
 
 // The Products and Recipes lists, which are the same screen with different
 // things in it: a retired toggle and "+ New", the search box, the sort pills,
@@ -110,11 +111,7 @@ export function ValueList({
               type="button"
               aria-pressed={sort === option.key}
               onClick={() => setSort(option.key)}
-              className={`rounded-full border px-[11px] py-[5px] text-xs ${
-                sort === option.key
-                  ? "border-accent bg-accent/20 text-accent-pale"
-                  : "border-border-strong text-muted"
-              }`}
+              className={`${PILL} ${sort === option.key ? PILL_CHOSEN : PILL_OTHER}`}
             >
               {option.label}
             </button>

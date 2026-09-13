@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Dot, useStatus } from "./status";
+import { PlusIcon } from "./icons";
 
 // The top of a tab's main screen: its name, on the left. Screens further in
 // (one meal, one product) keep their own header with the way back.
@@ -12,6 +13,28 @@ export function TabHeader({ title, children }: { title: string; children?: React
       <h1 className="text-lg font-semibold">{title}</h1>
       {children}
     </header>
+  );
+}
+
+// A "+" in a tab's header, opening its entry form. It carries the tab's red dot
+// while its log is missing — the same dot as on the tab's icon in the bar.
+export function HeaderAdd({
+  href,
+  label,
+  dot,
+}: {
+  href: string;
+  label: string;
+  dot?: "sleepMissing" | "smokingMissing" | "weightMissing";
+}) {
+  const status = useStatus();
+  const missing = dot !== undefined && status?.[dot] === true;
+
+  return (
+    <Link href={href} aria-label={missing ? `${label} (not logged yet)` : label} className="relative flex text-muted">
+      <PlusIcon size={23} />
+      {missing && <Dot className="-top-px -right-1 size-2" />}
+    </Link>
   );
 }
 

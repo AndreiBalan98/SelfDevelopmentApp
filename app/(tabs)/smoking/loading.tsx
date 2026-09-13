@@ -1,20 +1,24 @@
-import { Bone, Field, Rows, Screen, Section } from "../skeleton";
+import { Pills, Screen } from "../skeleton";
 import { TabHeader } from "../headers";
+import { PlusIcon } from "../icons";
+import { ChartBones } from "./chart-bones";
 
-// The cigarettes screen while it loads: the form, then the recent days.
+// The Smoking tab while it loads: the header and its "+", the range pills as
+// they open (28), then the chart and the days.
 export default function Loading() {
   return (
-    <Screen header={<TabHeader title="Smoking" />} gap="gap-7">
-      <div className="flex flex-col gap-4">
-        <Field label="Day" />
-        <Field label="Cigarettes" tall />
-        <Field label="Note (optional)" />
-        <Bone className="h-12" />
-      </div>
-
-      <Section heading="Last 14 days">
-        <Rows rows={6} />
-      </Section>
+    <Screen
+      gap="gap-4"
+      header={
+        <TabHeader title="Smoking">
+          <span className="flex text-muted">
+            <PlusIcon size={23} />
+          </span>
+        </TabHeader>
+      }
+    >
+      <Pills labels={["7", "14", "28", "All", "Custom"]} chosen="28" />
+      <ChartBones />
     </Screen>
   );
 }

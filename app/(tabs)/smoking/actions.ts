@@ -1,8 +1,23 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/supabase";
 import { dayFor } from "@/lib/day";
+import { rangeQuery } from "@/lib/range";
+
+// Back to the chart after a save or a delete, on the range it was showing. The
+// range comes back from the form, so it's rebuilt from its checked parts
+// (lib/range.ts) rather than trusted as it arrived.
+function backToChart(form: FormData): never {
+  const params = new URLSearchParams(String(form.get("back") ?? ""));
+  const query = rangeQuery({
+    range: params.get("range") ?? undefined,
+    from: params.get("from") ?? undefined,
+    to: params.get("to") ?? undefined,
+  });
+  redirect(query ? `/smoking?${query}` : "/smoking");
+}
 
 // Saving and deleting a day's cigarettes.
 //
@@ -56,9 +71,9 @@ export async function saveSmoking(
 
   if (error) return { ok: false, message: `Could not save: ${error.message}` };
 
+  // The new bar and the row under the chart are what say it worked.
   revalidatePath("/smoking");
-
-  return { ok: true, message: `Saved ${count} for ${date}.` };
+  backToChart(form);
 }
 
 export async function deleteSmoking(
@@ -74,6 +89,5 @@ export async function deleteSmoking(
   if (error) return { ok: false, message: `Could not delete: ${error.message}` };
 
   revalidatePath("/smoking");
-
-  return { ok: true, message: "Deleted." };
+  backToChart(form);
 }

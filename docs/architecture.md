@@ -61,6 +61,9 @@ app/                 every screen, and the server code behind it
                      search, sort pills, the retired toggle, the value numbers
     form-action.ts   how a form with boxes to type in sends its save, so a
                      refused save never wipes what you typed
+    range-control.tsx  the shared range pills (7 · 14 · 28 · All · Custom…)
+    chart-frame.tsx  what every chart sits in: the line saying what it covers,
+                     and the rotate button that lays it sideways
     loading.tsx      (in each screen folder) that screen's skeleton — what shows
                      the instant you tap, while its data loads
     meals/           Nutrition → Today: one day at a time, with the day's totals
@@ -77,7 +80,8 @@ app/                 every screen, and the server code behind it
       [id]/          one product
     weight/          Nutrition → Weight: a weigh-in, and the last fortnight
     sleep/           the Sleep tab: a night, two times, a score, the last fortnight
-    smoking/         the Smoking tab: a day's count, the last fortnight, averages
+    smoking/         the Smoking tab: the range, the chart, the days under it
+      day/           one day's count and note — the form behind the "+"
     workout/         the Workout tab: a countdown to the gym start date, until
                      phase 8 builds the real thing
     settings/        the Settings tab: the goal, every target, the body figures,
@@ -119,6 +123,10 @@ lib/
   sources.ts         which foods a number is made of, biggest first
   value.ts           lei per 30 g of protein and per 1,000 kcal, what counts
                      as "low protein" and "low calorie", and the two value sorts
+  range.ts           which days a range means ("28" = the 28 ending
+                     yesterday on Smoking), and how its dates are written
+  chart.ts           the arithmetic behind the charts: the days along the
+                     bottom, the moving averages, the numbers on each axis
   sleep.ts           how long a night was, including crossing midnight
   series.ts          averages over a run of days, honest about the gaps
   logging.ts         how completely each day was logged, the logging streak and
@@ -228,9 +236,9 @@ switch it with a one-line layout, so no individual screen has to know.
 
 Meals never get one: a skipped meal and a forgotten one look the same. Workout never
 gets one either — there's nothing to log there yet. A question the
-database can't answer gives no dot rather than a false alarm. The dot inside Sleep and
-Smoking goes on their "+" button, which arrives when those tabs are redesigned (steps
-7.11 and 7.8); until then it's on the icon only.
+database can't answer gives no dot rather than a false alarm. Smoking's dot is also on
+the "+" in its header (step 7.8); Sleep's joins its "+" when that tab is redesigned
+(7.11), and until then is on the icon only.
 
 The dots are read once, by the shell (`lib/status.ts`). Moving between tabs doesn't
 re-read them — the shell stays put while the screens inside it change — so they're
@@ -603,26 +611,57 @@ measure, and the list shows a dash rather than inventing a length.
 
 ## Smoking
 
-A day, a count, an optional note, and the last fortnight underneath. The weight
-screen's shape, on purpose: there is no bulk-entry grid and no backfill mode, because a
-month of history is being entered a day at a time. It opens on **yesterday** by the
-04:00 day — smoking is logged at the end of the day, usually the next morning — so a
-count can't land on today unless you change the date.
+The tab is a chart (step 7.8). Under the title, the **range pills** — 7 · 14 · 28 · All ·
+Custom, opening on 28 — then a line saying what the chart covers ("16 Aug – 12 Sep · 28
+days") with the **rotate button**, the chart, its key, and the days under it.
+
+**Everything ends yesterday.** Smoking is logged at the end of the day or the next
+morning, so today never shows: "28" is the 28 days ending yesterday by the 04:00 day, All
+runs from the first day ever logged, and Custom can't reach past yesterday.
+
+**The chart** is a bar a day, from zero up to exactly the highest count in the range,
+with the **4-day and 7-day moving averages** as two lines (light and coral). A logged zero
+is a small 0 on the baseline; a day with no entry has no bar at all. The averages count
+only days that have an entry (`lib/series.ts`), and reach back up to six days before the
+first day shown, so both lines start where the chart does.
+
+**The days under the chart** are the logged days in the range, newest first — "Wed 9
+Sep · Party" and the count. Tap one to change it. They always match the chart.
+
+**The "+"** in the header opens the entry form, `/smoking/day`, with a red dot while
+yesterday is missing. The form opens on **yesterday**, the day the dot asks for, so a
+count can't land on today unless you change the date; changing the date opens that day.
+A logged day has **Delete this day** underneath. Saving or deleting goes back to the
+chart, on the range it was showing — the new bar and row are what say it worked.
 
 **Zero is a real entry, and an empty box is not.** The schema is explicit that a day
 with no row means "not logged" while a row holding zero means "smoked nothing", and
-those are different facts. So the field starts empty, never at zero, and saving an empty
+those are different facts. So the box starts empty, never at zero, and saving an empty
 one is refused. If empty quietly meant none, every day you forgot to log would read as a
 perfect day and the averages would be fiction.
 
-Above the list: the **4-day and 7-day averages**, each saying how many days it actually
-had when the window has gaps. Then one flat sentence when the two differ — "The last
-four days are below the week", or above it.
+Until step 7.8 the screen showed the two averages as text, with one sentence comparing
+them. The chart's two lines replace both, as the plan decided.
 
-That sentence is the only place in the app that interprets rather than reports, and it
-exists because the plan says the trend is the point rather than the bad days. It stays
-neutral in both directions: no congratulation, no colour, nothing red. The rest of the
-screen is numbers.
+### How the charts are built
+
+Every chart is **drawn by hand as SVG on the server** — no charting library — and sent
+to the phone as a finished drawing. It's drawn twice: once shaped for the phone upright,
+once for the phone on its side. The rotate button (`chart-frame.tsx`) swaps one for the
+other and lays it across the whole screen turned 90° clockwise, and you turn the phone to
+match — it works with the rotation lock on, because nothing asks the phone to rotate.
+While it's turned it covers everything, list and tab bar included; the button, or
+Escape on a computer, brings it back.
+
+What decides where things go is in `lib/chart.ts`, checkable on its own: the days along
+the bottom, the moving averages, the numbers up the side (0, a few round steps, and the
+highest value — a step too close under the top is left out so the labels don't collide),
+and which dates get written along the bottom (a week apart on 28 days, and the last one).
+
+**The range** lives in the address — `?range=7`, or `?from=…&to=…` for Custom — so the
+server draws the chart for it and a reload keeps it. `lib/range.ts` turns it into days;
+`range-control.tsx` draws the pills, the same on every screen that has them. Picking
+another range redraws only the chart and what's under it; the pills stay put.
 
 ## Averages over days, and the gaps in them
 
