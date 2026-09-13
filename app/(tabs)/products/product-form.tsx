@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import type { Result } from "./actions";
+import { useFormAction } from "../form-action";
 import { BOX, CARD, HEADING, PRIMARY, ROW, SEGMENT, SEGMENT_CHOSEN, SEGMENTS } from "../ui";
 
 export type ProductDefaults = {
@@ -99,7 +100,8 @@ function Nutrient({
 }
 
 export function ProductForm({ action, defaults = {}, submitLabel, replaces, id }: Props) {
-  const [result, submit, pending] = useActionState<Result | null, FormData>(action, null);
+  // Sent by hand, so a refused save keeps everything you typed (form-action.ts).
+  const [result, submit, pending] = useFormAction<Result>(action);
 
   // Only used to work out the price per 100 as you type, which is the cheapest
   // possible check on the mistake that matters: typing 100 g for a 1 kg bag.
@@ -119,7 +121,7 @@ export function ProductForm({ action, defaults = {}, submitLabel, replaces, id }
       : null;
 
   return (
-    <form action={submit} className="flex flex-col gap-5">
+    <form onSubmit={submit} className="flex flex-col gap-5">
       {replaces !== undefined && <input type="hidden" name="replaces" value={replaces} />}
       {id !== undefined && <input type="hidden" name="id" value={id} />}
 

@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { addLine, removeLine, setLineQuantity, type Result } from "../actions";
+import { useFormAction } from "../../form-action";
 import { BOX, SMALL, SMALL_PRIMARY } from "../../ui";
 
 // One search result, with somewhere to type how much goes in. Adding redraws
@@ -22,17 +23,14 @@ export function AddLineForm({
   pieceGrams: number | null;
   onAdded: () => void;
 }) {
-  const [result, action, pending] = useActionState<Result | null, FormData>(
-    async (previous, form) => {
-      const outcome = await addLine(previous, form);
-      if (outcome.ok) onAdded();
-      return outcome;
-    },
-    null,
-  );
+  const [result, submit, pending] = useFormAction<Result>(async (previous, form) => {
+    const outcome = await addLine(previous, form);
+    if (outcome.ok) onAdded();
+    return outcome;
+  });
 
   return (
-    <form action={action} className="flex flex-col gap-1.5 py-2.5">
+    <form onSubmit={submit} className="flex flex-col gap-1.5 py-2.5">
       <input type="hidden" name="recipe_id" value={recipeId} />
       <input type="hidden" name="product_id" value={productId} />
 
@@ -78,10 +76,7 @@ export function EditLineForm({
   quantity: number;
   unit: "g" | "ml";
 }) {
-  const [saveResult, save, saving] = useActionState<Result | null, FormData>(
-    setLineQuantity,
-    null,
-  );
+  const [saveResult, save, saving] = useFormAction<Result>(setLineQuantity);
   const [removeResult, remove, removing] = useActionState<Result | null, FormData>(
     removeLine,
     null,
@@ -93,7 +88,7 @@ export function EditLineForm({
     <>
       <div className="flex justify-end">
         <span className="flex shrink-0 items-center gap-1.5">
-          <form action={save} className="flex items-center gap-1.5">
+          <form onSubmit={save} className="flex items-center gap-1.5">
             <input type="hidden" name="recipe_id" value={recipeId} />
             <input type="hidden" name="line_id" value={lineId} />
 

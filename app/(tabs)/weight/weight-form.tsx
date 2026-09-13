@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
 import { useRouter } from "next/navigation";
 import { saveWeight, type SaveResult } from "./actions";
+import { useFormAction } from "../form-action";
 
 type Props = {
   date: string;
@@ -12,13 +12,11 @@ type Props = {
 
 export function WeightForm({ date, today, existing }: Props) {
   const router = useRouter();
-  const [result, action, pending] = useActionState<SaveResult | null, FormData>(
-    saveWeight,
-    null,
-  );
+  // Sent by hand, so a refused save keeps what you typed (form-action.ts).
+  const [result, submit, pending] = useFormAction<SaveResult>(saveWeight);
 
   return (
-    <form action={action} className="flex flex-col gap-4">
+    <form onSubmit={submit} className="flex flex-col gap-4">
       <label className="flex flex-col gap-1.5">
         <span className="text-sm text-muted">Day</span>
         <input

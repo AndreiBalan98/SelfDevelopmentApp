@@ -1,19 +1,16 @@
 "use client";
 
-import { useActionState } from "react";
 import { renameProduct, type Result } from "../actions";
+import { useFormAction } from "../../form-action";
 import { BOX, CARD, ROW, SMALL } from "../../ui";
 
 // The name is the one thing that stays editable once a product has been used.
 // It's a label for you; nothing calculates anything from it.
 export function RenameForm({ id, name }: { id: number; name: string }) {
-  const [result, action, pending] = useActionState<Result | null, FormData>(
-    renameProduct,
-    null,
-  );
+  const [result, submit, pending] = useFormAction<Result>(renameProduct);
 
   return (
-    <form action={action} className="flex flex-col gap-1.5">
+    <form onSubmit={submit} className="flex flex-col gap-1.5">
       <input type="hidden" name="id" value={id} />
 
       <div className={CARD}>

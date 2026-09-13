@@ -59,6 +59,8 @@ app/                 every screen, and the server code behind it
                      so they can't drift apart
     value-list.tsx   the Products and Recipes lists, which are one screen:
                      search, sort pills, the retired toggle, the value numbers
+    form-action.ts   how a form with boxes to type in sends its save, so a
+                     refused save never wipes what you typed
     loading.tsx      (in each screen folder) that screen's skeleton — what shows
                      the instant you tap, while its data loads
     meals/           Nutrition → Today: one day at a time, with the day's totals
@@ -183,6 +185,21 @@ Until 2026-09-12 every pause in typing asked the server to search again, and eve
 answer arrived as a reloaded page, which jumped you back to the top. Adding a food to
 a meal or an ingredient to a recipe did the same. Now Add saves, and the screen redraws
 around the new line without moving.
+
+### A refused save keeps what you typed
+
+When a save is refused — a price that isn't a number, a servings count of "two" — the
+message appears and **every box stays exactly as you left it**, so you fix the one that's
+wrong and save again. After a successful save the boxes keep what you typed, too.
+
+Until step 7.7c that wasn't so. Forms were handed to React in a way that puts every box
+back to how the screen opened once a save is over, refused or not: one typo on a new
+product lost its name and every nutrition value, and on an existing one the next save
+quietly stored the old values. Settings hit it first and was fixed on its own in 7.3;
+7.7c fixed every other form with boxes to type in, through one shared piece,
+`form-action.ts`. **Any new form with boxes uses it.** Forms that are only a button —
+Delete, Retire, Remove, Repeat — have nothing to lose and are left as they were, and so
+is the PIN screen, where clearing a wrong PIN is the point.
 
 ## The shell: tabs, and the red dots
 

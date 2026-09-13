@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useState } from "react";
 import { dayFor, dayLabel, localTimestamp, weekdayName } from "@/lib/day";
 import { updateMeal, type Result } from "../actions";
+import { useFormAction } from "../../form-action";
 import { BOX, CARD, PRIMARY, ROW, SEGMENT, SEGMENT_CHOSEN, SEGMENTS } from "../../ui";
 
 type Props = {
@@ -16,7 +17,8 @@ type Props = {
 };
 
 export function MealDetailsForm({ id, date, time, day, type, note, score }: Props) {
-  const [result, action, pending] = useActionState<Result | null, FormData>(updateMeal, null);
+  // Sent by hand, so a refused save keeps everything you typed (form-action.ts).
+  const [result, submit, pending] = useFormAction<Result>(updateMeal);
 
   const [when, setWhen] = useState({ date, time });
   const [countsTowards, setCountsTowards] = useState(day);
@@ -36,7 +38,7 @@ export function MealDetailsForm({ id, date, time, day, type, note, score }: Prop
   const disagrees = byTheRule !== null && byTheRule !== countsTowards;
 
   return (
-    <form action={action} className="flex flex-col gap-4">
+    <form onSubmit={submit} className="flex flex-col gap-4">
       {/* The type and the score are buttons, so they travel in hidden fields. */}
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="type" value={mealType} />

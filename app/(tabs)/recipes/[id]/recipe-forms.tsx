@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { deleteRecipe, setCookedWeight, setRetired, updateLabels, type Result } from "../actions";
 import { Notes } from "../recipe-form";
+import { useFormAction } from "../../form-action";
 import { BOX, CARD, QUIET, ROW, SMALL } from "../../ui";
 
 // The name and the notes are the two things that stay editable once a recipe
@@ -16,13 +17,10 @@ export function LabelsForm({
   name: string;
   notes: string | null;
 }) {
-  const [result, action, pending] = useActionState<Result | null, FormData>(
-    updateLabels,
-    null,
-  );
+  const [result, submit, pending] = useFormAction<Result>(updateLabels);
 
   return (
-    <form action={action} className="flex flex-col gap-4">
+    <form onSubmit={submit} className="flex flex-col gap-4">
       <input type="hidden" name="id" value={id} />
 
       <div className={CARD}>
@@ -69,13 +67,10 @@ export function CookedWeightForm({
   id: number;
   cookedWeight: number | null;
 }) {
-  const [result, action, pending] = useActionState<Result | null, FormData>(
-    setCookedWeight,
-    null,
-  );
+  const [result, submit, pending] = useFormAction<Result>(setCookedWeight);
 
   return (
-    <form action={action} className="flex flex-col items-end gap-1">
+    <form onSubmit={submit} className="flex flex-col items-end gap-1">
       <input type="hidden" name="id" value={id} />
 
       <span className="flex items-center gap-1.5">

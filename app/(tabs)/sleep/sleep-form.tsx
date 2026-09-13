@@ -1,9 +1,10 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatDuration, minutesAsleep } from "@/lib/sleep";
 import { saveSleep, type Result } from "./actions";
+import { useFormAction } from "../form-action";
 
 const FIELD =
   "rounded-lg border border-border bg-surface px-3 py-2.5 text-base outline-none focus:border-accent";
@@ -21,7 +22,8 @@ type Props = {
 
 export function SleepForm({ date, today, existing }: Props) {
   const router = useRouter();
-  const [result, action, pending] = useActionState<Result | null, FormData>(saveSleep, null);
+  // Sent by hand, so a refused save keeps what you typed (form-action.ts).
+  const [result, submit, pending] = useFormAction<Result>(saveSleep);
 
   const [bedtime, setBedtime] = useState(existing?.bedtime ?? "");
   const [wakeTime, setWakeTime] = useState(existing?.wake_time ?? "");
@@ -35,7 +37,7 @@ export function SleepForm({ date, today, existing }: Props) {
     bedtime !== "" && wakeTime !== "" && bedtime > wakeTime;
 
   return (
-    <form action={action} className="flex flex-col gap-4">
+    <form onSubmit={submit} className="flex flex-col gap-4">
       <input type="hidden" name="quality" value={quality ?? ""} />
 
       <label className="flex flex-col gap-1.5">

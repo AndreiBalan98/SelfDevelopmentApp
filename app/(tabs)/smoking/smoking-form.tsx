@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
 import { useRouter } from "next/navigation";
 import { saveSmoking, type Result } from "./actions";
+import { useFormAction } from "../form-action";
 
 const FIELD =
   "rounded-lg border border-border bg-surface px-4 py-3 text-base outline-none focus:border-accent";
@@ -15,10 +15,11 @@ type Props = {
 
 export function SmokingForm({ date, today, existing }: Props) {
   const router = useRouter();
-  const [result, action, pending] = useActionState<Result | null, FormData>(saveSmoking, null);
+  // Sent by hand, so a refused save keeps what you typed (form-action.ts).
+  const [result, submit, pending] = useFormAction<Result>(saveSmoking);
 
   return (
-    <form action={action} className="flex flex-col gap-4">
+    <form onSubmit={submit} className="flex flex-col gap-4">
       <label className="flex flex-col gap-1.5">
         <span className="text-sm text-muted">Day</span>
         <input

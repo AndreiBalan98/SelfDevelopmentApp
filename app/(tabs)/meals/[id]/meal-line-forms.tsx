@@ -8,17 +8,19 @@ import {
   setMealLineAmount,
   type Result,
 } from "../actions";
+import { useFormAction } from "../../form-action";
 import { BOX, QUIET, SMALL, SMALL_PRIMARY } from "../../ui";
 
 // Adding a line, then telling the search box it worked so it can empty itself.
 // The meal redraws in place with the new line in it; the page doesn't reload,
-// so it stays where you'd scrolled to.
+// so it stays where you'd scrolled to. Sent by hand, so a refused add keeps what
+// you typed (form-action.ts).
 function useAddLine(onAdded: () => void) {
-  return useActionState<Result | null, FormData>(async (previous, form) => {
+  return useFormAction<Result>(async (previous, form) => {
     const outcome = await addMealLine(previous, form);
     if (outcome.ok) onAdded();
     return outcome;
-  }, null);
+  });
 }
 
 function Failure({ result }: { result: Result | null }) {
@@ -44,7 +46,7 @@ export function AddProductLine({
   pieceGrams: number | null;
   onAdded: () => void;
 }) {
-  const [result, action, pending] = useAddLine(onAdded);
+  const [result, submit, pending] = useAddLine(onAdded);
   const [pieces, setPieces] = useState(pieceGrams !== null);
   const [amount, setAmount] = useState("");
 
@@ -55,7 +57,7 @@ export function AddProductLine({
       : null;
 
   return (
-    <form action={action} className="flex flex-col gap-1.5 py-2.5">
+    <form onSubmit={submit} className="flex flex-col gap-1.5 py-2.5">
       <input type="hidden" name="meal_id" value={mealId} />
       <input type="hidden" name="kind" value="product" />
       <input type="hidden" name="product_id" value={productId} />
@@ -121,10 +123,10 @@ export function AddRecipeLine({
   caloriesPerServing: number;
   onAdded: () => void;
 }) {
-  const [result, action, pending] = useAddLine(onAdded);
+  const [result, submit, pending] = useAddLine(onAdded);
 
   return (
-    <form action={action} className="flex flex-col gap-1.5 py-2.5">
+    <form onSubmit={submit} className="flex flex-col gap-1.5 py-2.5">
       <input type="hidden" name="meal_id" value={mealId} />
       <input type="hidden" name="kind" value="recipe" />
       <input type="hidden" name="recipe_id" value={recipeId} />
@@ -180,10 +182,7 @@ export function EditMealLine({
   amount: number;
   unit: string;
 }) {
-  const [saveResult, save, saving] = useActionState<Result | null, FormData>(
-    setMealLineAmount,
-    null,
-  );
+  const [saveResult, save, saving] = useFormAction<Result>(setMealLineAmount);
   const [removeResult, remove, removing] = useActionState<Result | null, FormData>(
     removeMealLine,
     null,
@@ -195,7 +194,7 @@ export function EditMealLine({
     <>
       <div className="flex justify-end">
         <span className="flex shrink-0 items-center gap-1.5">
-          <form action={save} className="flex items-center gap-1.5">
+          <form onSubmit={save} className="flex items-center gap-1.5">
             <input type="hidden" name="meal_id" value={mealId} />
             <input type="hidden" name="line_id" value={lineId} />
             <input type="hidden" name="kind" value={kind} />

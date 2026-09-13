@@ -4,12 +4,13 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Phase 7 step 7.7b (Duplicate, and the product and recipe screens in the new look) is
-built and waiting for Andrei's phone test.** Steps 7.0–7.7 are done, tested on the phone
-and approved, black coffee's follow-up included. Phases 1–6 are complete and the app has
+**Phase 7 step 7.7c (a refused save keeps what you typed, on every form) is built and
+waiting for Andrei's phone test.** Steps 7.0–7.7b are done, tested on the phone and
+approved. Next after it is 7.8 (the Smoking tab). Phases 1–6 are complete and the app has
 been in daily use since 2026-09-01. No library has been added in phase 7.
 
-Where phase 7 stands (estimated 2026-09-12, updated 2026-09-13): 9 of 19 steps done; about 45% by code
+Where phase 7 stands (estimated 2026-09-12; step count updated 2026-09-13): 11 of 21 steps
+done, 7.7b and 7.7c having been added; about 45% by code
 (about 4,350 lines written of an estimated 9,500) and about 40% by time (about 7 hours
 spent, 9–12 to go). The chart and stats steps — 7.8, 7.11, 7.13 — are the heavy ones.
 
@@ -37,16 +38,9 @@ Don't design it or raise it.
 
 ## Waiting on me (Andrei)
 
-1. **Commit and push step 7.7b, then test it on the phone** (what to test is in the step
+1. **Commit and push step 7.7c, then test it on the phone** (what to test is in the step
    report), and approve it or ask for changes.
-2. **A decision on a bug found while testing 7.7b** (it was already there, not caused by
-   it): when a save is refused — a price that isn't a number, say — every other box on
-   the form goes back to how the screen opened, so one typo on a new product loses its
-   name and every nutrition value, and on an existing one the next save quietly stores
-   the old values. Proposed: a small step 7.7c that fixes it on every form of this kind
-   at once, the way the Settings form was fixed in 7.3. Waiting on the answer.
-3. The small calls listed under Decisions for 7.7b (2026-09-13) — say if any should
-   change.
+2. **Say go for step 7.8** (the Smoking tab) once 7.7c is approved.
 
 Migrations 0001–0005 have all been run. Steps 7.1, 7.2, 7.4 and 7.4b had no migration.
 
@@ -55,6 +49,11 @@ tracked here and doesn't need raising.
 
 ## Done
 
+- 2026-09-13 — **Phase 7 step 7.7b complete: Duplicate, and the product and recipe
+  screens in the new look.** Duplicate next to Replace on every product and recipe, "(copy)"
+  in the name, a recipe's ingredients copied exactly as they are; the product and recipe
+  screens and their add / edit / replace forms restyled, working as before. Tested on the
+  phone and approved, including the small calls under Decisions.
 - 2026-09-13 — **Phase 7 step 7.7 complete: the Products and Recipes lists.** Sort pills
   (A–Z · Cheapest protein · Cheapest calories), lei per 30 g protein and per 1,000 kcal on
   every row, "low protein" and "low calorie" labels at the bottom of the value sorts, the
@@ -218,7 +217,8 @@ stands, differs from it in four places:
 | 7.5b | The backup reads every table 1,000 rows at a time, so it's never cut off at Supabase's 1,000-row limit; found while testing 7.5. Extended at Andrei's request to every whole-table read in the app *(done)* |
 | 7.6 | "Where did it come from?" panels (on Today; the stats section reuses them later) *(done)* |
 | 7.7 | Recipes and Products lists: sort pills, lei per 30 g protein and per 1,000 kcal, the "low protein" / "low calorie" labels; restyle both lists *(split from the old 7.7 on 2026-09-13; done)* |
-| 7.7b | Duplicate on a product's and a recipe's screen; restyle the add / edit / replace forms, the product screen and the recipe screen *(built, waiting for the phone test)* |
+| 7.7b | Duplicate on a product's and a recipe's screen; restyle the add / edit / replace forms, the product screen and the recipe screen *(done)* |
+| 7.7c | A refused save keeps what you typed, on every form with boxes to type in — found while testing 7.7b *(built, waiting for the phone test)* |
 | 7.8 | Smoking tab: the shared range control and the chart base with its rotate button, proven on the bar chart with its two averages, and the list; restyle the entry form behind the "+" |
 | 7.9 | Weight: dots chart, averages, invented points, goal line, list; restyle the entry form behind the "+" |
 | 7.10 | TDEE estimate and the formula comparison |
@@ -628,7 +628,8 @@ of scope for the rewrite. **Done 2026-09-11:** Andrei ran the review himself; se
 2026-09-13 — Step 7.7 small calls: **the lists open on A–Z** (the plan doesn't say; the mockup's pill is an illustration) — finding an item to open is the everyday job, and every row shows both numbers whatever the sort. The number the list is sorted by is the big one on the row (protein on A–Z, as the mockup draws it). Rows are numbered only in the two value sorts; items without that number go to the bottom unnumbered, greyed and A–Z, as the mockup draws honey. A number too absurd to show is replaced by its label wherever it would appear, so "low calorie" also shows on the small second line. **Rows follow the mockup and carry only the name and the two value numbers**: the old "price per 100 g" and "kcal" on a product row, and "4 servings · 250 g each" and kcal per serving on a recipe row, are gone from the lists (all still on the item's own screen). The list sits on the screen background with hairlines between rows, as the mockup draws it, rather than in a card. The big "Add a product/recipe" button at the bottom became "+ New product/recipe" at the top right, as the mockup draws it. Long names wrap rather than being cut short. The toggle is Tabler's toggle icon, green when on. Search sits between the toggle row and the pills (the plan: above the pills). The chosen pill's pale green is a new palette colour, `--accent-pale`, which 7.8 will give the other tabs.
 2026-09-13 — Step 7.7b: Duplicate opens the add form at `?duplicate=<id>` (Replace stays `?copy=<id>`), filled in from the original and named "<name> (copy)"; saving creates a separate item and touches nothing else. A recipe's copy takes its ingredients exactly as they are (`linesForCopy(id, false)`), and the duplicate screen names any retired ones before saving. Checked in the scratchpad end to end against a stand-in database that saves: new, edit, rename, Duplicate and Replace on products and recipes; the originals untouched by Duplicate, field for field; Replace still retiring and linking, and still following Oats → Oats 2; a note over several lines surviving a duplicate and a save; adding, changing and removing ingredients; every screen at iPhone 13 and SE sizes with nothing running off the side.
 2026-09-13 — Step 7.7b small calls: **the forms follow Settings and one meal's screen** — a card of rows, the label on the left and the box on the right, with the unit after it; grams or millilitres is a segmented control; hints are small grey lines under the card they belong to; the package price now says "lei". **The notes on a recipe stay a box several lines tall**, under the card, because a one-line box drops the line breaks in a note and would rewrite it on the next save. The product's "Per 100 g" figures and a recipe's "Per serving" are the same EU-order card as a meal's details, "of which" lines indented; a recipe's per-serving cost now says "lei". The buttons at the bottom are full width: Replace in green, then Duplicate, Retire and Delete, plain. **A retired ingredient is crossed out in a recipe's ingredient list**, as retired items are in the lists — new, and it matters now that a duplicate can carry one. The add form's title is "New product" / "New recipe", matching "+ New" on the lists (it said "Add a product"); a copy's is "Replace product" or "Duplicate product". **Cancel on a replace or duplicate form goes back to the item it came from**, not to the list. A duplicated recipe keeps the original's servings, cooked weight and notes, as Replace does.
-2026-09-13 — **Found while testing 7.7b, not caused by it, not yet fixed**: every form sent through React's form `action` puts its boxes back to how the screen opened after a refused save (the trap 7.3 found in Settings). Confirmed on the committed code and on 7.7b alike: change the fat, mistype the price, save — refused — and the fat box is empty again; fix the price and save, and the fat is stored empty. Waiting on Andrei (see Waiting on me).
+2026-09-13 — **Step 7.7c: every form with boxes to type in sends its save by hand** (`app/(tabs)/form-action.ts`, `useFormAction`), as Settings has since 7.3, instead of through the form's `action` (Andrei's go, fixing it everywhere at once). A refused save leaves every box as it was; nothing is reset after a save at all. Switched: the product form, rename, the recipe form, name and notes, cooked weight, adding and changing a recipe ingredient, adding and changing a meal line, a meal's details, and the weight, sleep and smoking forms. Left as they were: forms that are only a button (Delete, Retire, Remove, Repeat) — nothing typed to lose — and the PIN screen, where clearing a wrong PIN is wanted. Accepted cost: after a successful save a box shows what you typed rather than what was stored — "79,6" rather than "79.6" — until you leave the screen; the figures and lists beside it show the stored value. Checked in the scratchpad: on each kind of form, fill several boxes, get refused, check every box (and the grams/millilitres choice, tapping Save again without typing) is as left, fix the one wrong box, save, and check what was stored; the same check fails on the code as committed, where a refused save wiped the new product's name; then all ten of 7.7b's end-to-end checks again, redirects and Duplicate included.
+2026-09-13 — **Found while testing 7.7b, not caused by it** (fixed in 7.7c, above): every form sent through React's form `action` puts its boxes back to how the screen opened after a refused save (the trap 7.3 found in Settings). Confirmed on the committed code and on 7.7b alike: change the fat, mistype the price, save — refused — and the fat box is empty again; fix the price and save, and the fat is stored empty. Waiting on Andrei (see Waiting on me).
 2026-09-13 — **Anything "low calorie" (under 20 kcal per 100 g or ml) is "low protein" too** (Andrei's call after the 7.7 test). By the plan's rule alone, black coffee's sliver of protein is a fifth of its sliver of calories, so it was ranked in Cheapest protein at about 4,800 lei per 30 g. Nothing that light is a source of protein. Both rules now live together in `lib/value.ts`, and the spend panel on Today uses the same ones — so it now knows each food's weight: a product line's amount (1 ml as 1 g), a recipe line's servings times a serving's share of the raw ingredients (never the cooked weight). Checked in the scratchpad: coffee gets both labels and the spend tag; eggs, honey and every earlier result unchanged.
 2026-09-13 — Step 7.6 small calls: the panel's bar follows the mockup, so a food taking half the total fills it (anything bigger is full too); calories and spend bars are Nutrition green, the nutrients their own colours. Grams under 10 show one decimal ("6.5 g") so a small amount isn't "0 g"; under 1% shows "<1%". The subtitle is the date row's own words: "Today, 13 Sep · 1,669 kcal total". "Show all" has no count and no "show fewer"; closing the panel resets it. Tapping the line under the fat bar opens saturated fat — the only place on Today that number is shown. The Day details figures aren't tappable: the plan lists the hero, the bars, the stats boxes and the chart bars. A past day with no meals says "Nothing logged for this day yet."; a food list with none of that nutrient says "None of it adds any fibre." A tapped number dims slightly while pressed, so a tap is visibly received.
 

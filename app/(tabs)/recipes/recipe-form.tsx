@@ -1,7 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
 import type { Result } from "./actions";
+import { useFormAction } from "../form-action";
 import { BOX, CARD, HEADING, PRIMARY, ROW } from "../ui";
 
 export type RecipeDefaults = {
@@ -49,10 +49,11 @@ export function Notes({ defaultValue }: { defaultValue?: string | null }) {
 }
 
 export function RecipeForm({ action, defaults = {}, submitLabel, replaces, duplicates, id }: Props) {
-  const [result, submit, pending] = useActionState<Result | null, FormData>(action, null);
+  // Sent by hand, so a refused save keeps everything you typed (form-action.ts).
+  const [result, submit, pending] = useFormAction<Result>(action);
 
   return (
-    <form action={submit} className="flex flex-col gap-4">
+    <form onSubmit={submit} className="flex flex-col gap-4">
       {replaces !== undefined && <input type="hidden" name="replaces" value={replaces} />}
       {duplicates !== undefined && <input type="hidden" name="duplicates" value={duplicates} />}
       {id !== undefined && <input type="hidden" name="id" value={id} />}
