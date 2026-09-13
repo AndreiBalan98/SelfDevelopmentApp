@@ -4,12 +4,14 @@ import { db } from "@/lib/supabase";
 import { dateRowLabel, dayFor, shiftDays, timeIn } from "@/lib/day";
 import { linesForMeals, recentMeals } from "@/lib/meals";
 import { mealTotals, type Nutrient } from "@/lib/nutrition";
+import { sourceItems } from "@/lib/sources";
 import { readTargets } from "@/lib/settings";
 import { readLogDates } from "@/lib/log-dates";
 import { daysLogged, logCounts, streak } from "@/lib/logging";
 import { Calendar } from "./calendar";
 import { AddMealButton } from "./add-meal-button";
 import { DayTotals } from "./day-totals";
+import { Sources } from "./sources";
 import { NutritionDetails } from "./nutrition-details";
 import Loading from "./loading";
 import { NutritionHeader } from "../headers";
@@ -70,9 +72,8 @@ async function Day({ selected, currentDay }: { selected: string; currentDay: str
 
   // The day, added up from every line of every meal on it. Nothing about this
   // is stored — it's the meals themselves, totalled when the screen is drawn.
-  const dayTotals = mealTotals(
-    meals.flatMap((meal) => (lines.get(meal.id) ?? []).map((line) => line.line)),
-  );
+  const dayLines = meals.flatMap((meal) => lines.get(meal.id) ?? []);
+  const dayTotals = mealTotals(dayLines.map((line) => line.line));
 
   const label = dateRowLabel(selected, currentDay);
 
@@ -133,12 +134,14 @@ async function Day({ selected, currentDay }: { selected: string; currentDay: str
         </p>
       ) : (
         <>
-          <DayTotals
-            nutrition={dayTotals.nutrition}
-            cost={dayTotals.cost}
-            targets={targets}
-            finished={finished}
-          />
+          <Sources items={sourceItems(dayLines)} label={label}>
+            <DayTotals
+              nutrition={dayTotals.nutrition}
+              cost={dayTotals.cost}
+              targets={targets}
+              finished={finished}
+            />
+          </Sources>
 
           {meals.length === 0 ? (
             <p className="text-sm text-muted">Nothing logged for this day yet.</p>

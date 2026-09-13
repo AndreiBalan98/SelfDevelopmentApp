@@ -4,10 +4,10 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Phase 7 steps 7.0–7.5b are done, tested on the phone and approved. Next is step 7.6
-("where did it come from?" panels on Today), when Andrei says go.** Phases 1–6 are
-complete and the app has been in daily use since 2026-09-01. No library has been added
-in phase 7. Session ended 2026-09-12.
+**Phase 7 step 7.6 ("where did it come from?" panels on Today) is built and waiting for
+Andrei's phone test.** Steps 7.0–7.5b are done, tested on the phone and approved.
+Phases 1–6 are complete and the app has been in daily use since 2026-09-01. No library
+has been added in phase 7.
 
 Where phase 7 stands (estimated 2026-09-12): 8 of 19 steps done; about 45% by code
 (about 4,350 lines written of an estimated 9,500) and about 40% by time (about 7 hours
@@ -37,10 +37,10 @@ Don't design it or raise it.
 
 ## Waiting on me (Andrei)
 
-1. **Commit this file** — it records 7.5b as approved and the session's end.
-2. **Say go for step 7.6**, and confirm one detail with it: in a "where did it come
-   from?" panel, a recipe counts as one item ("Burritos") rather than being split into
-   its ingredients, as the mockup shows.
+1. **Commit and push step 7.6, then test it on the phone** (what to test is in the
+   step report), and approve it or ask for changes.
+2. The small calls listed under Decisions for 7.6 (2026-09-13) — say if any should
+   change.
 
 Migrations 0001–0005 have all been run. Steps 7.1, 7.2, 7.4 and 7.4b had no migration.
 
@@ -198,7 +198,7 @@ stands, differs from it in four places:
 | 7.4b | Restyle one meal's screen (`/meals/[id]`) to the new look: its lines, the food search, time, day, type, note, score. Works exactly as now *(done)* |
 | 7.5 | Calendar heatmap with the streak and the days-logged counter *(done)* |
 | 7.5b | The backup reads every table 1,000 rows at a time, so it's never cut off at Supabase's 1,000-row limit; found while testing 7.5. Extended at Andrei's request to every whole-table read in the app *(done)* |
-| 7.6 | "Where did it come from?" panels (on Today; the stats section reuses them later) |
+| 7.6 | "Where did it come from?" panels (on Today; the stats section reuses them later) *(built, waiting for the phone test)* |
 | 7.7 | Recipes and Products: sort pills, lei per 30 g protein and per 1,000 kcal, and Duplicate; restyle both lists, the add / edit / replace forms and the recipe screen |
 | 7.8 | Smoking tab: the shared range control and the chart base with its rotate button, proven on the bar chart with its two averages, and the list; restyle the entry form behind the "+" |
 | 7.9 | Weight: dots chart, averages, invented points, goal line, list; restyle the entry form behind the "+" |
@@ -242,8 +242,10 @@ Not needed now, and written here so they aren't lost:
   ingredients follow `replaced_by` to the current version the way Replace does.
 - **Streak (7.5):** ~~is "one missed day per week" counted per calendar week or across
   any seven days in a row?~~ **Decided 2026-09-12: per calendar week, Monday to Sunday.**
-- **Where did it come from (7.6):** a recipe line counts as the recipe as a whole
-  ("Burritos"), not its ingredients. The mockups show it that way; confirm when building.
+- **Where did it come from (7.6):** ~~a recipe line counts as the recipe as a whole
+  ("Burritos"), not its ingredients. The mockups show it that way; confirm when
+  building.~~ **Decided 2026-09-13: as a whole**, and each product version is its own
+  row (see Decisions).
 - **Weekly digest (7.13):** is "the previous week" the seven days before the last
   seven, or the previous calendar week?
 - **Milestones (7.16):** Claude proposes the full list.
@@ -595,6 +597,11 @@ of scope for the rewrite. **Done 2026-09-11:** Andrei ran the review himself; se
 2026-09-12 — **Nothing in the app reads a whole table in one question any more** (Andrei's call: he wanted to know for sure, rather than leave the other reads for later). All six other places — the Products and Recipes lists, a recipe's screen, the meal food search (the catalogue), repeating a meal, replacing a recipe — go through `allRows` in `lib/pages.ts`, ordered with the id as a tie-breaker. Everything else in the app is held small by what it asks for (one day, one item, the last few). Checked in the scratchpad with Supabase's cap reproduced and 1,202 products, 1,101 recipes and 1,101 recipe lines: every place finds the items stored past row 1,000 — and the same checks fail against the code as committed, so they really test it. **Rule from now on: anything that reads a whole table uses `lib/pages.ts`.**
 2026-09-12 — The hero's target lines carry no unit: "of 2,000" under the calories and "of 33" under the spend (Andrei's call after the 7.4 phone test). The number above each already says kcal or lei.
 2026-09-12 — Meal rows: "Meal"/"Snack" in the mockup's pale green and coral (`--meal-label`, `--snack-label`), time, the names; calories and cost on the right; the macro letters underneath. An empty meal says "empty".
+2026-09-13 — **In a "where did it come from?" panel, a recipe is one row as a whole** ("Burritos"), not split into its ingredients (Andrei's decision, as the mockup shows). It's what was eaten and logged, and the level you can act on.
+2026-09-13 — **Each version of a product is its own row in a panel**: "Oats" and "Oats 2" stay apart, as stored, rather than being merged along the replacement chain (Andrei's decision). Simple, and honest about which version was eaten. The same food eaten twice in the range is one row, amounts added. Rows are grouped by the product's or recipe's id, so two items that happen to share a name stay apart.
+2026-09-13 — Step 7.6: the grouping, sorting, shares and the "low protein" rule live in `lib/sources.ts`, pure, and run on the phone from the day's foods, which come with the screen — so a panel opens instantly. Checked in the scratchpad: repeats merge, versions stay apart, a recipe eaten as 1 + 0.5 servings adds up, pieces convert, every panel's total equals the day's own total and its shares add to 100, zero rows are left out, ties go by name, exactly 5% gets the tag and 4.9% doesn't, exactly 10% of calories from protein isn't low protein. Then on the real screen at iPhone 13 and SE sizes against invented data: every panel's numbers, the tags, Show all, a very long name, a past day with no meals, and "set a target" still going to Settings.
+2026-09-13 — **Something with no protein at all counts as low protein, even with no calories** (a diet drink, salt). The plan's rule — protein under 10% of calories — can't be worked out without calories, and money spent on something with no protein is exactly what the spend tag is for. Anything with some protein and no calories isn't tagged. The Products and Recipes lists use the same function from 7.7.
+2026-09-13 — Step 7.6 small calls: the panel's bar follows the mockup, so a food taking half the total fills it (anything bigger is full too); calories and spend bars are Nutrition green, the nutrients their own colours. Grams under 10 show one decimal ("6.5 g") so a small amount isn't "0 g"; under 1% shows "<1%". The subtitle is the date row's own words: "Today, 13 Sep · 1,669 kcal total". "Show all" has no count and no "show fewer"; closing the panel resets it. Tapping the line under the fat bar opens saturated fat — the only place on Today that number is shown. The Day details figures aren't tappable: the plan lists the hero, the bars, the stats boxes and the chart bars. A past day with no meals says "Nothing logged for this day yet."; a food list with none of that nutrient says "None of it adds any fibre." A tapped number dims slightly while pressed, so a tap is visibly received.
 
 ## Deferred
 

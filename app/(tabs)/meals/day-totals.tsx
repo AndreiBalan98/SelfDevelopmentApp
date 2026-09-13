@@ -11,7 +11,9 @@ import {
   type Judgement,
   type Kind,
 } from "@/lib/targets";
+import type { Metric } from "@/lib/sources";
 import { CheckIcon } from "../icons";
+import { SourceTap } from "./sources";
 
 // The top of Nutrition → Today: calories and money as the hero, then a bar for
 // each nutrient, all measured by the phase 7 target rules (lib/targets.ts).
@@ -19,6 +21,9 @@ import { CheckIcon } from "../icons";
 // Bars keep their nutrient colour; red appears only on the part that's over
 // and on the number. A target that isn't set shows its number with no bar and
 // is never red.
+//
+// Tapping the calories, the spend, a bar or the fat line underneath opens
+// "where did it come from?" for that number (./sources.tsx).
 
 const whole = (value: number) => Math.round(value).toLocaleString("en-GB");
 
@@ -55,7 +60,7 @@ function Hero({
 
   return (
     <div className="flex items-end gap-[18px]">
-      <div>
+      <SourceTap metric="calories">
         <p
           className={`text-[32px] font-semibold leading-none tabular-nums ${
             calorie?.red ? "text-danger" : ""
@@ -83,9 +88,9 @@ function Hero({
             </>
           )}
         </p>
-      </div>
+      </SourceTap>
 
-      <div>
+      <SourceTap metric="cost">
         <p
           className={`text-[17px] font-semibold leading-none tabular-nums ${
             spend?.red ? "text-danger" : "text-muted"
@@ -102,7 +107,7 @@ function Hero({
             `of ${targets.daily_budget.toLocaleString("en-GB")}`
           )}
         </p>
-      </div>
+      </SourceTap>
     </div>
   );
 }
@@ -218,6 +223,7 @@ function Track({
 
 function NutrientRow({
   name,
+  metric,
   value,
   target,
   kind,
@@ -227,6 +233,7 @@ function NutrientRow({
   children,
 }: {
   name: string;
+  metric: Metric;
   value: number;
   target: number | null;
   kind: Kind;
@@ -239,25 +246,28 @@ function NutrientRow({
 
   return (
     <div>
-      <div className="mb-1.5 flex items-baseline justify-between gap-3 text-[13px]">
-        <span>{name}</span>
-        <Reading value={value} judgement={judgement} />
-      </div>
-      {judgement && (
-        <Track value={value} judgement={judgement} colour={colour} saturated={saturated} />
-      )}
+      <SourceTap metric={metric}>
+        <div className="mb-1.5 flex items-baseline justify-between gap-3 text-[13px]">
+          <span>{name}</span>
+          <Reading value={value} judgement={judgement} />
+        </div>
+        {judgement && (
+          <Track value={value} judgement={judgement} colour={colour} saturated={saturated} />
+        )}
+      </SourceTap>
       {children}
     </div>
   );
 }
 
 // Under the fat bar: how it splits, and the ratio against the goal. Only the
-// ratio ever turns red, when the saturated share is over the limit.
+// ratio ever turns red, when the saturated share is over the limit. Tapping it
+// opens where the saturated fat came from.
 function FatLine({ fat, saturated, goal }: { fat: number; saturated: number; goal: number | null }) {
   const split = fatSplit(fat, saturated, goal);
 
   return (
-    <p className="mt-[7px] text-xs text-muted tabular-nums">
+    <SourceTap metric="saturated_fat" className="mt-[7px] text-xs text-muted tabular-nums">
       <span className="mr-1 inline-block h-2 w-[9px] rounded-[2px] bg-saturated align-middle" />
       Sat {whole(split.saturated)} g ·{" "}
       <span className="mr-1 inline-block h-2 w-[9px] rounded-[2px] bg-unsaturated align-middle" />
@@ -269,7 +279,7 @@ function FatLine({ fat, saturated, goal }: { fat: number; saturated: number; goa
           {goal !== null && <span className="text-faint"> (goal 1 : {ratio(goal)})</span>}
         </>
       )}
-    </p>
+    </SourceTap>
   );
 }
 
@@ -293,6 +303,7 @@ export function DayTotals({
       <div className="flex flex-col gap-[15px]">
         <NutrientRow
           name="Protein"
+          metric="protein"
           value={nutrition.protein}
           target={targets.protein_target}
           kind="zone"
@@ -301,6 +312,7 @@ export function DayTotals({
         />
         <NutrientRow
           name="Carbs"
+          metric="carbs"
           value={nutrition.carbs}
           target={targets.carbs_target}
           kind="zone"
@@ -309,6 +321,7 @@ export function DayTotals({
         />
         <NutrientRow
           name="Added sugar"
+          metric="sugars_added"
           value={nutrition.sugars_added}
           target={targets.added_sugar_max}
           kind="ceiling"
@@ -317,6 +330,7 @@ export function DayTotals({
         />
         <NutrientRow
           name="Fibre"
+          metric="fibre"
           value={nutrition.fibre}
           target={targets.fibre_target}
           kind="zone"
@@ -325,6 +339,7 @@ export function DayTotals({
         />
         <NutrientRow
           name="Fat"
+          metric="fat"
           value={nutrition.fat}
           target={targets.fat_target}
           kind="zone"

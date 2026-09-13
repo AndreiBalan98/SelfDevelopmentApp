@@ -62,6 +62,8 @@ app/                 every screen, and the server code behind it
     meals/           Nutrition → Today: one day at a time, with the day's totals
       nutrition-details.tsx  the full label figures in EU order, shared by
                      Today ("Day details") and one meal ("Meal details")
+      sources.tsx    the "where did it come from?" panel, and what makes a
+                     number open it
       [id]/          one meal: what was in it, when, and how it was
     recipes/         Nutrition → Recipes: list and search, add, edit, replace
       new/           the add form — also the replace form, pre-filled
@@ -110,6 +112,8 @@ lib/
   status.ts          what the red dots say: which logs are missing, backup age
   targets.ts         the target rules: ceilings, ±10% zones, the fat ratio, and
                      where each part of a bar is drawn
+  sources.ts         which foods a number is made of, biggest first, and what
+                     counts as "low protein"
   sleep.ts           how long a night was, including crossing midnight
   series.ts          averages over a run of days, honest about the gaps
   logging.ts         how completely each day was logged, the logging streak and
@@ -613,6 +617,33 @@ either — there's no way to know whether they're a ceiling or a zone — and th
 
 **A past day with no meals is never red.** It's a day that wasn't logged, not a day of
 eating nothing — the same rule the averages follow.
+
+### Where did it come from?
+
+**Tapping the calories, the spend or any nutrient bar** opens a panel from the bottom
+listing the foods that number is made of, biggest first: the name, the amount, its
+share of the total, and a small bar in the nutrient's colour (green for calories and
+spend). A food taking half the total fills its bar, as the mockup draws it. The top
+five show first, then "Show all". **Tapping the line under the fat bar** ("Sat 13 g ·
+Unsat 26 g…") opens the same panel for saturated fat. A "set a target" or "pick a goal"
+link inside a row still goes to Settings.
+
+- **A food is what the line points at**: a product, or a recipe as a whole —
+  "Burritos", not its tortillas and beans. The same food eaten twice in a day is one
+  row with both amounts added.
+- **Each version of a product is its own row**: "Oats" and "Oats 2" stay apart, as
+  they're stored.
+- A food that adds nothing to this number isn't listed — oats have no added sugar.
+- **In the spend panel, a food taking 5% or more of the spend while low in protein
+  gets a "low protein" tag.** Low protein means protein supplies under 10% of its
+  calories, at 4 kcal a gram; something with no protein at all counts too, even with
+  no calories (a diet drink). The Products and Recipes lists use the same definition
+  from step 7.7.
+
+The panel's total is the same number as the one tapped, because both are added up from
+the same lines. All the grouping and sorting is in `lib/sources.ts`; the phone does it
+from the day's foods, which arrive with the screen, so opening a panel never waits on
+the server. The stats section reuses the same panel over a range of days (step 7.13).
 
 ### The calendar heatmap
 
