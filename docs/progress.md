@@ -4,8 +4,9 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Phase 7 step 7.7 (the Recipes and Products lists) is built and waiting for Andrei's
-phone test.** Steps 7.0–7.6 are done, tested on the phone and approved. Phases 1–6 are complete and the app has
+**Phase 7 steps 7.0–7.7 are done, tested on the phone and approved; black coffee's
+follow-up is built and waiting for the phone test. Next is step 7.7b (Duplicate and the
+product and recipe screens), when Andrei says go.** Phases 1–6 are complete and the app has
 been in daily use since 2026-09-01. No library has been added in phase 7.
 
 Where phase 7 stands (estimated 2026-09-12, updated 2026-09-13): 9 of 19 steps done; about 45% by code
@@ -36,14 +37,10 @@ Don't design it or raise it.
 
 ## Waiting on me (Andrei)
 
-1. **Commit and push step 7.7, then test it on the phone** (what to test is in the step
-   report), and approve it or ask for changes.
-2. **A decision on black coffee** (and anything like it): by the plan's rule it isn't
-   "low protein" — its sliver of protein is 20% of its sliver of calories — so it's
-   ranked in the protein sort at about 4,800 lei per 30 g. Proposed: treat anything "low
-   calorie" as "low protein" too. Not built; waiting on the answer.
-3. The small calls listed under Decisions for 7.7 (2026-09-13) — say if any should
-   change.
+1. **Commit and push the black coffee follow-up, and check it on the phone**: anything
+   under 20 kcal per 100 g (black coffee, diet drinks) now reads "low protein" and sits
+   at the bottom of Cheapest protein.
+2. **Say go for step 7.7b.**
 
 Migrations 0001–0005 have all been run. Steps 7.1, 7.2, 7.4 and 7.4b had no migration.
 
@@ -52,6 +49,12 @@ tracked here and doesn't need raising.
 
 ## Done
 
+- 2026-09-13 — **Phase 7 step 7.7 complete: the Products and Recipes lists.** Sort pills
+  (A–Z · Cheapest protein · Cheapest calories), lei per 30 g protein and per 1,000 kcal on
+  every row, "low protein" and "low calorie" labels at the bottom of the value sorts, the
+  new look, one shared list screen (`value-list.tsx`, `lib/value.ts`). Tested on the phone
+  and approved, including the small calls under Decisions. Follow-up the same day, at
+  Andrei's call: anything low calorie is low protein too (waiting for its phone check).
 - 2026-09-13 — **Phase 7 step 7.6 complete: "where did it come from?" panels on Today.**
   Tapping the calories, the spend, a nutrient bar or the fat line opens a panel of the
   foods behind the number, biggest first, top five then Show all; a recipe is one row,
@@ -208,7 +211,7 @@ stands, differs from it in four places:
 | 7.5 | Calendar heatmap with the streak and the days-logged counter *(done)* |
 | 7.5b | The backup reads every table 1,000 rows at a time, so it's never cut off at Supabase's 1,000-row limit; found while testing 7.5. Extended at Andrei's request to every whole-table read in the app *(done)* |
 | 7.6 | "Where did it come from?" panels (on Today; the stats section reuses them later) *(done)* |
-| 7.7 | Recipes and Products lists: sort pills, lei per 30 g protein and per 1,000 kcal, the "low protein" / "low calorie" labels; restyle both lists *(split from the old 7.7 on 2026-09-13; built, waiting for the phone test)* |
+| 7.7 | Recipes and Products lists: sort pills, lei per 30 g protein and per 1,000 kcal, the "low protein" / "low calorie" labels; restyle both lists *(split from the old 7.7 on 2026-09-13; done)* |
 | 7.7b | Duplicate on a product's and a recipe's screen; restyle the add / edit / replace forms, the product screen and the recipe screen |
 | 7.8 | Smoking tab: the shared range control and the chart base with its rotate button, proven on the bar chart with its two averages, and the list; restyle the entry form behind the "+" |
 | 7.9 | Weight: dots chart, averages, invented points, goal line, list; restyle the entry form behind the "+" |
@@ -617,6 +620,7 @@ of scope for the rewrite. **Done 2026-09-11:** Andrei ran the review himself; se
 2026-09-13 — **A duplicated recipe copies its ingredients exactly as they are, retired ones included** (Andrei's decision, over following them to their replacements the way Replace does). Replace keeps following the chain; Duplicate doesn't.
 2026-09-13 — Step 7.7: the value numbers and the two value sorts live in `lib/value.ts`, pure; "low protein" is the same function the spend panel uses (`lib/sources.ts`). A product's numbers come from 100 of its unit, a recipe's from its whole pan (ingredients added up, 1 ml as 1 g), so servings and the cooked weight never come into them. Checked in the scratchpad against hand-worked numbers (eggs 5.95 lei / 30 g protein and 17.48 lei / 1,000 kcal; a burrito pan 5.78 and 18.44), the same answer from any amount, the edges (exactly 20 kcal per 100 isn't low calorie, exactly 10% protein isn't low protein), protein never stated counting as none, a recipe with no ingredients, and the sort orders. Then on the real screen at iPhone 13 and SE sizes against invented data: every sort, the retired toggle, search, a long name, the skeleton lining up with the loaded screen, row taps and "+ New".
 2026-09-13 — Step 7.7 small calls: **the lists open on A–Z** (the plan doesn't say; the mockup's pill is an illustration) — finding an item to open is the everyday job, and every row shows both numbers whatever the sort. The number the list is sorted by is the big one on the row (protein on A–Z, as the mockup draws it). Rows are numbered only in the two value sorts; items without that number go to the bottom unnumbered, greyed and A–Z, as the mockup draws honey. A number too absurd to show is replaced by its label wherever it would appear, so "low calorie" also shows on the small second line. **Rows follow the mockup and carry only the name and the two value numbers**: the old "price per 100 g" and "kcal" on a product row, and "4 servings · 250 g each" and kcal per serving on a recipe row, are gone from the lists (all still on the item's own screen). The list sits on the screen background with hairlines between rows, as the mockup draws it, rather than in a card. The big "Add a product/recipe" button at the bottom became "+ New product/recipe" at the top right, as the mockup draws it. Long names wrap rather than being cut short. The toggle is Tabler's toggle icon, green when on. Search sits between the toggle row and the pills (the plan: above the pills). The chosen pill's pale green is a new palette colour, `--accent-pale`, which 7.8 will give the other tabs.
+2026-09-13 — **Anything "low calorie" (under 20 kcal per 100 g or ml) is "low protein" too** (Andrei's call after the 7.7 test). By the plan's rule alone, black coffee's sliver of protein is a fifth of its sliver of calories, so it was ranked in Cheapest protein at about 4,800 lei per 30 g. Nothing that light is a source of protein. Both rules now live together in `lib/value.ts`, and the spend panel on Today uses the same ones — so it now knows each food's weight: a product line's amount (1 ml as 1 g), a recipe line's servings times a serving's share of the raw ingredients (never the cooked weight). Checked in the scratchpad: coffee gets both labels and the spend tag; eggs, honey and every earlier result unchanged.
 2026-09-13 — Step 7.6 small calls: the panel's bar follows the mockup, so a food taking half the total fills it (anything bigger is full too); calories and spend bars are Nutrition green, the nutrients their own colours. Grams under 10 show one decimal ("6.5 g") so a small amount isn't "0 g"; under 1% shows "<1%". The subtitle is the date row's own words: "Today, 13 Sep · 1,669 kcal total". "Show all" has no count and no "show fewer"; closing the panel resets it. Tapping the line under the fat bar opens saturated fat — the only place on Today that number is shown. The Day details figures aren't tappable: the plan lists the hero, the bars, the stats boxes and the chart bars. A past day with no meals says "Nothing logged for this day yet."; a food list with none of that nutrient says "None of it adds any fibre." A tapped number dims slightly while pressed, so a tap is visibly received.
 
 ## Deferred

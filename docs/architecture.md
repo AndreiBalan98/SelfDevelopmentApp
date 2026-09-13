@@ -114,10 +114,9 @@ lib/
   status.ts          what the red dots say: which logs are missing, backup age
   targets.ts         the target rules: ceilings, ±10% zones, the fat ratio, and
                      where each part of a bar is drawn
-  sources.ts         which foods a number is made of, biggest first, and what
-                     counts as "low protein"
+  sources.ts         which foods a number is made of, biggest first
   value.ts           lei per 30 g of protein and per 1,000 kcal, what counts
-                     as "low calorie", and the two value sorts
+                     as "low protein" and "low calorie", and the two value sorts
   sleep.ts           how long a night was, including crossing midnight
   series.ts          averages over a run of days, honest about the gaps
   logging.ts         how completely each day was logged, the logging streak and
@@ -332,7 +331,9 @@ A number that would be absurd is replaced by a label, and in that sort the item 
 to the bottom, unnumbered and greyed, A–Z among itself:
 
 - **low protein** — protein supplies under 10% of the item's calories (at 4 kcal a
-  gram), or there's none at all. Honey, fruit, sweets, white rice, oil.
+  gram), or there's none at all, or it's low calorie. Honey, fruit, sweets, white rice,
+  oil — and black coffee, whose sliver of protein would otherwise price 30 g at
+  thousands of lei.
 - **low calorie** — under 20 kcal per 100 g or ml. Salt, spices, diet drinks, black
   coffee.
 
@@ -667,10 +668,10 @@ link inside a row still goes to Settings.
   they're stored.
 - A food that adds nothing to this number isn't listed — oats have no added sugar.
 - **In the spend panel, a food taking 5% or more of the spend while low in protein
-  gets a "low protein" tag.** Low protein means protein supplies under 10% of its
-  calories, at 4 kcal a gram; something with no protein at all counts too, even with
-  no calories (a diet drink). The Products and Recipes lists use the same definition
-  from step 7.7.
+  gets a "low protein" tag.** Low protein is the same definition the Products and
+  Recipes lists use (`lib/value.ts`, below): protein under 10% of the calories, none at
+  all, or under 20 kcal per 100 g — weighed from what was actually eaten, a recipe by
+  its servings' share of the raw ingredients.
 
 The panel's total is the same number as the one tapped, because both are added up from
 the same lines. All the grouping and sorting is in `lib/sources.ts`; the phone does it

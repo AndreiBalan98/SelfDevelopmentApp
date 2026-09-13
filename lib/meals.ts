@@ -36,6 +36,8 @@ export type RecipeSummary = {
   retired: boolean;
   perServing: Nutrition;
   costPerServing: number;
+  // Raw ingredients, 1 ml as 1 g, divided by the servings.
+  weightPerServing: number;
 };
 
 // Everything a food screen needs to know about what exists: the products, and
@@ -85,6 +87,7 @@ export async function loadCatalogue(): Promise<Catalogue> {
       retired: recipe.retired,
       perServing: divideNutrition(totals.nutrition, recipe.servings),
       costPerServing: recipe.servings > 0 ? totals.cost / recipe.servings : 0,
+      weightPerServing: recipe.servings > 0 ? totals.rawWeight / recipe.servings : 0,
     };
   });
 
@@ -144,6 +147,7 @@ export function resolveLines(items: MealItemRow[], catalogue: Catalogue): Resolv
           servings: item.servings,
           perServing: recipe.perServing,
           costPerServing: recipe.costPerServing,
+          weightPerServing: recipe.weightPerServing,
         },
         kind: "recipe",
         amount: item.servings,

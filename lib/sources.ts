@@ -13,9 +13,11 @@ import {
   emptyNutrition,
   mealLineCost,
   mealLineNutrition,
+  mealLineWeight,
   type MealLine,
   type Nutrition,
 } from "@/lib/nutrition";
+import { isLowProtein } from "@/lib/value";
 
 // What a panel can be opened for.
 export type Metric =
@@ -35,6 +37,9 @@ export type SourceItem = {
   name: string;
   nutrition: Nutrition;
   cost: number;
+  // Grams, 1 ml counted as 1 g: for telling whether it's low calorie, and so
+  // low protein.
+  weight: number;
 };
 
 // One row of a panel.
@@ -53,22 +58,15 @@ export type Source = {
 // being low in protein.
 export const TAG_SHARE = 5;
 
-// Low protein: protein supplies under 10% of the food's calories, counting
-// protein at 4 kcal a gram — the definition the Products and Recipes lists use
-// too, from step 7.7. Something with no protein at all is always low in it,
-// even with no calories to compare against: diet drinks, salt, spices.
-export function isLowProtein(nutrition: Nutrition): boolean {
-  return nutrition.protein <= 0 || nutrition.protein * 4 < nutrition.calories * 0.1;
-}
-
 // Every food in these lines, with its lines added together.
 export function sourceItems(lines: Array<{ href: string; name: string; line: MealLine }>): SourceItem[] {
   const byKey = new Map<string, SourceItem>();
 
   for (const { href, name, line } of lines) {
-    const item = byKey.get(href) ?? { key: href, name, nutrition: emptyNutrition(), cost: 0 };
+    const item = byKey.get(href) ?? { key: href, name, nutrition: emptyNutrition(), cost: 0, weight: 0 };
     item.nutrition = addNutrition(item.nutrition, mealLineNutrition(line));
     item.cost += mealLineCost(line);
+    item.weight += mealLineWeight(line);
     byKey.set(href, item);
   }
 
@@ -96,7 +94,7 @@ export function breakdown(items: SourceItem[], metric: Metric): { total: number;
         name: item.name,
         amount,
         share,
-        lowProtein: metric === "cost" && share >= TAG_SHARE && isLowProtein(item.nutrition),
+        lowProtein: metric === "cost" && share >= TAG_SHARE && isLowProtein(item.nutrition, item.weight),
       };
     })
     .sort((a, b) => b.amount - a.amount || a.name.localeCompare(b.name));

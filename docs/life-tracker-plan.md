@@ -835,6 +835,9 @@ sugars, of which added), fibre, protein, salt, cost.
   protein" instead of a price. **Low protein = protein supplies under 10% of the
   item's calories** (protein counted at 4 kcal a gram). That puts honey, fruit, sweets
   and white rice below the line, and bread, pasta, oats, dairy, eggs and meat above it.
+  **Anything low calorie (below) is low protein too** (added 2026-09-13): black
+  coffee's sliver of protein is a fifth of its calories, but nothing that light is a
+  source of protein, and 30 g of it would cost thousands of lei.
 - The same for the calorie sort: **under 20 kcal per 100 g or ml** is labelled "low
   calorie" and goes to the bottom instead of showing an absurd price per 1,000 kcal —
   salt, spices, diet drinks, black coffee. For a recipe, that's per 100 g of its

@@ -11,33 +11,50 @@
 // infinite; those get a label instead and go to the bottom of that sort.
 
 import type { Nutrition } from "@/lib/nutrition";
-import { isLowProtein } from "@/lib/sources";
 
 // Under this many kcal per 100 g or ml, an item is "low calorie": salt,
 // spices, diet drinks, black coffee.
 export const LOW_CALORIE_PER_100 = 20;
 
+// `weight` throughout is grams, with 1 ml counted as 1 g. Without a weight
+// there's nothing to measure against, and nothing is called low calorie.
+export function isLowCalorie(nutrition: Nutrition, weight: number): boolean {
+  return weight > 0 && (nutrition.calories / weight) * 100 < LOW_CALORIE_PER_100;
+}
+
+// Low protein: protein supplies under 10% of the calories, counting protein at
+// 4 kcal a gram. Also low protein, whatever that share:
+//   * no protein at all, even with no calories to compare against (salt);
+//   * anything low calorie. Black coffee's sliver of protein is a fifth of its
+//     sliver of calories, but nothing that light is a source of protein, and
+//     its price per 30 g would be thousands of lei (Andrei's call, 2026-09-13).
+// The Products and Recipes lists and the spend panel on Today all use this.
+export function isLowProtein(nutrition: Nutrition, weight: number): boolean {
+  return (
+    nutrition.protein <= 0 ||
+    nutrition.protein * 4 < nutrition.calories * 0.1 ||
+    isLowCalorie(nutrition, weight)
+  );
+}
+
 export type Value = {
-  // Null when the item is low in protein (see isLowProtein in lib/sources.ts).
+  // Null when the item is low in protein.
   perProtein: number | null;
   // Null when the item is low in calories.
   perKcal: number | null;
 };
 
-// `weight` is the amount in grams, with 1 ml counted as 1 g — for a recipe,
-// its ingredients added up. Nothing to go on (a recipe with no ingredients)
-// gives null.
+// For a recipe, `weight` is its ingredients added up. Nothing to go on (a
+// recipe with no ingredients) gives null.
 export function valueOf(amount: { cost: number; nutrition: Nutrition; weight: number }): Value | null {
   const { cost, nutrition, weight } = amount;
   if (weight <= 0) return null;
 
-  const lowCalorie = (nutrition.calories / weight) * 100 < LOW_CALORIE_PER_100;
-
   return {
     // Not low in protein means there is some, so this never divides by zero;
     // likewise the calories below.
-    perProtein: isLowProtein(nutrition) ? null : (cost * 30) / nutrition.protein,
-    perKcal: lowCalorie ? null : (cost * 1000) / nutrition.calories,
+    perProtein: isLowProtein(nutrition, weight) ? null : (cost * 30) / nutrition.protein,
+    perKcal: isLowCalorie(nutrition, weight) ? null : (cost * 1000) / nutrition.calories,
   };
 }
 

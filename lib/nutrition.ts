@@ -177,6 +177,9 @@ export type MealLine =
       servings: number;
       perServing: Nutrition;
       costPerServing: number;
+      // A serving's share of the ingredients' raw weight, 1 ml as 1 g — not the
+      // cooked weight, which never enters the nutrition maths.
+      weightPerServing: number;
     };
 
 export function mealLineNutrition(line: MealLine): Nutrition {
@@ -195,6 +198,14 @@ export function mealLineCost(line: MealLine): number {
   if (line.kind === "recipe") return line.costPerServing * line.servings;
 
   return costOf(line.product, amountOf(line.product, line.quantity, line.quantityUnit));
+}
+
+// How much a line weighed, in grams with 1 ml counted as 1 g. For a recipe,
+// its servings' share of the raw ingredients.
+export function mealLineWeight(line: MealLine): number {
+  if (line.kind === "recipe") return line.weightPerServing * line.servings;
+
+  return amountOf(line.product, line.quantity, line.quantityUnit);
 }
 
 export function mealTotals(lines: MealLine[]): { nutrition: Nutrition; cost: number } {
