@@ -8,7 +8,7 @@ import { rangeLabel, rangeQuery, resolveRange, shortDate, type Range, type Range
 import { HeaderAdd, TabHeader } from "../headers";
 import { RangeControl } from "../range-control";
 import { ChartFrame } from "../chart-frame";
-import { ChartBones } from "./chart-bones";
+import { ChartBones } from "../chart-bones";
 import { LANDSCAPE, PORTRAIT, SmokingChart } from "./smoking-chart";
 
 export const dynamic = "force-dynamic";

@@ -55,6 +55,9 @@
   /* The Smoking chart's two moving averages, as the mockups draw them. */
   --average-4: #ededed;
   --average-7: #d85a30;
+  /* The Weight chart's 4-day average, which the mockups draw in violet (its
+     7-day one is the same coral as Smoking's). */
+  --weight-average-4: #7f77dd;
   /* Meals against snacks, in comparisons. */
   --meal: #639922;
   --snack: #d85a30;
@@ -106,6 +109,7 @@
   --color-zone: var(--zone);
   --color-average-4: var(--average-4);
   --color-average-7: var(--average-7);
+  --color-weight-average-4: var(--weight-average-4);
   --color-meal: var(--meal);
   --color-snack: var(--snack);
   --color-meal-label: var(--meal-label);

@@ -64,6 +64,7 @@ app/                 every screen, and the server code behind it
     range-control.tsx  the shared range pills (7 · 14 · 28 · All · Custom…)
     chart-frame.tsx  what every chart sits in: the line saying what it covers,
                      and the rotate button that lays it sideways
+    chart-bones.tsx  a chart and its list while they load (Smoking, Weight)
     loading.tsx      (in each screen folder) that screen's skeleton — what shows
                      the instant you tap, while its data loads
     meals/           Nutrition → Today: one day at a time, with the day's totals
@@ -78,7 +79,9 @@ app/                 every screen, and the server code behind it
     products/        Nutrition → Products: list and search, add, edit, replace
       new/           the add form — also the replace form, pre-filled
       [id]/          one product
-    weight/          Nutrition → Weight: a weigh-in, and the last fortnight
+    weight/          Nutrition → Weight: the range, the goal line, the chart,
+                     the weigh-ins under it
+      day/           one day's weigh-in and note — the form behind the "+"
     sleep/           the Sleep tab: a night, two times, a score, the last fortnight
     smoking/         the Smoking tab: the range, the chart, the days under it
       day/           one day's count and note — the form behind the "+"
@@ -127,6 +130,9 @@ lib/
                      yesterday on Smoking), and how its dates are written
   chart.ts           the arithmetic behind the charts: the days along the
                      bottom, the moving averages, the numbers on each axis
+  weight.ts          the Weight chart's own: invented points on skipped days,
+                     the tight kilo axis, how far the goal is, the difference
+                     column
   sleep.ts           how long a night was, including crossing midnight
   series.ts          averages over a run of days, honest about the gaps
   logging.ts         how completely each day was logged, the logging streak and
@@ -310,19 +316,46 @@ Both are worth keeping in a password manager alongside the database password.
 
 ## Weight
 
-The first real screen, and the pattern the rest will follow. You pick a day, type a
-number, press Save. Underneath, the last fortnight, each one tappable to change or
-delete, with the difference from the entry before it in the right-hand column.
+Nutrition → Weight is a chart (step 7.9), built the same way as Smoking's (see "How the
+charts are built", under Smoking). Under the sub-tabs, the **range pills** — 7 · 14 · 28
+· All · Custom, opening on 28 — then the goal line, a line saying what the chart covers
+("17 Aug – 13 Sep · 23 weigh-ins") with the rotate button, the chart, its key, and the
+weigh-ins under it.
+
+**Everything ends today.** You weigh yourself in the morning, so "28" is the 28 days
+ending today by the 04:00 day, and Custom can reach today but not past it.
+
+**The goal line** — "4.6 kg to goal (75 kg)" — is worked out from the 7-day average
+weight ending today, not from one weigh-in, so a salty dinner doesn't move it, and it
+doesn't change with the range. Its words follow the goal phase: "to goal" while you're
+still heading for it (above it on a cut, below it on a bulk), "past goal" once you've
+gone beyond it, "above goal" / "below goal" on maintain or with no phase picked, and "At
+goal" within 0.05 kg. It's never coloured. With no goal weight set it's a quiet link to
+Settings.
+
+**The chart** is a green dot for each weigh-in, with the **4-day and 7-day moving
+averages** as two lines (violet and coral), on an axis sitting tight around the weights
+— about a kilo of room each side, on whole kilos. **A skipped day gets a hollow grey
+dot**, on a straight line between the weigh-ins either side: one skipped day lands
+exactly halfway, a run of them slopes evenly across the gap. Those invented dots are only
+for the eye — **the averages never count them**, and neither will TDEE. A day with no
+weigh-in on one side (today, before you've stepped on the scale) gets no dot. The
+arithmetic is in `lib/weight.ts`.
+
+**The weigh-ins under the chart** are the ones in the range, newest first — "Tue 8 Sep ·
+After a salty dinner", the weight, and the difference from the weigh-in before it,
+however long ago that was ("+0.1", "−0.4", "0.0"). Tap one to change it.
+
+**The "+"** next to "Nutrition" opens the entry form, `/weight/day`, with a red dot while
+today is missing (the same dot as on the Weight sub-tab and the tab icon). The form opens
+on today; changing the date opens that day. A weighed day has **Delete this weigh-in**
+underneath. Saving or deleting goes back to the chart, on the range it was showing.
 
 **Logging a day twice updates it rather than failing.** The database refuses two rows
-for the same date — that's what stops accidental double-logging — so the screen reads
-what's already there, fills the field with it, and the button says Update instead of
+for the same date — that's what stops accidental double-logging — so the form reads
+what's already there, fills the box with it, and the button says Update instead of
 Save. Nothing points at a weigh-in, so changing one rewrites no history; this is the
-"everything is editable" rule from Part 4, and it's why weight is safe to build first.
-
-Changing the date reloads the screen for that date, so the field always shows what
-was actually logged rather than a number left over from the day you were just
-looking at. It opens on today by the 04:00 day, and lives under Nutrition → Weight.
+"everything is editable" rule from Part 4, and it's why weight was safe to build first.
 
 Refused, with a message rather than a crash: a future date, an empty or nonsensical
 weight, zero, and negatives. A comma is read as a decimal point, because the iPhone

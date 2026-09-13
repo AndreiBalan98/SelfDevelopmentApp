@@ -25,6 +25,28 @@ export function movingAverage(entries: DayValue[], dates: string[], window: numb
   return dates.map((date) => averageOver(entries, date, window)?.average ?? null);
 }
 
+// A line through the days that have a value (a moving average), as SVG point
+// lists — one per unbroken run, so a day with nothing to draw breaks the line.
+// A run of one day is left out: a line needs two points.
+export function lineRuns(
+  values: Array<number | null>,
+  x: (index: number) => number,
+  y: (value: number) => number,
+): string[] {
+  const runs: string[] = [];
+  let run: string[] = [];
+  values.forEach((value, index) => {
+    if (value === null) {
+      if (run.length > 1) runs.push(run.join(" "));
+      run = [];
+    } else {
+      run.push(`${x(index).toFixed(1)},${y(value).toFixed(1)}`);
+    }
+  });
+  if (run.length > 1) runs.push(run.join(" "));
+  return runs;
+}
+
 // The numbers up the side of a chart that runs from 0 to exactly `max`: 0, a
 // few round steps, and `max` itself — 0 · 5 · 10 · 13. A round step within the
 // top eighth of the axis is dropped, so its label doesn't sit on top of `max`'s.

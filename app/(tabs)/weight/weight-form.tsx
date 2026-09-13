@@ -3,79 +3,93 @@
 import { useRouter } from "next/navigation";
 import { saveWeight, type SaveResult } from "./actions";
 import { useFormAction } from "../form-action";
+import { BOX, CARD, PRIMARY, ROW } from "../ui";
 
 type Props = {
   date: string;
   today: string;
   existing: { id: number; kg: number; notes: string | null } | null;
+  // The chart's range, to go back to after saving: "range=7", or "".
+  back: string;
 };
 
-export function WeightForm({ date, today, existing }: Props) {
+export function WeightForm({ date, today, existing, back }: Props) {
   const router = useRouter();
-  // Sent by hand, so a refused save keeps what you typed (form-action.ts).
+  // Sent by hand, so a refused save keeps what you typed (form-action.ts). A
+  // save that works goes back to the chart.
   const [result, submit, pending] = useFormAction<SaveResult>(saveWeight);
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-4">
-      <label className="flex flex-col gap-1.5">
-        <span className="text-sm text-muted">Day</span>
-        <input
-          type="date"
-          name="date"
-          defaultValue={date}
-          max={today}
-          required
-          // Changing the day reloads the screen for that day, so the field below
-          // shows what was already logged rather than a stale number.
-          onChange={(event) => {
-            if (event.target.value) router.replace(`/weight?date=${event.target.value}`);
-          }}
-          className="rounded-lg border border-border bg-surface px-4 py-3
-                     text-base outline-none focus:border-accent"
-        />
-      </label>
+      <input type="hidden" name="back" value={back} />
 
-      <label className="flex flex-col gap-1.5">
-        <span className="text-sm text-muted">Weight (kg)</span>
-        <input
-          name="kg"
-          type="text"
-          // Summons the number pad with a decimal point on iOS.
-          inputMode="decimal"
-          defaultValue={existing ? String(existing.kg) : ""}
-          placeholder="78.4"
-          autoComplete="off"
-          required
-          className="rounded-lg border border-border bg-surface px-4 py-3
-                     text-2xl tabular-nums outline-none focus:border-accent"
-        />
-      </label>
+      <div className={CARD}>
+        <div className={ROW}>
+          <label htmlFor="weight-date" className="text-[13px]">
+            Day
+          </label>
+          <input
+            id="weight-date"
+            type="date"
+            name="date"
+            defaultValue={date}
+            max={today}
+            required
+            // Changing the day reloads the screen for that day, so the box
+            // below shows what was already logged rather than a number left over
+            // from the day you were just looking at.
+            onChange={(event) => {
+              if (event.target.value) {
+                router.replace(`/weight/day?date=${event.target.value}${back ? `&${back}` : ""}`);
+              }
+            }}
+            className={`${BOX} min-h-8 w-36 [&::-webkit-date-and-time-value]:text-right`}
+          />
+        </div>
 
-      <label className="flex flex-col gap-1.5">
-        <span className="text-sm text-muted">Note (optional)</span>
-        <input
-          name="notes"
-          type="text"
-          defaultValue={existing?.notes ?? ""}
-          autoComplete="off"
-          className="rounded-lg border border-border bg-surface px-4 py-3
-                     text-base outline-none focus:border-accent"
-        />
-      </label>
+        <div className={ROW}>
+          <label htmlFor="weight-kg" className="text-[13px]">
+            Weight
+          </label>
+          <span className="flex shrink-0 items-center gap-1.5">
+            <input
+              id="weight-kg"
+              name="kg"
+              type="text"
+              // Summons the number pad with a decimal point on iOS.
+              inputMode="decimal"
+              defaultValue={existing ? String(existing.kg) : ""}
+              placeholder="78.4"
+              autoComplete="off"
+              required
+              className={`${BOX} w-24 text-right placeholder:text-faint`}
+            />
+            <span className="w-7 text-xs text-faint">kg</span>
+          </span>
+        </div>
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-lg bg-accent px-4 py-3 font-medium text-black disabled:opacity-50"
-      >
+        <div className={ROW}>
+          <label htmlFor="weight-notes" className="text-[13px]">
+            Note
+          </label>
+          <input
+            id="weight-notes"
+            name="notes"
+            type="text"
+            defaultValue={existing?.notes ?? ""}
+            placeholder="optional"
+            autoComplete="off"
+            className={`${BOX} min-w-0 flex-1 placeholder:text-faint`}
+          />
+        </div>
+      </div>
+
+      <button type="submit" disabled={pending} className={PRIMARY}>
         {pending ? "Saving…" : existing ? "Update" : "Save"}
       </button>
 
-      {result && (
-        <p
-          className={`text-sm ${result.ok ? "text-muted" : "text-foreground"}`}
-          aria-live="polite"
-        >
+      {result && !result.ok && (
+        <p className="text-[13px] text-foreground" aria-live="polite">
           {result.message}
         </p>
       )}

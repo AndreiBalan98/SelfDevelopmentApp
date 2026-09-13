@@ -2,24 +2,23 @@
 
 import { useActionState } from "react";
 import { deleteWeight, type SaveResult } from "./actions";
+import { QUIET } from "../ui";
 
-export function DeleteButton({ id }: { id: number }) {
-  const [result, action, pending] = useActionState<SaveResult | null, FormData>(
-    deleteWeight,
-    null,
-  );
+// On a weighed day's entry screen. Deleting goes back to the chart, where the
+// day is now a skipped one.
+export function DeleteButton({ id, back }: { id: number; back: string }) {
+  const [result, action, pending] = useActionState<SaveResult | null, FormData>(deleteWeight, null);
 
   return (
-    <form action={action} className="contents">
+    <form action={action} className="flex flex-col gap-2">
       <input type="hidden" name="id" value={id} />
-      <button
-        type="submit"
-        disabled={pending}
-        aria-label="Delete this weigh-in"
-        className="text-sm text-muted disabled:opacity-50"
-      >
-        {pending ? "…" : result && !result.ok ? "Failed" : "Delete"}
+      <input type="hidden" name="back" value={back} />
+
+      <button type="submit" disabled={pending} className={QUIET}>
+        {pending ? "…" : "Delete this weigh-in"}
       </button>
+
+      {result && !result.ok && <p className="text-[13px] text-foreground">{result.message}</p>}
     </form>
   );
 }

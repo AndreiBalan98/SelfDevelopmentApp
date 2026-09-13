@@ -50,13 +50,14 @@ const SUB_TABS: Array<{ key: SubTab; label: string; href: string }> = [
 // Nutrition's header: the tab's name, then the four sub-tabs as a segmented
 // control — a grey track with the one you're on raised above it. Weight gets a
 // red dot while today's weigh-in is missing, the same dot that sits on the
-// Nutrition icon in the tab bar.
-export function NutritionHeader({ active }: { active: SubTab }) {
+// Nutrition icon in the tab bar. Anything passed in (Weight's "+") sits on the
+// right of the name.
+export function NutritionHeader({ active, children }: { active: SubTab; children?: ReactNode }) {
   const status = useStatus();
 
   return (
     <div className="flex flex-col gap-3">
-      <TabHeader title="Nutrition" />
+      <TabHeader title="Nutrition">{children}</TabHeader>
 
       <nav aria-label="Nutrition" className="flex rounded-[9px] bg-border p-0.5">
         {SUB_TABS.map((tab) => (

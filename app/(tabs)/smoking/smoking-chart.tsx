@@ -1,4 +1,4 @@
-import { countTicks, labelIndexes } from "@/lib/chart";
+import { countTicks, labelIndexes, lineRuns } from "@/lib/chart";
 import { shortDate } from "@/lib/range";
 
 // The Smoking chart, drawn by hand as SVG on the server, as the mockups draw
@@ -61,20 +61,7 @@ export function SmokingChart({
   const y = (value: number) => baseline - (value / ceiling) * plotHeight;
 
   // A line through the days that have an average, broken where one doesn't.
-  const line = (values: Array<number | null>) => {
-    const runs: string[] = [];
-    let run: string[] = [];
-    values.forEach((value, index) => {
-      if (value === null) {
-        if (run.length > 1) runs.push(run.join(" "));
-        run = [];
-      } else {
-        run.push(`${x(index).toFixed(1)},${y(value).toFixed(1)}`);
-      }
-    });
-    if (run.length > 1) runs.push(run.join(" "));
-    return runs;
-  };
+  const line = (values: Array<number | null>) => lineRuns(values, x, y);
 
   return (
     <svg

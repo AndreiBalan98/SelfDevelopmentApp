@@ -1,7 +1,7 @@
 import { Pills, Screen } from "../skeleton";
 import { TabHeader } from "../headers";
 import { PlusIcon } from "../icons";
-import { ChartBones } from "./chart-bones";
+import { ChartBones } from "../chart-bones";
 
 // The Smoking tab while it loads: the header and its "+", the range pills as
 // they open (28), then the chart and the days.

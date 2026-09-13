@@ -4,12 +4,12 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Phase 7 step 7.8 (the Smoking tab: range control, chart, rotate button, list, entry
-form behind the "+") is built and waiting for Andrei's phone test.** Steps 7.0–7.7c are
-done, tested on the phone and approved. Phases 1–6 are complete and the app has
-been in daily use since 2026-09-01. No library has been added in phase 7.
+**Phase 7 step 7.9 (Weight: dots chart, averages, invented points, goal line, list,
+entry form behind the "+") is built and waiting for Andrei's phone test.** Steps 7.0–7.8
+are done, tested on the phone and approved. Phases 1–6 are complete and the app has been in daily use
+since 2026-09-01. No library has been added in phase 7.
 
-Where phase 7 stands (estimated 2026-09-12; step count updated 2026-09-13): 12 of 21 steps
+Where phase 7 stands (estimated 2026-09-12; step count updated 2026-09-13): 13 of 21 steps
 done, 7.7b and 7.7c having been added; about 45% by code
 (about 4,350 lines written of an estimated 9,500) and about 40% by time (about 7 hours
 spent, 9–12 to go). The chart and stats steps — 7.8, 7.11, 7.13 — are the heavy ones.
@@ -38,9 +38,9 @@ Don't design it or raise it.
 
 ## Waiting on me (Andrei)
 
-1. **Commit and push step 7.8, then test it on the phone** (what to test is in the step
+1. **Commit and push step 7.9, then test it on the phone** (what to test is in the step
    report), and approve it or ask for changes.
-2. The small calls listed under Decisions for 7.8 (2026-09-13) — say if any should
+2. The small calls listed under Decisions for 7.9 (2026-09-13) — say if any should
    change.
 
 Migrations 0001–0005 have all been run. Steps 7.1, 7.2, 7.4 and 7.4b had no migration.
@@ -50,6 +50,11 @@ tracked here and doesn't need raising.
 
 ## Done
 
+- 2026-09-13 — **Phase 7 step 7.8 complete: the Smoking tab.** The shared range control,
+  the chart base with its rotate button (`chart-frame.tsx`, `lib/chart.ts`,
+  `lib/range.ts`), the bar chart with its 4-day and 7-day averages, the list of the
+  range's days, and the entry form behind the "+" at `/smoking/day`. Tested on the phone
+  and approved, including the small calls under Decisions.
 - 2026-09-13 — **Phase 7 step 7.7c complete: a refused save keeps what you typed.** Every
   form with boxes to type in sends its save by hand (`form-action.ts`), as Settings has
   since 7.3. Tested on the phone and approved.
@@ -223,8 +228,8 @@ stands, differs from it in four places:
 | 7.7 | Recipes and Products lists: sort pills, lei per 30 g protein and per 1,000 kcal, the "low protein" / "low calorie" labels; restyle both lists *(split from the old 7.7 on 2026-09-13; done)* |
 | 7.7b | Duplicate on a product's and a recipe's screen; restyle the add / edit / replace forms, the product screen and the recipe screen *(done)* |
 | 7.7c | A refused save keeps what you typed, on every form with boxes to type in — found while testing 7.7b *(done)* |
-| 7.8 | Smoking tab: the shared range control and the chart base with its rotate button, proven on the bar chart with its two averages, and the list; restyle the entry form behind the "+" *(built, waiting for the phone test)* |
-| 7.9 | Weight: dots chart, averages, invented points, goal line, list; restyle the entry form behind the "+" |
+| 7.8 | Smoking tab: the shared range control and the chart base with its rotate button, proven on the bar chart with its two averages, and the list; restyle the entry form behind the "+" *(done)* |
+| 7.9 | Weight: dots chart, averages, invented points, goal line, list; restyle the entry form behind the "+" *(built, waiting for the phone test)* |
 | 7.10 | TDEE estimate and the formula comparison |
 | 7.11 | Sleep: the clock, night and period; restyle the entry form behind the "+" |
 | 7.12 | Sleep: chart view |
@@ -319,8 +324,8 @@ For a session picking this up cold, after reading the plan and this file:
   iPhone home screen. `npm run build` and `npm run lint` both pass.
 - Screens so far: `/login` (the PIN screen, outside the tabs), then everything else
   inside `app/(tabs)/` with the tab bar: `/meals` (Nutrition → Today, and `[id]`),
-  `/recipes` (list, `new`, `[id]`), `/products` (list, `new`, `[id]`), `/weight`,
-  `/sleep`, `/smoking`, `/workout` (the countdown), `/settings` (goal, every target,
+  `/recipes` (list, `new`, `[id]`), `/products` (list, `new`, `[id]`), `/weight` (the
+  chart, and `day` for the form), `/sleep`, `/smoking` (the chart, and `day`), `/workout` (the countdown), `/settings` (goal, every target,
   body figures, gym date, export). `/` sends you to `/meals`. The home screen and
   `/export` were removed in step 7.2.
 - The shell lives in `app/(tabs)/layout.tsx`; the red dots are worked out in
@@ -638,6 +643,10 @@ of scope for the rewrite. **Done 2026-09-11:** Andrei ran the review himself; se
 2026-09-13 — **Step 7.7c: every form with boxes to type in sends its save by hand** (`app/(tabs)/form-action.ts`, `useFormAction`), as Settings has since 7.3, instead of through the form's `action` (Andrei's go, fixing it everywhere at once). A refused save leaves every box as it was; nothing is reset after a save at all. Switched: the product form, rename, the recipe form, name and notes, cooked weight, adding and changing a recipe ingredient, adding and changing a meal line, a meal's details, and the weight, sleep and smoking forms. Left as they were: forms that are only a button (Delete, Retire, Remove, Repeat) — nothing typed to lose — and the PIN screen, where clearing a wrong PIN is wanted. Accepted cost: after a successful save a box shows what you typed rather than what was stored — "79,6" rather than "79.6" — until you leave the screen; the figures and lists beside it show the stored value. Checked in the scratchpad: on each kind of form, fill several boxes, get refused, check every box (and the grams/millilitres choice, tapping Save again without typing) is as left, fix the one wrong box, save, and check what was stored; the same check fails on the code as committed, where a refused save wiped the new product's name; then all ten of 7.7b's end-to-end checks again, redirects and Duplicate included.
 2026-09-13 — **Found while testing 7.7b, not caused by it** (fixed in 7.7c, above): every form sent through React's form `action` puts its boxes back to how the screen opened after a refused save (the trap 7.3 found in Settings). Confirmed on the committed code and on 7.7b alike: change the fat, mistype the price, save — refused — and the fat box is empty again; fix the price and save, and the fat is stored empty. Waiting on Andrei (see Waiting on me).
 2026-09-13 — **Anything "low calorie" (under 20 kcal per 100 g or ml) is "low protein" too** (Andrei's call after the 7.7 test). By the plan's rule alone, black coffee's sliver of protein is a fifth of its sliver of calories, so it was ranked in Cheapest protein at about 4,800 lei per 30 g. Nothing that light is a source of protein. Both rules now live together in `lib/value.ts`, and the spend panel on Today uses the same ones — so it now knows each food's weight: a product line's amount (1 ml as 1 g), a recipe line's servings times a serving's share of the raw ingredients (never the cooked weight). Checked in the scratchpad: coffee gets both labels and the spend tag; eggs, honey and every earlier result unchanged.
+2026-09-13 — **Several skipped weigh-ins in a row get invented points on a straight line between the weigh-ins either side** (Andrei's decision, step 7.9). One skipped day still lands exactly halfway, as the plan says; a run slopes evenly. Chosen over putting them all at the halfway value (a step in the middle of the gap that never happened) and over only inventing single days (a trip would leave a hole). A day with no weigh-in on one side — before the first ever, or today before the scale — gets none. Never in an average, never in TDEE.
+2026-09-13 — **The goal line's words follow the goal phase** (Andrei's decision, step 7.9): "4.6 kg to goal (75 kg)" while still heading for it (above it on a cut, below it on a bulk); "0.5 kg past goal" once beyond it; "above goal" / "below goal" on maintain or with no phase picked; "At goal" within 0.05 kg. Never coloured — a goal weight isn't a daily target.
+2026-09-13 — Step 7.9: how it's built and checked. The chart is Smoking's pattern (drawn twice on the server, `chart-frame.tsx` turns it); its own arithmetic is `lib/weight.ts` (invented points, the axis, the goal distance, the difference column). The line-drawing helper moved from the Smoking chart into `lib/chart.ts` (`lineRuns`) and the chart skeleton to `app/(tabs)/chart-bones.tsx`, both now shared — Smoking's chart was checked to come out byte-for-byte the same as the approved one on 7, 28, All and a Custom range. Checked in the scratchpad: 32 hand-worked cases (the mockup's skipped 6 Sep landing at 79.8, a four-day gap, gaps crossing the edge of the chart, the October clock change and the new year, the plan's 78–82 → 77–83 and the mockup's 79.2–81.5 → 78–83, every goal wording on each phase); then the real screen at iPhone 13 and SE sizes against 38 made-up days with a skipped day, a three-day gap and today missing — every range, turning the chart, the "+" opening on today, a refused save keeping both boxes, a comma saved as a decimal point, saving, changing and deleting returning to the same range, the red dot going and coming back, a future date refused, Custom typed backwards and past today, no goal weight, maintain, and a cut past its goal. Found by that test and fixed: a change of exactly 0.05 kg showed "0.0" (80.06 − 80.01 comes out as 0.0499… inside the computer); it's now worked out in hundredths first and rounds away from zero the same way up and down.
+2026-09-13 — Step 7.9 small calls: **every Weight range ends today**, not yesterday like Smoking — you weigh in the morning, and today's weigh-in is the one the dot asks for; today's slot stays empty until you've weighed. **The goal line always goes by the 7-day average ending today**, whatever range the chart shows — it's "where am I now". With no weigh-in in the last 7 days it says "No weigh-in in the last 7 days · goal 75 kg"; with no goal weight, "No goal weight · set one in Settings", quiet grey. **The line above the chart counts weigh-ins, not days** ("17 Aug – 13 Sep · 23 weigh-ins"), as the mockup writes it. **The list shows only the range's weigh-ins**, as on Smoking; the first one's difference is from the weigh-in before the range, however long ago. The difference always has one decimal and a real minus sign ("+0.3", "−0.4", "0.0" — it used to be "—" for no change), as the mockup writes it. The weight on a row is plain, not bold, as the mockup draws it, and keeps the digits as stored ("79.25 kg", "79.8 kg"). **Delete moved from the list to the day's own screen**, "Delete this weigh-in", as on Smoking; saving or deleting goes back to the chart on its range instead of staying on the form with "Saved 79.4 kg for …". The form is its own screen, `/weight/day`, titled with the day, with "Weight" top right as the way back; the old `/weight?date=…` no longer opens a form. The "+" sits next to "Nutrition" in the header, as the mockup draws it, and only on Weight. The 4-day average is violet (`--weight-average-4`, the mockup's `#7F77DD`) where Smoking's is light — looks go to the mockups. The key always lists "Skipped day (invented)", even on a range with none, as the mockup does. A range inside a gap with no real weigh-in says "Nothing weighed in these days." rather than drawing only invented dots. Dots shrink on long ranges so they don't run together on All.
 2026-09-13 — Step 7.6 small calls: the panel's bar follows the mockup, so a food taking half the total fills it (anything bigger is full too); calories and spend bars are Nutrition green, the nutrients their own colours. Grams under 10 show one decimal ("6.5 g") so a small amount isn't "0 g"; under 1% shows "<1%". The subtitle is the date row's own words: "Today, 13 Sep · 1,669 kcal total". "Show all" has no count and no "show fewer"; closing the panel resets it. Tapping the line under the fat bar opens saturated fat — the only place on Today that number is shown. The Day details figures aren't tappable: the plan lists the hero, the bars, the stats boxes and the chart bars. A past day with no meals says "Nothing logged for this day yet."; a food list with none of that nutrient says "None of it adds any fibre." A tapped number dims slightly while pressed, so a tap is visibly received.
 
 ## Deferred

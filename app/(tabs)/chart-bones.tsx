@@ -1,7 +1,8 @@
-import { Bone } from "../skeleton";
+import { Bone } from "./skeleton";
 
-// The chart and the days under it while they load: the line saying what the
-// chart covers, the chart's own shape, the key, and a few rows.
+// A chart and the days under it while they load — Smoking's and Weight's: the
+// line saying what the chart covers, the chart's own shape, the key, and a few
+// rows.
 export function ChartBones() {
   return (
     <div aria-hidden="true" className="flex flex-col gap-4">

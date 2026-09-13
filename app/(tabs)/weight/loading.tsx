@@ -1,20 +1,27 @@
-import { Bone, Field, Rows, Screen, Section } from "../skeleton";
+import { Bone, Pills, Screen } from "../skeleton";
 import { NutritionHeader } from "../headers";
+import { PlusIcon } from "../icons";
+import { ChartBones } from "../chart-bones";
 
-// The weight screen while it loads: the form, then the recent weigh-ins.
+// Nutrition → Weight while it loads: the header and its "+", the range pills
+// as they open (28), the goal line, then the chart and the weigh-ins.
 export default function Loading() {
   return (
-    <Screen header={<NutritionHeader active="weight" />} gap="gap-7">
-      <div className="flex flex-col gap-4">
-        <Field label="Day" />
-        <Field label="Weight (kg)" tall />
-        <Field label="Note (optional)" />
-        <Bone className="h-12" />
+    <Screen
+      gap="gap-4"
+      header={
+        <NutritionHeader active="weight">
+          <span className="flex text-muted">
+            <PlusIcon size={23} />
+          </span>
+        </NutritionHeader>
+      }
+    >
+      <Pills labels={["7", "14", "28", "All", "Custom"]} chosen="28" />
+      <div className="flex h-8 items-center">
+        <Bone className="h-6 w-44" />
       </div>
-
-      <Section heading="Last 14 entries">
-        <Rows rows={6} />
-      </Section>
+      <ChartBones />
     </Screen>
   );
 }
