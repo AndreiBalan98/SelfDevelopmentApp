@@ -2,15 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/supabase";
 import { allRows } from "@/lib/pages";
-import {
-  costOf,
-  divideNutrition,
-  nutritionOf,
-  recipeTotals,
-  round,
-  shrinkage,
-  type Nutrient,
-} from "@/lib/nutrition";
+import { costOf, divideNutrition, nutritionOf, recipeTotals, round, shrinkage } from "@/lib/nutrition";
 import { timesUsed, updateRecipe } from "../actions";
 import { RecipeForm } from "../recipe-form";
 import { IngredientSearch } from "./ingredient-search";
@@ -21,6 +13,8 @@ import {
   LabelsForm,
   RetireButton,
 } from "./recipe-forms";
+import { NutritionDetails } from "../../meals/nutrition-details";
+import { CARD, HEADING, PRIMARY, QUIET } from "../../ui";
 
 export const dynamic = "force-dynamic";
 
@@ -29,18 +23,7 @@ export const dynamic = "force-dynamic";
 const PRODUCT_COLUMNS =
   "id, name, unit, retired, piece_grams, package_price, package_quantity, calories, fat, saturated_fat, carbs, sugars_total, sugars_added, fibre, protein, salt";
 
-// Same order as the product form and an EU label.
-const NUTRITION: Array<{ key: Nutrient; label: string; unit: string; decimals: number }> = [
-  { key: "calories", label: "Energy", unit: "kcal", decimals: 0 },
-  { key: "fat", label: "Fat", unit: "g", decimals: 1 },
-  { key: "saturated_fat", label: "of which saturates", unit: "g", decimals: 1 },
-  { key: "carbs", label: "Carbohydrate", unit: "g", decimals: 1 },
-  { key: "sugars_total", label: "of which sugars", unit: "g", decimals: 1 },
-  { key: "sugars_added", label: "of which added", unit: "g", decimals: 1 },
-  { key: "fibre", label: "Fibre", unit: "g", decimals: 1 },
-  { key: "protein", label: "Protein", unit: "g", decimals: 1 },
-  { key: "salt", label: "Salt", unit: "g", decimals: 2 },
-];
+const LINE = "flex items-baseline justify-between gap-3 border-t border-border py-2.5 first:border-t-0";
 
 export default async function RecipePage({ params }: PageProps<"/recipes/[id]">) {
   const { id } = await params;
@@ -111,16 +94,16 @@ export default async function RecipePage({ params }: PageProps<"/recipes/[id]">)
       : [];
 
   return (
-    <main className="flex-1 px-5 py-8 mx-auto w-full max-w-md flex flex-col gap-6">
-      <header className="flex items-baseline justify-between gap-4">
-        <h1 className="text-xl font-semibold tracking-tight">{recipe.name}</h1>
-        <Link href="/recipes" className="text-sm text-accent">
+    <main className="flex-1 px-5 py-8 mx-auto w-full max-w-md flex flex-col gap-5">
+      <header className="flex min-h-7 items-center justify-between gap-4">
+        <h1 className="min-w-0 break-words text-lg font-semibold">{recipe.name}</h1>
+        <Link href="/recipes" className="shrink-0 text-sm text-accent">
           Recipes
         </Link>
       </header>
 
       {(recipe.retired || replacement || (predecessors ?? []).length > 0) && (
-        <div className="rounded-lg border border-border bg-surface p-3 text-sm text-muted flex flex-col gap-1">
+        <div className="flex flex-col gap-1 rounded-xl bg-surface p-3.5 text-[13px] text-muted">
           {recipe.retired && <p>Retired — hidden when logging, kept so old meals still add up.</p>}
           {replacement && (
             <p>
@@ -143,7 +126,7 @@ export default async function RecipePage({ params }: PageProps<"/recipes/[id]">)
 
       {used === 0 ? (
         <>
-          <p className="text-sm text-muted">
+          <p className="text-[13px] text-muted">
             Not eaten yet, so everything about it is still safe to change.
           </p>
 
@@ -161,7 +144,7 @@ export default async function RecipePage({ params }: PageProps<"/recipes/[id]">)
         </>
       ) : (
         <>
-          <p className="text-sm text-muted">
+          <p className="text-[13px] text-muted">
             Eaten in {used} {used === 1 ? "meal" : "meals"}, so its servings and
             ingredients are frozen — changing them would rewrite meals you have already
             eaten. To cook it differently, replace it.
@@ -169,36 +152,45 @@ export default async function RecipePage({ params }: PageProps<"/recipes/[id]">)
 
           <LabelsForm id={recipe.id} name={recipe.name} notes={recipe.notes} />
 
-          <div className="rounded-lg border border-border bg-surface px-3 py-2.5 text-sm flex items-baseline justify-between">
-            <span>Servings</span>
-            <span className="tabular-nums">{recipe.servings}</span>
-          </div>
+          <ul className={`${CARD} text-[13px]`}>
+            <li className={LINE}>
+              <span>Servings</span>
+              <span className="tabular-nums">{recipe.servings}</span>
+            </li>
+          </ul>
         </>
       )}
 
-      <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-medium text-muted">Ingredients</h2>
+      <section className="flex flex-col gap-1.5">
+        <h2 className={HEADING}>Ingredients</h2>
 
         {lines.length === 0 ? (
-          <p className="text-sm text-muted">
+          <p className="text-[13px] text-muted">
             Nothing in it yet. Search below to add the first ingredient.
           </p>
         ) : (
-          <ul className="rounded-lg border border-border bg-surface divide-y divide-[var(--border)]">
+          <ul className={CARD}>
             {lines.map((line) => (
-              <li key={line.id} className="flex flex-col gap-2 px-3 py-2.5">
-                <div className="flex items-baseline justify-between gap-3">
-                  <Link href={`/products/${line.product.id}`} className="min-w-0 truncate">
-                    {line.product.name}
-                  </Link>
-                  <span className="shrink-0 text-sm text-muted tabular-nums">
-                    {line.quantity} {line.product.unit}
+              <li
+                key={line.id}
+                className="flex flex-col gap-1.5 border-t border-border py-2.5 first:border-t-0"
+              >
+                <div className="flex items-start justify-between gap-3 text-[13px]">
+                  <span className="flex min-w-0 flex-col">
+                    <Link
+                      href={`/products/${line.product.id}`}
+                      className={`truncate ${line.product.retired ? "text-muted line-through" : ""}`}
+                    >
+                      {line.product.name}
+                    </Link>
+                    <span className="text-xs text-faint tabular-nums">
+                      {line.quantity} {line.product.unit}
+                    </span>
                   </span>
-                </div>
-
-                <div className="flex items-baseline justify-between gap-3 text-xs text-muted tabular-nums">
-                  <span>{round(nutritionOf(line.product, line.quantity).calories, 0)} kcal</span>
-                  <span>{round(costOf(line.product, line.quantity), 2).toFixed(2)}</span>
+                  <span className="shrink-0 text-muted tabular-nums">
+                    {round(nutritionOf(line.product, line.quantity).calories, 0).toLocaleString("en-GB")} kcal ·{" "}
+                    {costOf(line.product, line.quantity).toFixed(2)} lei
+                  </span>
                 </div>
 
                 {used === 0 && (
@@ -215,10 +207,10 @@ export default async function RecipePage({ params }: PageProps<"/recipes/[id]">)
         )}
 
         {used === 0 && (
-          <div className="flex flex-col gap-2 pt-1">
+          <div className="mt-1 flex flex-col gap-1.5">
             <IngredientSearch recipeId={recipe.id} products={ingredientChoices} />
 
-            <p className="text-xs text-muted">
+            <p className="text-[11px] text-faint">
               Quantities are in the product&rsquo;s own unit. Retired products are left
               out — a new recipe should be built from what you buy today.
             </p>
@@ -228,21 +220,21 @@ export default async function RecipePage({ params }: PageProps<"/recipes/[id]">)
 
       {lines.length > 0 && (
         <>
-          <section className="flex flex-col gap-2">
-            <h2 className="text-sm font-medium text-muted">The pan</h2>
+          <section className="flex flex-col gap-1.5">
+            <h2 className={HEADING}>The pan</h2>
 
-            <ul className="rounded-lg border border-border bg-surface divide-y divide-[var(--border)]">
-              <li className="flex items-baseline justify-between gap-3 px-3 py-2 text-sm">
+            <ul className={`${CARD} text-[13px]`}>
+              <li className={LINE}>
                 <span>Raw weight</span>
                 <span className="tabular-nums">{round(totals.rawWeight, 0)} g</span>
               </li>
 
-              <li className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
+              <li className="flex items-center justify-between gap-3 border-t border-border py-2">
                 <span>Cooked weight</span>
                 {used === 0 ? (
                   <span className="tabular-nums">
                     {recipe.cooked_weight === null ? (
-                      <span className="text-muted">not weighed</span>
+                      <span className="text-faint">not weighed</span>
                     ) : (
                       `${round(recipe.cooked_weight, 0)} g`
                     )}
@@ -252,11 +244,11 @@ export default async function RecipePage({ params }: PageProps<"/recipes/[id]">)
                 )}
               </li>
 
-              <li className="flex items-baseline justify-between gap-3 px-3 py-2 text-sm">
+              <li className={LINE}>
                 <span>Shrinkage</span>
                 <span className="tabular-nums">
                   {lost === null ? (
-                    <span className="text-muted">weigh the pan to see it</span>
+                    <span className="text-faint">weigh the pan to see it</span>
                   ) : (
                     `${lost.grams > 0 ? "+" : ""}${round(lost.grams, 0)} g · ${
                       lost.percent > 0 ? "+" : ""
@@ -266,62 +258,44 @@ export default async function RecipePage({ params }: PageProps<"/recipes/[id]">)
               </li>
             </ul>
 
-            <p className="text-xs text-muted">
+            <p className="text-[11px] text-faint">
               Raw weight is added up from the ingredients, with 1 ml counted as 1 g.
               {used > 0 && " The cooked weight can still be corrected — no meal is calculated from it."}
             </p>
           </section>
 
-          <section className="flex flex-col gap-2">
-            <h2 className="text-sm font-medium text-muted">
-              Per serving
-              {recipe.cooked_weight !== null && (
-                <span className="tabular-nums">
-                  {" "}
-                  · about {round(recipe.cooked_weight / recipe.servings, 0)} g
-                </span>
-              )}
-            </h2>
+          <div className="flex flex-col gap-1.5">
+            <NutritionDetails
+              heading={
+                recipe.cooked_weight === null
+                  ? "Per serving"
+                  : `Per serving · about ${round(recipe.cooked_weight / recipe.servings, 0)} g`
+              }
+              nutrition={perServing}
+              cost={totals.cost / recipe.servings}
+            />
 
-            <ul className="rounded-lg border border-border bg-surface divide-y divide-[var(--border)]">
-              {NUTRITION.map((row) => (
-                <li
-                  key={row.key}
-                  className="flex items-baseline justify-between gap-3 px-3 py-2 text-sm"
-                >
-                  <span>{row.label}</span>
-                  <span className="tabular-nums">
-                    {round(perServing[row.key], row.decimals)} {row.unit}
-                  </span>
-                </li>
-              ))}
-
-              <li className="flex items-baseline justify-between gap-3 px-3 py-2 text-sm">
-                <span>Cost</span>
-                <span className="tabular-nums">
-                  {(totals.cost / recipe.servings).toFixed(2)}
-                </span>
-              </li>
-            </ul>
-
-            <p className="text-xs text-muted tabular-nums">
-              Whole batch: {round(totals.nutrition.calories, 0)} kcal ·{" "}
-              {totals.cost.toFixed(2)} · {recipe.servings}{" "}
+            <p className="text-[11px] text-faint tabular-nums">
+              Whole batch: {round(totals.nutrition.calories, 0).toLocaleString("en-GB")} kcal ·{" "}
+              {totals.cost.toFixed(2)} lei · {recipe.servings}{" "}
               {recipe.servings === 1 ? "serving" : "servings"}
             </p>
-          </section>
+          </div>
         </>
       )}
 
-      <div className="flex flex-col gap-3 border-t border-border pt-6">
+      <div className="flex flex-col gap-3 pt-2">
         {used > 0 && (
-          <Link
-            href={`/recipes/new?copy=${recipe.id}`}
-            className="rounded-lg bg-accent px-4 py-3 text-center font-medium text-black"
-          >
+          <Link href={`/recipes/new?copy=${recipe.id}`} className={`${PRIMARY} text-center`}>
             Replace — cook it differently
           </Link>
         )}
+
+        {/* Duplicate is there for any recipe, eaten or not, retired or not: it
+            starts a new recipe from this one and leaves this one as it is. */}
+        <Link href={`/recipes/new?duplicate=${recipe.id}`} className={`${QUIET} text-center`}>
+          Duplicate
+        </Link>
 
         <RetireButton id={recipe.id} retired={recipe.retired} />
         {used === 0 && <DeleteButton id={recipe.id} />}

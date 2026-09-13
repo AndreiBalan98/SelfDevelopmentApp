@@ -56,11 +56,11 @@ export function DetailHeader({
   back: { href: string; label: string } | null;
 }) {
   return (
-    <header className="flex items-baseline justify-between gap-4">
+    <header className="flex min-h-7 items-center justify-between gap-4">
       {title === null ? (
-        <Bone className="h-7 w-40" />
+        <Bone className="h-6 w-40" />
       ) : (
-        <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
+        <h1 className="text-lg font-semibold">{title}</h1>
       )}
 
       {back === null ? (
@@ -148,6 +148,24 @@ export function ValueListBones({ noun, rows }: { noun: string; rows: number }) {
         ))}
       </div>
     </>
+  );
+}
+
+// A card of labelled rows, each waiting for its box or value on the right —
+// the new look's forms and figures (a product, a recipe).
+export function CardBones({ labels, box = "w-24" }: { labels: string[]; box?: string }) {
+  return (
+    <div className="flex flex-col rounded-xl bg-surface px-3.5">
+      {labels.map((label) => (
+        <div
+          key={label}
+          className="flex min-h-12 items-center justify-between gap-3 border-t border-border py-1.5 first:border-t-0"
+        >
+          <span className="text-[13px]">{label}</span>
+          <Bone className={`h-8 ${box}`} />
+        </div>
+      ))}
+    </div>
   );
 }
 

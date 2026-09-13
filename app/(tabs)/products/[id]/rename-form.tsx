@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { renameProduct, type Result } from "../actions";
+import { BOX, CARD, ROW, SMALL } from "../../ui";
 
 // The name is the one thing that stays editable once a product has been used.
 // It's a label for you; nothing calculates anything from it.
@@ -12,35 +13,34 @@ export function RenameForm({ id, name }: { id: number; name: string }) {
   );
 
   return (
-    <form action={action} className="flex flex-col gap-2">
+    <form action={action} className="flex flex-col gap-1.5">
       <input type="hidden" name="id" value={id} />
 
-      <label className="flex flex-col gap-1.5">
-        <span className="text-sm text-muted">Name</span>
-        <div className="flex gap-2">
+      <div className={CARD}>
+        <div className={ROW}>
+          <label htmlFor="product-rename" className="text-[13px]">
+            Name
+          </label>
+          {/* min-w-0 so the box can shrink: a text input carries a built-in
+              width of about 20 characters, which with the button beside it is
+              more than a small phone has. */}
           <input
+            id="product-rename"
             name="name"
             type="text"
             defaultValue={name}
             required
             autoComplete="off"
-            // min-w-0 for the same reason as the product form. This row fitted
-            // with about a pixel to spare, which is not a margin worth keeping.
-            className="min-w-0 flex-1 rounded-lg border border-border bg-surface px-3 py-2.5
-                       text-base outline-none focus:border-accent"
+            className={`${BOX} min-w-0 flex-1`}
           />
-          <button
-            type="submit"
-            disabled={pending}
-            className="rounded-lg border border-border bg-surface px-4 text-sm disabled:opacity-50"
-          >
+          <button type="submit" disabled={pending} className={SMALL}>
             {pending ? "…" : "Rename"}
           </button>
         </div>
-      </label>
+      </div>
 
       {result && (
-        <p className={`text-sm ${result.ok ? "text-muted" : "text-foreground"}`}>
+        <p className={`text-[13px] ${result.ok ? "text-muted" : "text-foreground"}`}>
           {result.message}
         </p>
       )}

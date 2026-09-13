@@ -14,52 +14,66 @@ function nextName(name: string): string {
   return `${match[1]}${Number(match[2]) + 1}`;
 }
 
+const asId = (raw: string | string[] | undefined) =>
+  typeof raw === "string" && /^\d+$/.test(raw) ? Number(raw) : null;
+
+const count = (number: number, word: string) => `${number} ${number === 1 ? word : `${word}s`}`;
+
+// The add form, which opens three ways:
+//   * empty, for a new recipe;
+//   * ?copy=12, as the replacement for recipe 12 — its ingredients come across,
+//     retired ones followed to what replaced them, and saving retires it and
+//     links the two;
+//   * ?duplicate=12, as a separate copy of recipe 12 — its ingredients come
+//     across exactly as they are, and saving leaves it exactly as it was.
 export default async function NewRecipePage({ searchParams }: PageProps<"/recipes/new">) {
-  const { copy } = await searchParams;
+  const { copy, duplicate } = await searchParams;
 
-  const copyId = typeof copy === "string" && /^\d+$/.test(copy) ? Number(copy) : null;
+  const replaceId = asId(copy);
+  const duplicateId = replaceId === null ? asId(duplicate) : null;
+  const sourceId = replaceId ?? duplicateId;
 
-  // When you're replacing a recipe, the form opens as a copy of the old one and
-  // its ingredients come across with it. That's the whole point: change what's
-  // different, save, and the old one is retired and linked in one go.
   let original = null;
   let lines: Awaited<ReturnType<typeof linesForCopy>> = [];
 
-  if (copyId !== null) {
+  if (sourceId !== null) {
     const { data, error } = await db()
       .from("recipes")
       .select("*")
-      .eq("id", copyId)
+      .eq("id", sourceId)
       .maybeSingle();
 
     if (error) throw new Error(error.message);
     if (!data) notFound();
 
     original = data;
-    lines = await linesForCopy(copyId);
+    lines = await linesForCopy(sourceId, replaceId !== null);
   }
 
+  const replacing = original !== null && replaceId !== null;
+  const duplicating = original !== null && duplicateId !== null;
+
   const moved = lines.filter((line) => line.toId !== line.fromId);
+  const stillRetired = lines.filter((line) => line.retired);
 
   return (
-    <main className="flex-1 px-5 py-8 mx-auto w-full max-w-md flex flex-col gap-6">
-      <header className="flex items-baseline justify-between gap-4">
-        <h1 className="text-xl font-semibold tracking-tight">
-          {original ? "Replace recipe" : "Add a recipe"}
+    <main className="flex-1 px-5 py-8 mx-auto w-full max-w-md flex flex-col gap-5">
+      <header className="flex min-h-7 items-center justify-between gap-4">
+        <h1 className="text-lg font-semibold">
+          {replacing ? "Replace recipe" : duplicating ? "Duplicate recipe" : "New recipe"}
         </h1>
-        <Link href="/recipes" className="text-sm text-accent">
+        <Link href={original ? `/recipes/${original.id}` : "/recipes"} className="text-sm text-accent">
           Cancel
         </Link>
       </header>
 
-      {original ? (
-        <div className="rounded-lg border border-border bg-surface p-3 text-sm text-muted flex flex-col gap-2">
+      {replacing && original && (
+        <div className="flex flex-col gap-2 rounded-xl bg-surface p-3.5 text-[13px] text-muted">
           <p>
             A copy of <span className="text-foreground">{original.name}</span>, with
-            its {lines.length} {lines.length === 1 ? "ingredient" : "ingredients"}.
-            Change what&rsquo;s different and save. The old one is retired and pointed
-            at this one, so every meal you&rsquo;ve already eaten keeps the numbers it
-            was logged with.
+            its {count(lines.length, "ingredient")}. Change what&rsquo;s different and save.
+            The old one is retired and pointed at this one, so every meal you&rsquo;ve
+            already eaten keeps the numbers it was logged with.
           </p>
 
           {moved.length > 0 && (
@@ -76,8 +90,29 @@ export default async function NewRecipePage({ searchParams }: PageProps<"/recipe
             </div>
           )}
         </div>
-      ) : (
-        <p className="text-sm text-muted">
+      )}
+
+      {duplicating && original && (
+        <div className="flex flex-col gap-2 rounded-xl bg-surface p-3.5 text-[13px] text-muted">
+          <p>
+            A copy of <span className="text-foreground">{original.name}</span>, with
+            its {count(lines.length, "ingredient")} exactly as they are, to start a new
+            recipe from. Give it its own name; the ingredients can be changed once
+            it&rsquo;s saved. {original.name} stays exactly as it is.
+          </p>
+
+          {stillRetired.length > 0 && (
+            <p className="border-t border-border pt-2">
+              {stillRetired.map((line) => line.toName).join(", ")}{" "}
+              {stillRetired.length === 1 ? "is a retired product" : "are retired products"},
+              copied as {stillRetired.length === 1 ? "it is" : "they are"}.
+            </p>
+          )}
+        </div>
+      )}
+
+      {original === null && (
+        <p className="text-[13px] text-muted">
           Name it and say how many servings it makes. The ingredients go in on the
           next screen, one at a time.
         </p>
@@ -85,12 +120,13 @@ export default async function NewRecipePage({ searchParams }: PageProps<"/recipe
 
       <RecipeForm
         action={createRecipe}
-        submitLabel={original ? "Save replacement" : "Save recipe"}
-        replaces={original?.id}
+        submitLabel={replacing ? "Save replacement" : "Save recipe"}
+        replaces={replacing && original ? original.id : undefined}
+        duplicates={duplicating && original ? original.id : undefined}
         defaults={
           original
             ? {
-                name: nextName(original.name),
+                name: replacing ? nextName(original.name) : `${original.name} (copy)`,
                 servings: original.servings,
                 cooked_weight: original.cooked_weight,
                 notes: original.notes,

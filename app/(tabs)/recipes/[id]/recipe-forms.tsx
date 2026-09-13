@@ -2,9 +2,8 @@
 
 import { useActionState } from "react";
 import { deleteRecipe, setCookedWeight, setRetired, updateLabels, type Result } from "../actions";
-
-const FIELD =
-  "rounded-lg border border-border bg-surface px-3 py-2.5 text-base outline-none focus:border-accent";
+import { Notes } from "../recipe-form";
+import { BOX, CARD, QUIET, ROW, SMALL } from "../../ui";
 
 // The name and the notes are the two things that stay editable once a recipe
 // has been eaten. They're labels for you; nothing calculates anything from them.
@@ -23,37 +22,35 @@ export function LabelsForm({
   );
 
   return (
-    <form action={action} className="flex flex-col gap-3">
+    <form action={action} className="flex flex-col gap-4">
       <input type="hidden" name="id" value={id} />
 
-      <label className="flex flex-col gap-1.5">
-        <span className="text-sm text-muted">Name</span>
-        <input
-          name="name"
-          type="text"
-          defaultValue={name}
-          required
-          autoComplete="off"
-          className={FIELD}
-        />
-      </label>
+      <div className={CARD}>
+        <div className={ROW}>
+          <label htmlFor="recipe-name" className="text-[13px]">
+            Name
+          </label>
+          <input
+            id="recipe-name"
+            name="name"
+            type="text"
+            defaultValue={name}
+            required
+            autoComplete="off"
+            className={`${BOX} min-w-0 flex-1`}
+          />
+        </div>
+      </div>
 
-      <label className="flex flex-col gap-1.5">
-        <span className="text-sm text-muted">Notes</span>
-        <textarea name="notes" rows={3} defaultValue={notes ?? ""} className={FIELD} />
-      </label>
+      <Notes defaultValue={notes} />
 
       <div className="flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded-lg border border-border bg-surface px-4 py-2.5 text-sm disabled:opacity-50"
-        >
+        <button type="submit" disabled={pending} className={SMALL}>
           {pending ? "…" : "Save"}
         </button>
 
         {result && (
-          <span className={`text-sm ${result.ok ? "text-muted" : "text-foreground"}`}>
+          <span className={`text-[13px] ${result.ok ? "text-muted" : "text-foreground"}`}>
             {result.message}
           </span>
         )}
@@ -78,10 +75,10 @@ export function CookedWeightForm({
   );
 
   return (
-    <form action={action} className="flex flex-col gap-1.5">
+    <form action={action} className="flex flex-col items-end gap-1">
       <input type="hidden" name="id" value={id} />
 
-      <div className="flex items-center gap-2">
+      <span className="flex items-center gap-1.5">
         <input
           name="cooked_weight"
           type="text"
@@ -89,25 +86,20 @@ export function CookedWeightForm({
           autoComplete="off"
           aria-label="Cooked weight in grams"
           defaultValue={cookedWeight ?? ""}
-          className="w-28 rounded-md border border-border bg-background px-2 py-1.5
-                     text-right text-base tabular-nums outline-none focus:border-accent"
+          className={`${BOX} w-20 text-right`}
         />
-        <span className="w-5 text-xs text-muted">g</span>
+        <span className="text-xs text-faint">g</span>
 
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm disabled:opacity-50"
-        >
+        <button type="submit" disabled={pending} className={SMALL}>
           {pending ? "…" : "Save"}
         </button>
+      </span>
 
-        {result && (
-          <span className={`text-sm ${result.ok ? "text-muted" : "text-foreground"}`}>
-            {result.message}
-          </span>
-        )}
-      </div>
+      {result && (
+        <span className={`text-[11px] ${result.ok ? "text-muted" : "text-foreground"}`}>
+          {result.message}
+        </span>
+      )}
     </form>
   );
 }
@@ -120,15 +112,11 @@ export function RetireButton({ id, retired }: { id: number; retired: boolean }) 
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="retired" value={String(!retired)} />
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-lg border border-border bg-surface px-4 py-3 text-sm disabled:opacity-50"
-      >
+      <button type="submit" disabled={pending} className={QUIET}>
         {pending ? "…" : retired ? "Put back in use" : "Retire"}
       </button>
 
-      {result && !result.ok && <p className="text-sm text-foreground">{result.message}</p>}
+      {result && !result.ok && <p className="text-[13px] text-foreground">{result.message}</p>}
     </form>
   );
 }
@@ -143,15 +131,11 @@ export function DeleteButton({ id }: { id: number }) {
     <form action={action} className="flex flex-col gap-2">
       <input type="hidden" name="id" value={id} />
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-lg border border-border bg-surface px-4 py-3 text-sm disabled:opacity-50"
-      >
+      <button type="submit" disabled={pending} className={QUIET}>
         {pending ? "…" : "Delete"}
       </button>
 
-      {result && !result.ok && <p className="text-sm text-foreground">{result.message}</p>}
+      {result && !result.ok && <p className="text-[13px] text-foreground">{result.message}</p>}
     </form>
   );
 }

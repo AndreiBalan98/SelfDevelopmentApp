@@ -5,20 +5,26 @@ import { timesUsed, updateProduct } from "../actions";
 import { ProductForm } from "../product-form";
 import { RenameForm } from "./rename-form";
 import { DeleteButton, RetireButton } from "./product-buttons";
+import { CARD, HEADING, PRIMARY, QUIET } from "../../ui";
 
 export const dynamic = "force-dynamic";
 
-const NUTRITION: Array<{ key: string; label: string; unit: string }> = [
-  { key: "calories", label: "Energy", unit: "kcal" },
-  { key: "fat", label: "Fat", unit: "g" },
-  { key: "saturated_fat", label: "of which saturates", unit: "g" },
-  { key: "carbs", label: "Carbohydrate", unit: "g" },
-  { key: "sugars_total", label: "of which sugars", unit: "g" },
-  { key: "sugars_added", label: "of which added", unit: "g" },
-  { key: "fibre", label: "Fibre", unit: "g" },
-  { key: "protein", label: "Protein", unit: "g" },
-  { key: "salt", label: "Salt", unit: "g" },
+// Same order as the form and an EU label; "of which" lines sit indented.
+const NUTRITION: Array<{ key: string; label: string; unit: string; indent: 0 | 1 | 2 }> = [
+  { key: "calories", label: "Energy", unit: "kcal", indent: 0 },
+  { key: "fat", label: "Fat", unit: "g", indent: 0 },
+  { key: "saturated_fat", label: "of which saturates", unit: "g", indent: 1 },
+  { key: "carbs", label: "Carbohydrate", unit: "g", indent: 0 },
+  { key: "sugars_total", label: "of which sugars", unit: "g", indent: 1 },
+  { key: "sugars_added", label: "of which added", unit: "g", indent: 2 },
+  { key: "fibre", label: "Fibre", unit: "g", indent: 0 },
+  { key: "protein", label: "Protein", unit: "g", indent: 0 },
+  { key: "salt", label: "Salt", unit: "g", indent: 0 },
 ];
+
+const INDENT = ["", "pl-3 text-muted", "pl-6 text-muted"] as const;
+
+const LINE = "flex items-baseline justify-between gap-3 border-t border-border py-2.5 first:border-t-0";
 
 export default async function ProductPage({ params }: PageProps<"/products/[id]">) {
   const { id } = await params;
@@ -62,17 +68,25 @@ export default async function ProductPage({ params }: PageProps<"/products/[id]"
     salt: product.salt,
   };
 
+  // Duplicate is there for any product, used or not, retired or not: it starts
+  // a new product from this one and leaves this one exactly as it is.
+  const duplicate = (
+    <Link href={`/products/new?duplicate=${product.id}`} className={`${QUIET} text-center`}>
+      Duplicate
+    </Link>
+  );
+
   return (
-    <main className="flex-1 px-5 py-8 mx-auto w-full max-w-md flex flex-col gap-6">
-      <header className="flex items-baseline justify-between gap-4">
-        <h1 className="text-xl font-semibold tracking-tight">{product.name}</h1>
-        <Link href="/products" className="text-sm text-accent">
+    <main className="flex-1 px-5 py-8 mx-auto w-full max-w-md flex flex-col gap-5">
+      <header className="flex min-h-7 items-center justify-between gap-4">
+        <h1 className="min-w-0 break-words text-lg font-semibold">{product.name}</h1>
+        <Link href="/products" className="shrink-0 text-sm text-accent">
           Products
         </Link>
       </header>
 
       {(product.retired || replacement || (predecessors ?? []).length > 0) && (
-        <div className="rounded-lg border border-border bg-surface p-3 text-sm text-muted flex flex-col gap-1">
+        <div className="flex flex-col gap-1 rounded-xl bg-surface p-3.5 text-[13px] text-muted">
           {product.retired && <p>Retired — hidden when logging, kept so old meals still add up.</p>}
           {replacement && (
             <p>
@@ -95,7 +109,7 @@ export default async function ProductPage({ params }: PageProps<"/products/[id]"
 
       {used === 0 ? (
         <>
-          <p className="text-sm text-muted">
+          <p className="text-[13px] text-muted">
             Not used in any recipe or meal yet, so everything about it is still safe
             to change.
           </p>
@@ -123,14 +137,15 @@ export default async function ProductPage({ params }: PageProps<"/products/[id]"
             }}
           />
 
-          <div className="flex flex-col gap-3 border-t border-border pt-6">
+          <div className="flex flex-col gap-3 pt-2">
+            {duplicate}
             <RetireButton id={product.id} retired={product.retired} />
             <DeleteButton id={product.id} />
           </div>
         </>
       ) : (
         <>
-          <p className="text-sm text-muted">
+          <p className="text-[13px] text-muted">
             Used in {used} {used === 1 ? "place" : "places"}, so its price and
             nutrition are frozen — changing them would rewrite meals you have
             already eaten. To record a new price, replace it.
@@ -138,35 +153,37 @@ export default async function ProductPage({ params }: PageProps<"/products/[id]"
 
           <RenameForm id={product.id} name={product.name} />
 
-          <section className="flex flex-col gap-2">
-            <h2 className="text-sm font-medium text-muted">What it cost</h2>
-            <div className="rounded-lg border border-border bg-surface px-3 py-2.5 text-sm flex items-baseline justify-between">
-              <span className="tabular-nums">
-                {product.package_price} for {product.package_quantity} {product.unit}
-              </span>
-              <span className="text-muted tabular-nums">
-                {perHundred} per 100 {product.unit}
-              </span>
-            </div>
-            {product.piece_grams && (
-              <p className="text-xs text-muted tabular-nums">
-                One piece is {product.piece_grams} g.
-              </p>
-            )}
+          <section className="flex flex-col gap-1.5">
+            <h2 className={HEADING}>What it cost</h2>
+            <ul className={`${CARD} text-[13px]`}>
+              <li className={LINE}>
+                <span>Package</span>
+                <span className="tabular-nums">
+                  {product.package_price.toFixed(2)} lei for {product.package_quantity} {product.unit}
+                </span>
+              </li>
+              <li className={LINE}>
+                <span>Per 100 {product.unit}</span>
+                <span className="tabular-nums">{perHundred} lei</span>
+              </li>
+              {product.piece_grams && (
+                <li className={LINE}>
+                  <span>One piece</span>
+                  <span className="tabular-nums">{product.piece_grams} g</span>
+                </li>
+              )}
+            </ul>
           </section>
 
-          <section className="flex flex-col gap-2">
-            <h2 className="text-sm font-medium text-muted">Per 100 {product.unit}</h2>
-            <ul className="rounded-lg border border-border bg-surface divide-y divide-[var(--border)]">
+          <section className="flex flex-col gap-1.5">
+            <h2 className={HEADING}>Per 100 {product.unit}</h2>
+            <ul className={`${CARD} text-[13px]`}>
               {NUTRITION.map((row) => (
-                <li
-                  key={row.key}
-                  className="flex items-baseline justify-between gap-3 px-3 py-2 text-sm"
-                >
-                  <span>{row.label}</span>
-                  <span className="tabular-nums">
+                <li key={row.key} className={LINE}>
+                  <span className={INDENT[row.indent]}>{row.label}</span>
+                  <span className={`tabular-nums ${row.indent > 0 ? "text-muted" : ""}`}>
                     {values[row.key] === null ? (
-                      <span className="text-muted">not stated</span>
+                      <span className="text-faint">not stated</span>
                     ) : (
                       `${values[row.key]} ${row.unit}`
                     )}
@@ -177,21 +194,17 @@ export default async function ProductPage({ params }: PageProps<"/products/[id]"
           </section>
 
           {product.ingredients_text && (
-            <section className="flex flex-col gap-2">
-              <h2 className="text-sm font-medium text-muted">Ingredients</h2>
-              <p className="rounded-lg border border-border bg-surface p-3 text-sm">
-                {product.ingredients_text}
-              </p>
+            <section className="flex flex-col gap-1.5">
+              <h2 className={HEADING}>Ingredients</h2>
+              <p className="rounded-xl bg-surface p-3.5 text-[13px]">{product.ingredients_text}</p>
             </section>
           )}
 
-          <div className="flex flex-col gap-3 border-t border-border pt-6">
-            <Link
-              href={`/products/new?copy=${product.id}`}
-              className="rounded-lg bg-accent px-4 py-3 text-center font-medium text-black"
-            >
+          <div className="flex flex-col gap-3 pt-2">
+            <Link href={`/products/new?copy=${product.id}`} className={`${PRIMARY} text-center`}>
               Replace — new price or nutrition
             </Link>
+            {duplicate}
             <RetireButton id={product.id} retired={product.retired} />
           </div>
         </>

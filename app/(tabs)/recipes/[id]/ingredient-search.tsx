@@ -36,7 +36,7 @@ export function IngredientSearch({
   const clear = () => setText("");
 
   return (
-    <>
+    <div className="flex flex-col gap-2">
       <input
         type="search"
         value={text}
@@ -44,15 +44,15 @@ export function IngredientSearch({
         placeholder="Search products to add"
         aria-label="Search products to add"
         autoComplete="off"
-        className="rounded-lg border border-border bg-surface px-4 py-2.5 text-base
-                   outline-none focus:border-accent"
+        className="rounded-xl border border-transparent bg-surface px-3.5 py-2.5 text-base
+                   outline-none placeholder:text-faint focus:border-accent"
       />
 
       {term &&
         (matches.length === 0 ? (
-          <p className="text-sm text-muted">Nothing matching “{text.trim()}”.</p>
+          <p className="text-[13px] text-muted">Nothing matching “{text.trim()}”.</p>
         ) : (
-          <ul className="rounded-lg border border-border bg-surface divide-y divide-[var(--border)]">
+          <ul className="flex flex-col rounded-xl bg-surface px-3.5 [&>li+li]:border-t [&>li+li]:border-border">
             {matches.map((product) => (
               <li key={product.id}>
                 <AddLineForm
@@ -67,6 +67,6 @@ export function IngredientSearch({
             ))}
           </ul>
         ))}
-    </>
+    </div>
   );
 }

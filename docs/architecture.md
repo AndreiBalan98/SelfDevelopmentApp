@@ -385,6 +385,19 @@ the numbers it was logged with.
 That's the point of the design: replacing is as fast as editing would have been. If
 the honest path were the slower one, the rule would quietly stop holding.
 
+**Duplicate** sits next to Replace, on every product and every recipe — used or not,
+retired or not. It opens the same add form filled in from the original, named
+"Eggs (copy)", and saving makes a new, separate item. Unlike Replace, the original is
+left exactly as it was: not retired, not linked. It's for starting something new from
+something similar, not for recording a new price. A duplicated recipe brings its
+ingredients across **exactly as they are**, retired products included, and the screen
+names any retired ones before you save; Replace, by contrast, follows them to what
+replaced them.
+
+The add form opens three ways, told apart by its address: empty (`/products/new`), as a
+replacement (`?copy=12`), or as a duplicate (`?duplicate=12`). The same goes for
+recipes. Cancel goes back to wherever the copy came from.
+
 Because this database can't wrap two writes in one transaction, creating the
 replacement and retiring the original are separate steps. If the second doesn't
 happen — including the case where the original was deleted from another screen while
@@ -472,6 +485,13 @@ one tap to delete.
 their calories a serving. Retired ones are left out, including when backfilling. The
 search runs on the phone (see "Searching happens on the phone"); after an Add the box
 empties, ready for the next thing.
+
+**A product's and a recipe's own screens, and their add, edit, replace and duplicate
+forms**, have the phase 7 look too (step 7.7b), built from the same pieces as one meal's
+screen: small grey headings over rounded cards, a row per field with its box on the
+right, the full label figures in EU order ("Per serving" on a recipe is the same card
+as a meal's details), and plain full-width buttons at the bottom — Replace in green,
+then Duplicate, Retire and Delete, none of them red. They work exactly as before.
 
 **One meal's screen** has the phase 7 look (step 7.4b): the header says "Meal · 13:30"
 with the way back to its day on the right; "What was in it" is a card with a line per

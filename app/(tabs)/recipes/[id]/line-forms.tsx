@@ -2,9 +2,7 @@
 
 import { useActionState } from "react";
 import { addLine, removeLine, setLineQuantity, type Result } from "../actions";
-
-const NUMBER =
-  "w-24 rounded-md border border-border bg-background px-2 py-1.5 text-right text-base tabular-nums outline-none focus:border-accent";
+import { BOX, SMALL, SMALL_PRIMARY } from "../../ui";
 
 // One search result, with somewhere to type how much goes in. Adding redraws
 // the recipe in place with the new line in it — the page doesn't reload, so it
@@ -34,41 +32,35 @@ export function AddLineForm({
   );
 
   return (
-    <form action={action} className="flex flex-col gap-1.5 px-3 py-2.5">
+    <form action={action} className="flex flex-col gap-1.5 py-2.5">
       <input type="hidden" name="recipe_id" value={recipeId} />
       <input type="hidden" name="product_id" value={productId} />
 
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
         <span className="flex min-w-0 flex-col">
-          <span className="truncate text-sm">{name}</span>
+          <span className="truncate text-[13px]">{name}</span>
           {pieceGrams && (
-            <span className="text-xs text-muted tabular-nums">
-              one piece is {pieceGrams} g
-            </span>
+            <span className="text-xs text-faint tabular-nums">one piece is {pieceGrams} g</span>
           )}
         </span>
 
-        <span className="flex shrink-0 items-center gap-2">
+        <span className="ml-auto flex shrink-0 items-center gap-1.5">
           <input
             name="quantity"
             type="text"
             inputMode="decimal"
             autoComplete="off"
             aria-label={`How much ${name}`}
-            className={NUMBER}
+            className={`${BOX} w-16 text-right`}
           />
-          <span className="w-5 text-xs text-muted">{unit}</span>
-          <button
-            type="submit"
-            disabled={pending}
-            className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm disabled:opacity-50"
-          >
+          <span className="w-6 text-xs text-faint">{unit}</span>
+          <button type="submit" disabled={pending} className={SMALL_PRIMARY}>
             {pending ? "…" : "Add"}
           </button>
         </span>
       </div>
 
-      {result && !result.ok && <p className="text-sm text-foreground">{result.message}</p>}
+      {result && !result.ok && <p className="text-[13px] text-foreground">{result.message}</p>}
     </form>
   );
 }
@@ -98,51 +90,45 @@ export function EditLineForm({
   const failure = saveResult && !saveResult.ok ? saveResult : removeResult;
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex items-center gap-2">
-        <form action={save} className="flex items-center gap-2">
-          <input type="hidden" name="recipe_id" value={recipeId} />
-          <input type="hidden" name="line_id" value={lineId} />
+    <>
+      <div className="flex justify-end">
+        <span className="flex shrink-0 items-center gap-1.5">
+          <form action={save} className="flex items-center gap-1.5">
+            <input type="hidden" name="recipe_id" value={recipeId} />
+            <input type="hidden" name="line_id" value={lineId} />
 
-          <input
-            name="quantity"
-            type="text"
-            inputMode="decimal"
-            autoComplete="off"
-            aria-label="Quantity"
-            defaultValue={quantity}
-            className={NUMBER}
-          />
-          <span className="w-5 text-xs text-muted">{unit}</span>
+            <input
+              name="quantity"
+              type="text"
+              inputMode="decimal"
+              autoComplete="off"
+              aria-label="Quantity"
+              defaultValue={quantity}
+              className={`${BOX} w-16 text-right`}
+            />
+            <span className="w-6 text-xs text-faint">{unit}</span>
 
-          <button
-            type="submit"
-            disabled={saving}
-            className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm disabled:opacity-50"
-          >
-            {saving ? "…" : "Save"}
-          </button>
-        </form>
+            <button type="submit" disabled={saving} className={SMALL}>
+              {saving ? "…" : "Save"}
+            </button>
+          </form>
 
-        <form action={remove}>
-          <input type="hidden" name="recipe_id" value={recipeId} />
-          <input type="hidden" name="line_id" value={lineId} />
+          <form action={remove}>
+            <input type="hidden" name="recipe_id" value={recipeId} />
+            <input type="hidden" name="line_id" value={lineId} />
 
-          <button
-            type="submit"
-            disabled={removing}
-            className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm disabled:opacity-50"
-          >
-            {removing ? "…" : "Remove"}
-          </button>
-        </form>
+            <button type="submit" disabled={removing} className={SMALL}>
+              {removing ? "…" : "Remove"}
+            </button>
+          </form>
+        </span>
       </div>
 
       {failure && (
-        <p className={`text-sm ${failure.ok ? "text-muted" : "text-foreground"}`}>
+        <p className={`text-[13px] ${failure.ok ? "text-muted" : "text-foreground"}`}>
           {failure.message}
         </p>
       )}
-    </div>
+    </>
   );
 }

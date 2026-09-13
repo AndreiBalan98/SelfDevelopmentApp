@@ -23,17 +23,23 @@ export async function timesUsed(recipeId: number): Promise<number> {
   return count ?? 0;
 }
 
-// The lines a copy of this recipe would get, with every retired product
-// followed to its current version. Read on the replace screen so you can see
-// what's about to move, and again when saving so the answer comes from the
-// database rather than from the page.
-export async function linesForCopy(recipeId: number): Promise<
+// The lines a copy of this recipe would get. A replacement follows every
+// retired product to its current version; a duplicate copies them exactly as
+// they are, retired ones included (Andrei's call, 2026-09-13). Read on the
+// copy screen so you can see what's coming across, and again when saving so the
+// answer comes from the database rather than from the page.
+export async function linesForCopy(
+  recipeId: number,
+  follow: boolean,
+): Promise<
   Array<{
     quantity: number;
     fromId: number;
     fromName: string;
     toId: number;
     toName: string;
+    // The product the copy will point at has been retired.
+    retired: boolean;
   }>
 > {
   const supabase = db();
@@ -58,7 +64,7 @@ export async function linesForCopy(recipeId: number): Promise<
   const byId = new Map((products ?? []).map((product) => [product.id, product]));
 
   return (lines ?? []).map((line) => {
-    const toId = currentVersion(line.product_id, byId);
+    const toId = follow ? currentVersion(line.product_id, byId) : line.product_id;
 
     return {
       quantity: line.quantity,
@@ -66,12 +72,14 @@ export async function linesForCopy(recipeId: number): Promise<
       fromName: byId.get(line.product_id)?.name ?? "a deleted product",
       toId,
       toName: byId.get(toId)?.name ?? "a deleted product",
+      retired: byId.get(toId)?.retired ?? false,
     };
   });
 }
 
-// Creating a recipe, and — when it's replacing one — copying its ingredients,
-// retiring the old one and linking the two in the same breath.
+// Creating a recipe. When it's replacing one: copying its ingredients, retiring
+// the old one and linking the two in the same breath. When it's duplicating
+// one: copying its ingredients as they are, and leaving the original alone.
 export async function createRecipe(
   _previous: Result | null,
   form: FormData,
@@ -81,16 +89,29 @@ export async function createRecipe(
 
   const replacesRaw = String(form.get("replaces") ?? "").trim();
   const replaces = replacesRaw ? Number(replacesRaw) : null;
+  const duplicatesRaw = String(form.get("duplicates") ?? "").trim();
+  const duplicates = duplicatesRaw ? Number(duplicatesRaw) : null;
 
   if (replacesRaw && !Number.isInteger(replaces)) {
     return { ok: false, message: "Something is wrong with the recipe being replaced." };
+  }
+  if (duplicatesRaw && !Number.isInteger(duplicates)) {
+    return { ok: false, message: "Something is wrong with the recipe being copied." };
+  }
+  if (replaces !== null && duplicates !== null) {
+    return { ok: false, message: "A recipe can be replaced or copied, not both at once." };
   }
 
   const supabase = db();
 
   // The ingredients are read from the database, not from the page, so a form
   // left open while something changed elsewhere can't copy a stale list.
-  const copied = replaces === null ? [] : await linesForCopy(replaces);
+  const copied =
+    replaces !== null
+      ? await linesForCopy(replaces, true)
+      : duplicates !== null
+        ? await linesForCopy(duplicates, false)
+        : [];
 
   const { data: created, error } = await supabase
     .from("recipes")
