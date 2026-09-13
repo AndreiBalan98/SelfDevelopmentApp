@@ -1,8 +1,10 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/supabase";
 import { dayFor } from "@/lib/day";
+import { rangeQuery } from "@/lib/range";
 
 // Saving and deleting a night's sleep.
 //
@@ -13,6 +15,21 @@ export type Result = { ok: boolean; message: string };
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const TIME = /^\d{2}:\d{2}$/;
+
+// Back to the clock after a save or a delete: to the period it was showing, or,
+// from a single night, to the night just saved — the new arc is what says it
+// worked. The range comes back from the form, so it's rebuilt from its checked
+// parts (lib/range.ts) rather than trusted as it arrived.
+function backToClock(form: FormData, night: string): never {
+  const params = new URLSearchParams(String(form.get("back") ?? ""));
+  const query = rangeQuery({
+    range: params.get("range") ?? undefined,
+    from: params.get("from") ?? undefined,
+    to: params.get("to") ?? undefined,
+  });
+  if (query) redirect(`/sleep?${query}`);
+  redirect(night === dayFor(new Date()) ? "/sleep" : `/sleep?date=${night}`);
+}
 
 function readTime(raw: FormDataEntryValue | null): string | null | "bad" {
   const text = String(raw ?? "").trim();
@@ -68,8 +85,7 @@ export async function saveSleep(
   if (error) return { ok: false, message: `Could not save: ${error.message}` };
 
   revalidatePath("/sleep");
-
-  return { ok: true, message: `Saved ${date}.` };
+  backToClock(form, date);
 }
 
 export async function deleteSleep(
@@ -77,14 +93,14 @@ export async function deleteSleep(
   form: FormData,
 ): Promise<Result> {
   const id = Number(form.get("id"));
+  const date = String(form.get("date") ?? "");
 
-  if (!Number.isInteger(id)) return { ok: false, message: "Nothing to delete." };
+  if (!Number.isInteger(id) || !DATE.test(date)) return { ok: false, message: "Nothing to delete." };
 
   const { error } = await db().from("sleep").delete().eq("id", id);
 
   if (error) return { ok: false, message: `Could not delete: ${error.message}` };
 
   revalidatePath("/sleep");
-
-  return { ok: true, message: "Deleted." };
+  backToClock(form, date);
 }

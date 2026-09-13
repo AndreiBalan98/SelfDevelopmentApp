@@ -1,27 +1,24 @@
-import { Bone, Field, Rows, Screen, Section } from "../skeleton";
+import { Pills, Screen } from "../skeleton";
 import { TabHeader } from "../headers";
+import { PlusIcon } from "../icons";
+import { ClockBones } from "./clock-bones";
 
-// The sleep screen while it loads: the form, then the recent nights.
+// The Sleep tab while it loads: the header and its "+", the range pills as
+// they open (Night), then last night's clock.
 export default function Loading() {
   return (
-    <Screen header={<TabHeader title="Sleep" />} gap="gap-7">
-      <div className="flex flex-col gap-4">
-        <Field label="Woke up on" />
-        <div className="flex gap-3">
-          <Field label="Went to bed" />
-          <Field label="Got up" />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <span className="text-sm text-muted">How it was</span>
-          <Bone className="h-9" />
-        </div>
-        <Field label="Note (optional)" />
-        <Bone className="h-12" />
-      </div>
-
-      <Section heading="Last 14 nights">
-        <Rows rows={6} />
-      </Section>
+    <Screen
+      gap="gap-4"
+      header={
+        <TabHeader title="Sleep">
+          <span className="flex text-muted">
+            <PlusIcon size={23} />
+          </span>
+        </TabHeader>
+      }
+    >
+      <Pills labels={["Night", "7", "14", "28", "Custom"]} chosen="Night" />
+      <ClockBones night />
     </Screen>
   );
 }

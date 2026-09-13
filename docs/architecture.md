@@ -82,7 +82,8 @@ app/                 every screen, and the server code behind it
     weight/          Nutrition → Weight: the range, the goal line, the chart,
                      the TDEE card, the weigh-ins under it
       day/           one day's weigh-in and note — the form behind the "+"
-    sleep/           the Sleep tab: a night, two times, a score, the last fortnight
+    sleep/           the Sleep tab: the clock — one night, or a range of them
+      night/         one night's times, score and note — the form behind the "+"
     smoking/         the Smoking tab: the range, the chart, the days under it
       day/           one day's count and note — the form behind the "+"
     workout/         the Workout tab: a countdown to the gym start date, until
@@ -135,7 +136,9 @@ lib/
                      column
   tdee.ts            the TDEE estimate — the window, the trend line, the ± and
                      the accuracy label — and the formula estimate
-  sleep.ts           how long a night was, including crossing midnight
+  sleep.ts           how long a night was, including crossing midnight, and a
+                     range of nights' earliest, latest and average times
+  clock.ts           where things go on the Sleep clock's 12-hour face
   series.ts          averages over a run of days, honest about the gaps
   logging.ts         how completely each day was logged, the logging streak and
                      the days-logged counter, and laying out a month
@@ -656,27 +659,60 @@ previous day is visible rather than surprising.
 
 ## Sleep
 
-Pick the morning you woke up, type the two times, tap a score out of ten, save. The
-last fortnight underneath, each tappable to change and deletable, with the average
-length of the last seven nights above them. It opens on this morning by the 04:00 day.
+The tab is a clock (step 7.11): a 12-hour face with the night on its rim, drawn by hand as
+SVG on the server like the charts. Under the title, the **range pills** — Night · 7 · 14 ·
+28 · Custom, opening on Night. There's no list of nights: you reach a night with the
+arrows, the calendar icon or the "+".
 
-The same shape as weight, and safe for the same reason: nothing in the database points
-at a night, so every entry stays editable and deletable forever. Logging the same night
-twice updates it rather than failing, because the date is unique — that uniqueness is
-what makes double-logging impossible rather than merely unlikely.
+**A night is stored under the day you woke up**, so last night is the row dated today by
+the 04:00 day, and every range ends with it.
+
+**Night** shows one night — last night unless another is asked for (`/sleep?date=…`).
+Under the pills, "‹ Night to 11 Sep ›" steps a night at a time, landing on unlogged
+nights too, and the calendar icon is the phone's date picker for jumping anywhere.
+- A logged night is a **thick blue arc** from bedtime to wake-up, both times written at
+  its ends in 24-hour form (every position on a 12-hour face means two times), the length
+  and score in the middle ("7h 55", "quality 8"), and the note in italics underneath.
+  Twelve hours or more goes all the way round, with the real length in the middle. Two
+  times that would sit on top of each other are pushed apart.
+- A night logged without its times says so in the middle ("Times not logged", or which
+  one is missing) with its score, and no arc.
+- A night not logged shows a **big "+"** — "Log last night", or "Log this night".
+- Tapping the clock opens that night in the entry form.
+
+**7 / 14 / 28 / Custom** put every night in the range on the same clock: one see-through
+arc each, so where nights overlap the blue builds up — all of them together reach 90%
+cover. On the rim, the average bedtime and wake-up; in the middle, the average length
+and score; under the clock, the earliest, latest and average bedtime and wake-up. The
+line above says how many nights were logged ("6 of 7 nights logged"), and a line under the
+card says so when some had no times. No notes.
+
+**Averaging times across midnight.** Bedtimes are counted from the noon before, so 23:30
+and 00:30 sit next to each other and average to 00:00 rather than midday, and a wake-up is
+its bedtime plus the night's length — which makes the average wake-up exactly the average
+bedtime plus the average length. The times and the length go by the nights with both
+times; the score by every night with one. This is `periodOf` in `lib/sleep.ts`; where
+things go on the dial is `lib/clock.ts`.
+
+**The "+"** in the header opens the entry form, `/sleep/night`, on last night, with a red
+dot while last night is missing (the same dot as on the tab icon). A logged night has
+**Delete this night** underneath. Saving or deleting goes back to the clock: to the period
+it was showing, or, from a single night, to the night just saved.
+
+Nothing in the database points at a night, so every entry stays editable and deletable
+forever. Logging the same night twice updates it rather than failing, because the date is
+unique — that uniqueness is what makes double-logging impossible rather than merely
+unlikely.
 
 **How long the night was is never stored.** It's worked out from the two times every
-time it's shown, and it appears live under the fields as you type. That's what catches
-a mistyped time while you can still see it: "22 h 40 m" is visibly wrong in a way a
-stored number never would be.
+time it's shown, and it appears live under the times on the form as you type. That's what
+catches a mistyped time while you can still see it: "22 h 40 m" is visibly wrong in a way
+a stored number never would be.
 
 **Crossing midnight is arithmetic, not a question.** Bed at 23:30 and up at 07:00 means
 the night crossed midnight; bed at 01:30 and up at 09:00 means it didn't. Both are
 obvious from the two numbers, so the app never asks which day bedtime was on, and the
-line under the fields says which it decided.
-
-A night can be logged with only a score, or only a note. There's then nothing to
-measure, and the list shows a dash rather than inventing a length.
+line under the times says which it decided.
 
 ## Smoking
 
@@ -735,16 +771,16 @@ another range redraws only the chart and what's under it; the pills stay put.
 ## Averages over days, and the gaps in them
 
 `lib/series.ts` averages a value over a run of days. It's behind every moving average on
-the charts, the seven-night sleep average, and the seven-day weight average that the goal
-line and the formula estimate use. (TDEE itself doesn't use it: it fits a trend line
-through the weigh-ins instead — see Nutrition → Weight.)
+the charts, and the seven-day weight average that the goal line and the formula estimate
+use. (TDEE itself doesn't use it: it fits a trend line through the weigh-ins instead —
+see Nutrition → Weight.)
 
 **The honest part is the gaps.** A day with no row is a day that wasn't logged, which is
 deliberately not a day with a value of zero — the schema keeps those apart on purpose.
 So the average covers the days that actually have an entry, and it carries how many
-that was, which the screen says out loud when the window isn't full: "7 h 23 m a night ·
-over the 6 you logged". Filling the gaps with zero would flatter a cigarette count.
-Treating a half-empty window as complete would lie about it.
+that was. Filling the gaps with zero would flatter a cigarette count. Treating a
+half-empty window as complete would lie about it. The same rule is why the Sleep clock's
+period view says "6 of 7 nights logged" and averages only the nights that are there.
 
 ## Nutrition → Today
 

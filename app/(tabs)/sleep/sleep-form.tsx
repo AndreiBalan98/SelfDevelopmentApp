@@ -5,9 +5,7 @@ import { useRouter } from "next/navigation";
 import { formatDuration, minutesAsleep } from "@/lib/sleep";
 import { saveSleep, type Result } from "./actions";
 import { useFormAction } from "../form-action";
-
-const FIELD =
-  "rounded-lg border border-border bg-surface px-3 py-2.5 text-base outline-none focus:border-accent";
+import { BOX, CARD, PRIMARY, ROW } from "../ui";
 
 type Props = {
   date: string;
@@ -18,11 +16,14 @@ type Props = {
     quality: number | null;
     notes: string | null;
   } | null;
+  // Where to go back to after saving: "range=7" from a period, "" from a night.
+  back: string;
 };
 
-export function SleepForm({ date, today, existing }: Props) {
+export function SleepForm({ date, today, existing, back }: Props) {
   const router = useRouter();
-  // Sent by hand, so a refused save keeps what you typed (form-action.ts).
+  // Sent by hand, so a refused save keeps what you typed (form-action.ts). A
+  // save that works goes back to the clock.
   const [result, submit, pending] = useFormAction<Result>(saveSleep);
 
   const [bedtime, setBedtime] = useState(existing?.bedtime ?? "");
@@ -33,106 +34,116 @@ export function SleepForm({ date, today, existing }: Props) {
   // while you can still see it — "22 h 40 m" is visibly wrong in a way a stored
   // number never would be.
   const minutes = minutesAsleep(bedtime || null, wakeTime || null);
-  const crossedMidnight =
-    bedtime !== "" && wakeTime !== "" && bedtime > wakeTime;
+  const crossedMidnight = bedtime !== "" && wakeTime !== "" && bedtime > wakeTime;
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-4">
       <input type="hidden" name="quality" value={quality ?? ""} />
+      <input type="hidden" name="back" value={back} />
 
-      <label className="flex flex-col gap-1.5">
-        <span className="text-sm text-muted">Woke up on</span>
-        <input
-          type="date"
-          name="date"
-          defaultValue={date}
-          max={today}
-          required
-          // Changing the day reloads the screen for that day, so the fields show
-          // what was actually logged rather than the night you were just looking
-          // at.
-          onChange={(event) => {
-            if (event.target.value) router.replace(`/sleep?date=${event.target.value}`);
-          }}
-          className={`${FIELD} tabular-nums`}
-        />
-      </label>
-
-      <div className="flex gap-3">
-        <label className="flex flex-1 flex-col gap-1.5">
-          <span className="text-sm text-muted">Went to bed</span>
+      <div className={CARD}>
+        <div className={ROW}>
+          <label htmlFor="sleep-date" className="text-[13px]">
+            Woke up on
+          </label>
           <input
+            id="sleep-date"
+            type="date"
+            name="date"
+            defaultValue={date}
+            max={today}
+            required
+            // Changing the day reloads the screen for that night, so the boxes
+            // show what was actually logged rather than the night you were
+            // just looking at.
+            onChange={(event) => {
+              if (event.target.value) {
+                router.replace(`/sleep/night?date=${event.target.value}${back ? `&${back}` : ""}`);
+              }
+            }}
+            className={`${BOX} min-h-8 w-36 [&::-webkit-date-and-time-value]:text-right`}
+          />
+        </div>
+
+        <div className={ROW}>
+          <label htmlFor="sleep-bedtime" className="text-[13px]">
+            Went to bed
+          </label>
+          <input
+            id="sleep-bedtime"
             name="bedtime"
             type="time"
             value={bedtime}
             onChange={(event) => setBedtime(event.target.value)}
-            className={`${FIELD} tabular-nums`}
+            className={`${BOX} min-h-8 w-28 [&::-webkit-date-and-time-value]:text-right`}
           />
-        </label>
+        </div>
 
-        <label className="flex flex-1 flex-col gap-1.5">
-          <span className="text-sm text-muted">Got up</span>
+        <div className={ROW}>
+          <label htmlFor="sleep-wake" className="text-[13px]">
+            Got up
+          </label>
           <input
+            id="sleep-wake"
             name="wake_time"
             type="time"
             value={wakeTime}
             onChange={(event) => setWakeTime(event.target.value)}
-            className={`${FIELD} tabular-nums`}
+            className={`${BOX} min-h-8 w-28 [&::-webkit-date-and-time-value]:text-right`}
           />
-        </label>
-      </div>
+        </div>
 
-      <p className="-mt-2 text-xs text-muted tabular-nums" aria-live="polite">
-        {minutes === null
-          ? "Fill in both times and the length appears here."
-          : `${formatDuration(minutes)}${crossedMidnight ? " · went to bed the evening before" : " · went to bed after midnight"}`}
-      </p>
+        <p className="-mt-0.5 pb-2.5 text-[11px] text-faint tabular-nums" aria-live="polite">
+          {minutes === null
+            ? "Fill in both times and the length appears here."
+            : `${formatDuration(minutes)}${crossedMidnight ? " · went to bed the evening before" : " · went to bed after midnight"}`}
+        </p>
 
-      <div className="flex flex-col gap-1.5">
-        <span className="text-sm text-muted">
-          How it was{quality !== null && <span> · {quality}</span>}
-        </span>
-        <div className="flex gap-1">
-          {Array.from({ length: 10 }, (_, index) => index + 1).map((number) => (
-            <button
-              key={number}
-              type="button"
-              aria-label={`Quality ${number}`}
-              onClick={() => setQuality(quality === number ? null : number)}
-              className={`flex-1 rounded-md border py-2 text-xs tabular-nums ${
-                quality === number ? "border-accent text-accent" : "border-border text-muted"
-              }`}
-            >
-              {number}
-            </button>
-          ))}
+        <div className="flex flex-col gap-2 border-t border-border py-2.5">
+          <span className="text-[13px]">
+            How it was
+            <span className="text-faint">{quality !== null ? ` · ${quality}` : " · optional"}</span>
+          </span>
+          <div className="flex gap-1">
+            {Array.from({ length: 10 }, (_, index) => index + 1).map((number) => (
+              <button
+                key={number}
+                type="button"
+                aria-label={`Quality ${number}`}
+                aria-pressed={quality === number}
+                onClick={() => setQuality(quality === number ? null : number)}
+                className={`flex-1 rounded-md py-1.5 text-xs tabular-nums ${
+                  quality === number ? "bg-accent font-semibold text-black" : "bg-background text-muted"
+                }`}
+              >
+                {number}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className={ROW}>
+          <label htmlFor="sleep-notes" className="text-[13px]">
+            Note
+          </label>
+          <input
+            id="sleep-notes"
+            name="notes"
+            type="text"
+            defaultValue={existing?.notes ?? ""}
+            placeholder="optional"
+            autoComplete="off"
+            className={`${BOX} min-w-0 flex-1 placeholder:text-faint`}
+          />
         </div>
       </div>
 
-      <label className="flex flex-col gap-1.5">
-        <span className="text-sm text-muted">Note (optional)</span>
-        <input
-          name="notes"
-          type="text"
-          defaultValue={existing?.notes ?? ""}
-          autoComplete="off"
-          className={FIELD}
-        />
-      </label>
-
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-lg bg-accent px-4 py-3 font-medium text-black disabled:opacity-50"
-      >
+      <button type="submit" disabled={pending} className={PRIMARY}>
         {pending ? "Saving…" : existing ? "Update" : "Save"}
       </button>
 
-      {result && (
-        <p
-          className={`text-sm ${result.ok ? "text-muted" : "text-foreground"}`}
-          aria-live="polite"
-        >
+      {result && !result.ok && (
+        <p className="text-[13px] text-foreground" aria-live="polite">
           {result.message}
         </p>
       )}

@@ -6,8 +6,9 @@
 
 import { daysBetween, shiftDays } from "@/lib/day";
 
-// Every option any screen offers. Each screen offers its own few.
-export type RangeKey = "4" | "7" | "14" | "28" | "all" | "custom";
+// Every option any screen offers. Each screen offers its own few. "night" is
+// Sleep's single night, which the screen picks itself (from `?date=`).
+export type RangeKey = "night" | "4" | "7" | "14" | "28" | "all" | "custom";
 
 export type Range = {
   key: RangeKey;
@@ -63,6 +64,10 @@ export function resolveRange(
   if (key === "all") {
     return make("all", earliest !== null && earliest < end ? earliest : end, end);
   }
+
+  // One night: the last one here; the Sleep screen moves it to the night asked
+  // for.
+  if (key === "night") return make("night", end, end);
 
   const length = Number(key);
   return make(key, shiftDays(end, -(length - 1)), end);

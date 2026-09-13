@@ -14,6 +14,7 @@ import { BOX, PILL, PILL_CHOSEN, PILL_OTHER, SMALL_PRIMARY } from "./ui";
 // chart for it and a reload keeps it. Custom opens a start and an end date.
 
 const LABELS: Record<RangeKey, string> = {
+  night: "Night",
   "4": "4",
   "7": "7",
   "14": "14",

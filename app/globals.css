@@ -68,6 +68,7 @@
 
 [data-tab="sleep"] {
   --accent: var(--sleep);
+  --accent-pale: #b5d4f4;
 }
 [data-tab="smoking"] {
   --accent: var(--smoking);

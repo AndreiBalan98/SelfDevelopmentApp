@@ -55,6 +55,85 @@ export function formatDuration(minutes: number): string {
   return `${hours} h ${rest} m`;
 }
 
+// "7h 55", as the clock's centre writes a length: the mockups' shorter form.
+export function clockDuration(minutes: number): string {
+  const whole = Math.round(minutes);
+  return `${Math.floor(whole / 60)}h ${String(whole % 60).padStart(2, "0")}`;
+}
+
+// A minute of the day, any number of days along, as a 24-hour clock reads it:
+// 1,470 (00:30 the next day) is "00:30".
+export function clockTime(minute: number): string {
+  const within = ((Math.round(minute) % DAY) + DAY) % DAY;
+  return `${String(Math.floor(within / 60)).padStart(2, "0")}:${String(within % 60).padStart(2, "0")}`;
+}
+
+// A night on one continuous line of minutes, so that nights either side of
+// midnight can be averaged and compared: bedtime counted from the noon before
+// (23:30 is 1,410, 00:30 is 1,470 — next to each other, as they are), and the
+// wake-up as bedtime plus the length. Null without both times.
+export type Span = { bed: number; wake: number; minutes: number };
+
+export function nightSpan(bedtime: string | null, wakeTime: string | null): Span | null {
+  const bed = minutesInto(bedtime);
+  const minutes = minutesAsleep(bedtime, wakeTime);
+  if (bed === null || minutes === null) return null;
+
+  const fromNoon = bed < DAY / 2 ? bed + DAY : bed;
+  return { bed: fromNoon, wake: fromNoon + minutes, minutes };
+}
+
+export type Night = {
+  date: string;
+  bedtime: string | null;
+  wake_time: string | null;
+  quality: number | null;
+};
+
+// What the period view shows for a run of nights: the nights with both times
+// (for the arcs), the earliest, latest and average bedtime and wake-up, the
+// average length, and the average score.
+//
+// The times and the length go by the nights with both times; the score by every
+// night with one, times or not. Averaging on the continuous line keeps 23:30 and
+// 00:30 averaging to 00:00, not midday, and makes the average wake-up exactly
+// the average bedtime plus the average length.
+export type Period = {
+  spans: Span[];
+  bed: { earliest: number; latest: number; average: number } | null;
+  wake: { earliest: number; latest: number; average: number } | null;
+  minutes: number | null;
+  quality: number | null;
+  // How many nights had both times, and how many had a score.
+  timed: number;
+  scored: number;
+};
+
+const mean = (values: number[]) => values.reduce((sum, value) => sum + value, 0) / values.length;
+
+export function periodOf(nights: Night[]): Period {
+  const spans = nights.flatMap((night) => {
+    const span = nightSpan(night.bedtime, night.wake_time);
+    return span === null ? [] : [span];
+  });
+  const scores = nights.flatMap((night) => (night.quality === null ? [] : [night.quality]));
+
+  const summary = (values: number[]) =>
+    values.length === 0
+      ? null
+      : { earliest: Math.min(...values), latest: Math.max(...values), average: mean(values) };
+
+  return {
+    spans,
+    bed: summary(spans.map((span) => span.bed)),
+    wake: summary(spans.map((span) => span.wake)),
+    minutes: spans.length === 0 ? null : mean(spans.map((span) => span.minutes)),
+    quality: scores.length === 0 ? null : mean(scores),
+    timed: spans.length,
+    scored: scores.length,
+  };
+}
+
 // The times as they should appear in a form: "22:30", never "22:30:00".
 export function asTimeField(time: string | null): string {
   if (!time) return "";
