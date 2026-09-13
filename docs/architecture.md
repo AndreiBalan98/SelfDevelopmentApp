@@ -80,7 +80,7 @@ app/                 every screen, and the server code behind it
       new/           the add form — also the replace form, pre-filled
       [id]/          one product
     weight/          Nutrition → Weight: the range, the goal line, the chart,
-                     the weigh-ins under it
+                     the TDEE card, the weigh-ins under it
       day/           one day's weigh-in and note — the form behind the "+"
     sleep/           the Sleep tab: a night, two times, a score, the last fortnight
     smoking/         the Smoking tab: the range, the chart, the days under it
@@ -133,6 +133,8 @@ lib/
   weight.ts          the Weight chart's own: invented points on skipped days,
                      the tight kilo axis, how far the goal is, the difference
                      column
+  tdee.ts            the TDEE estimate — the window, the trend line, the ± and
+                     the accuracy label — and the formula estimate
   sleep.ts           how long a night was, including crossing midnight
   series.ts          averages over a run of days, honest about the gaps
   logging.ts         how completely each day was logged, the logging streak and
@@ -350,6 +352,40 @@ however long ago that was ("+0.1", "−0.4", "0.0"). Tap one to change it.
 today is missing (the same dot as on the Weight sub-tab and the tab icon). The form opens
 on today; changing the date opens that day. A weighed day has **Delete this weigh-in**
 underneath. Saving or deleting goes back to the chart, on the range it was showing.
+
+### The TDEE estimate
+
+The card between the chart's key and the weigh-ins (step 7.10): how many calories a day
+you actually burn, worked out from what you ate and what your weight did — the reason the
+app exists. "1,920 ± 40 kcal", with "Rough / Fair / Reliable · N days" beside it. It
+doesn't follow the chart's range: it's always the latest window.
+
+- **A day of data** is a day with a weigh-in and food logged (food adding up to more than
+  nothing, so an empty meal left by a mis-tap doesn't count). **The window** is the latest
+  28 of them, reaching back past any day you missed, and everything inside it counts.
+- **Weight change** is the slope of a straight trend line through every real weigh-in in
+  the window — never the invented points. The weigh-ins run to **this morning**, one
+  morning past the food, because this morning's weight is what yesterday's eating did.
+- **Intake** is the average calories of the window's days with food, up to **yesterday**.
+  Today isn't over, so today's food never counts.
+- **TDEE = intake − slope × 7,700.** Losing weight makes the slope negative, which puts
+  TDEE above what you ate.
+- **The ±** is one standard error of the trend line, times 7,700 — about a 2-in-3 chance
+  the real figure is inside it. It shrinks as days accumulate and as the weigh-ins settle
+  onto the line.
+- It appears after **7 days of data**; before that the card says "TDEE available in N
+  days" and how many so far. **Rough** from 7, **Fair** from 14, **Reliable** at 28.
+
+Underneath, **the formula estimate** — Mifflin–St Jeor from height, age (this year minus
+the birth year), sex and the 7-day average weight, times the activity level — with "You:
+−502", your estimate minus the formula's. With a body figure missing from Settings, a
+line pointing there instead.
+
+The arithmetic is `lib/tdee.ts`. Adding up each day's food is `totalsByDay` in
+`lib/meals.ts`, the same line-by-line sums Today uses, so the two can't disagree. To keep
+that cheap, only the days that could be days of data — a weigh-in and a meal — get their
+food added up: the latest 28, and a little further back for any that turn out to hold
+only an empty meal.
 
 **Logging a day twice updates it rather than failing.** The database refuses two rows
 for the same date — that's what stops accidental double-logging — so the form reads
@@ -698,9 +734,10 @@ another range redraws only the chart and what's under it; the pills stay put.
 
 ## Averages over days, and the gaps in them
 
-`lib/series.ts` averages a value over a run of days. It's used for the seven-night sleep
-average now, for cigarettes next, and it's the same function phase 7 needs for the
-seven-day weight average that the whole TDEE estimate rests on.
+`lib/series.ts` averages a value over a run of days. It's behind every moving average on
+the charts, the seven-night sleep average, and the seven-day weight average that the goal
+line and the formula estimate use. (TDEE itself doesn't use it: it fits a trend line
+through the weigh-ins instead — see Nutrition → Weight.)
 
 **The honest part is the gaps.** A day with no row is a day that wasn't logged, which is
 deliberately not a day with a value of zero — the schema keeps those apart on purpose.

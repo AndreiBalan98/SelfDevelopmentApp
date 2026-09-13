@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
 import { db } from "@/lib/supabase";
 import { allRows } from "@/lib/pages";
 import { dayFor, shiftDays, weekdayName } from "@/lib/day";
@@ -13,13 +13,14 @@ import { RangeControl } from "../range-control";
 import { ChartFrame } from "../chart-frame";
 import { ChartBones } from "../chart-bones";
 import { LANDSCAPE, PORTRAIT, WeightChart } from "./weight-chart";
+import { TdeeBones, TdeeCard } from "./tdee";
 
 export const dynamic = "force-dynamic";
 
 const OPTIONS: RangeKey[] = ["7", "14", "28", "all", "custom"];
 
-// Nutrition → Weight: the range control, how far the goal is, the chart, and
-// the weigh-ins under it.
+// Nutrition → Weight: the range control, how far the goal is, the chart, the
+// TDEE estimate, and the weigh-ins under it.
 //
 // Weight is logged the morning it happens, so every range ends today (by the
 // 04:00 day). The "+" opens the entry form (./day), with a red dot while today's
@@ -70,8 +71,19 @@ export default async function WeightPage({ searchParams }: PageProps<"/weight">)
 
       {/* Keyed on the days, so another range swaps straight to the skeleton
           while it loads, and everything above stays put. */}
-      <Suspense key={`${range.from}:${range.to}`} fallback={<ChartBones />}>
-        <WeighIns range={range} now={now} back={back} everLogged={first.data !== null} />
+      <Suspense key={`${range.from}:${range.to}`} fallback={<ChartBones card />}>
+        <WeighIns
+          range={range}
+          now={now}
+          back={back}
+          everLogged={first.data !== null}
+          tdee={
+            // Worked out on its own, so the chart doesn't wait for it.
+            <Suspense fallback={<TdeeBones />}>
+              <TdeeCard now={now} />
+            </Suspense>
+          }
+        />
       </Suspense>
     </main>
   );
@@ -130,11 +142,14 @@ async function WeighIns({
   now,
   back,
   everLogged,
+  tdee,
 }: {
   range: Range;
   now: string;
   back: string;
   everLogged: boolean;
+  // The TDEE card, which goes between the chart's key and the list.
+  tdee: ReactNode;
 }) {
   const supabase = db();
 
@@ -185,12 +200,15 @@ async function WeighIns({
 
   if (inRange.length === 0) {
     return (
-      <div className="flex flex-col gap-1">
-        <span className="text-xs text-faint tabular-nums">{label}</span>
-        <p className="py-6 text-center text-[13px] text-muted">
-          {everLogged ? "Nothing weighed in these days." : "Nothing logged yet. Tap + to log a weigh-in."}
-        </p>
-      </div>
+      <>
+        <div className="flex flex-col gap-1">
+          <span className="text-xs text-faint tabular-nums">{label}</span>
+          <p className="py-6 text-center text-[13px] text-muted">
+            {everLogged ? "Nothing weighed in these days." : "Nothing logged yet. Tap + to log a weigh-in."}
+          </p>
+        </div>
+        {tdee}
+      </>
     );
   }
 
@@ -241,6 +259,8 @@ async function WeighIns({
           7-day avg
         </span>
       </div>
+
+      {tdee}
 
       {/* Newest first, only the weigh-ins in the range, so it always matches
           the chart. The difference is from the weigh-in before, whenever that

@@ -4,12 +4,12 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Phase 7 step 7.9 (Weight: dots chart, averages, invented points, goal line, list,
-entry form behind the "+") is built and waiting for Andrei's phone test.** Steps 7.0–7.8
-are done, tested on the phone and approved. Phases 1–6 are complete and the app has been in daily use
-since 2026-09-01. No library has been added in phase 7.
+**Phase 7 step 7.10 (the TDEE estimate and the formula comparison) is built and waiting
+for Andrei's phone test.** Steps 7.0–7.9 are done, tested on the phone and approved. Phases 1–6 are
+complete and the app has been in daily use since 2026-09-01. No library has been added
+in phase 7.
 
-Where phase 7 stands (estimated 2026-09-12; step count updated 2026-09-13): 13 of 21 steps
+Where phase 7 stands (estimated 2026-09-12; step count updated 2026-09-13): 14 of 21 steps
 done, 7.7b and 7.7c having been added; about 45% by code
 (about 4,350 lines written of an estimated 9,500) and about 40% by time (about 7 hours
 spent, 9–12 to go). The chart and stats steps — 7.8, 7.11, 7.13 — are the heavy ones.
@@ -38,9 +38,9 @@ Don't design it or raise it.
 
 ## Waiting on me (Andrei)
 
-1. **Commit and push step 7.9, then test it on the phone** (what to test is in the step
+1. **Commit and push step 7.10, then test it on the phone** (what to test is in the step
    report), and approve it or ask for changes.
-2. The small calls listed under Decisions for 7.9 (2026-09-13) — say if any should
+2. The small calls listed under Decisions for 7.10 (2026-09-13) — say if any should
    change.
 
 Migrations 0001–0005 have all been run. Steps 7.1, 7.2, 7.4 and 7.4b had no migration.
@@ -50,6 +50,11 @@ tracked here and doesn't need raising.
 
 ## Done
 
+- 2026-09-13 — **Phase 7 step 7.9 complete: Nutrition → Weight.** The range control, the
+  goal line from the 7-day average, the dots chart with its 4-day and 7-day averages and
+  hollow invented points on skipped days (`lib/weight.ts`), the weigh-ins in the range,
+  and the entry form behind the "+" at `/weight/day`. Tested on the phone and approved,
+  including the small calls under Decisions.
 - 2026-09-13 — **Phase 7 step 7.8 complete: the Smoking tab.** The shared range control,
   the chart base with its rotate button (`chart-frame.tsx`, `lib/chart.ts`,
   `lib/range.ts`), the bar chart with its 4-day and 7-day averages, the list of the
@@ -229,8 +234,8 @@ stands, differs from it in four places:
 | 7.7b | Duplicate on a product's and a recipe's screen; restyle the add / edit / replace forms, the product screen and the recipe screen *(done)* |
 | 7.7c | A refused save keeps what you typed, on every form with boxes to type in — found while testing 7.7b *(done)* |
 | 7.8 | Smoking tab: the shared range control and the chart base with its rotate button, proven on the bar chart with its two averages, and the list; restyle the entry form behind the "+" *(done)* |
-| 7.9 | Weight: dots chart, averages, invented points, goal line, list; restyle the entry form behind the "+" *(built, waiting for the phone test)* |
-| 7.10 | TDEE estimate and the formula comparison |
+| 7.9 | Weight: dots chart, averages, invented points, goal line, list; restyle the entry form behind the "+" *(done)* |
+| 7.10 | TDEE estimate and the formula comparison *(built, waiting for the phone test)* |
 | 7.11 | Sleep: the clock, night and period; restyle the entry form behind the "+" |
 | 7.12 | Sleep: chart view |
 | 7.13 | Stats, part 1: digest cards (with the weekly digest's content), food spend this month, range, average boxes, chart with metric buttons |
@@ -262,9 +267,12 @@ and brings its loading skeleton with it.
 
 Not needed now, and written here so they aren't lost:
 
-- **TDEE (7.10):** what counts as a "day of data" for the 7-day threshold and the
+- **TDEE (7.10):** ~~what counts as a "day of data" for the 7-day threshold and the
   accuracy label: days with a weigh-in, days with meals, or both. And what shows with
-  fewer than three weigh-ins. A trend line needs two points and a ± range needs three.
+  fewer than three weigh-ins. A trend line needs two points and a ± range needs three.~~
+  **Decided 2026-09-13** (see Decisions): both, in a window of the latest 28 that
+  stretches past missed days — which also means seven days of data are always at least
+  seven weigh-ins.
 - **Duplicate (7.7b):** ~~where the button sits, what the copy is called, and whether a
   duplicated recipe's retired ingredients follow `replaced_by`.~~ **Decided 2026-09-13**
   (see Decisions): next to Replace, "(copy)", retired ingredients copied as they are.
@@ -647,6 +655,11 @@ of scope for the rewrite. **Done 2026-09-11:** Andrei ran the review himself; se
 2026-09-13 — **The goal line's words follow the goal phase** (Andrei's decision, step 7.9): "4.6 kg to goal (75 kg)" while still heading for it (above it on a cut, below it on a bulk); "0.5 kg past goal" once beyond it; "above goal" / "below goal" on maintain or with no phase picked; "At goal" within 0.05 kg. Never coloured — a goal weight isn't a daily target.
 2026-09-13 — Step 7.9: how it's built and checked. The chart is Smoking's pattern (drawn twice on the server, `chart-frame.tsx` turns it); its own arithmetic is `lib/weight.ts` (invented points, the axis, the goal distance, the difference column). The line-drawing helper moved from the Smoking chart into `lib/chart.ts` (`lineRuns`) and the chart skeleton to `app/(tabs)/chart-bones.tsx`, both now shared — Smoking's chart was checked to come out byte-for-byte the same as the approved one on 7, 28, All and a Custom range. Checked in the scratchpad: 32 hand-worked cases (the mockup's skipped 6 Sep landing at 79.8, a four-day gap, gaps crossing the edge of the chart, the October clock change and the new year, the plan's 78–82 → 77–83 and the mockup's 79.2–81.5 → 78–83, every goal wording on each phase); then the real screen at iPhone 13 and SE sizes against 38 made-up days with a skipped day, a three-day gap and today missing — every range, turning the chart, the "+" opening on today, a refused save keeping both boxes, a comma saved as a decimal point, saving, changing and deleting returning to the same range, the red dot going and coming back, a future date refused, Custom typed backwards and past today, no goal weight, maintain, and a cut past its goal. Found by that test and fixed: a change of exactly 0.05 kg showed "0.0" (80.06 − 80.01 comes out as 0.0499… inside the computer); it's now worked out in hundredths first and rounds away from zero the same way up and down.
 2026-09-13 — Step 7.9 small calls: **every Weight range ends today**, not yesterday like Smoking — you weigh in the morning, and today's weigh-in is the one the dot asks for; today's slot stays empty until you've weighed. **The goal line always goes by the 7-day average ending today**, whatever range the chart shows — it's "where am I now". With no weigh-in in the last 7 days it says "No weigh-in in the last 7 days · goal 75 kg"; with no goal weight, "No goal weight · set one in Settings", quiet grey. **The line above the chart counts weigh-ins, not days** ("17 Aug – 13 Sep · 23 weigh-ins"), as the mockup writes it. **The list shows only the range's weigh-ins**, as on Smoking; the first one's difference is from the weigh-in before the range, however long ago. The difference always has one decimal and a real minus sign ("+0.3", "−0.4", "0.0" — it used to be "—" for no change), as the mockup writes it. The weight on a row is plain, not bold, as the mockup draws it, and keeps the digits as stored ("79.25 kg", "79.8 kg"). **Delete moved from the list to the day's own screen**, "Delete this weigh-in", as on Smoking; saving or deleting goes back to the chart on its range instead of staying on the form with "Saved 79.4 kg for …". The form is its own screen, `/weight/day`, titled with the day, with "Weight" top right as the way back; the old `/weight?date=…` no longer opens a form. The "+" sits next to "Nutrition" in the header, as the mockup draws it, and only on Weight. The 4-day average is violet (`--weight-average-4`, the mockup's `#7F77DD`) where Smoking's is light — looks go to the mockups. The key always lists "Skipped day (invented)", even on a range with none, as the mockup does. A range inside a gap with no real weigh-in says "Nothing weighed in these days." rather than drawing only invented dots. Dots shrink on long ranges so they don't run together on All.
+2026-09-13 — **TDEE: a day of data is a day with both a weigh-in and food logged, and the window is the latest 28 of them, reaching back past missed days** (Andrei's decision, step 7.10). Every weigh-in and every day with food inside the window counts, including a day with food but no weigh-in. Chosen over the last 28 calendar days (a week of not logging would still count towards the label, and fewer than three weigh-ins would need its own rule) and over "both" inside a fixed 28 calendar days (one missed day would hold the label at Fair for four weeks). Seven days of data are always at least seven weigh-ins, so the fewer-than-three question can't arise. Accepted cost: after a long break the window can reach back further than 28 calendar days.
+2026-09-13 — **TDEE's ± is one standard error of the trend line × 7,700** (Andrei's decision): about a 2-in-3 chance the real figure is inside. Matches the plan's and mockup's examples (±400 at 9 days). Chosen over 95%, which would read about ±900 at 9 days.
+2026-09-13 — **This morning's weigh-in counts in TDEE; today's food doesn't** (Andrei's decision). The weigh-ins run one morning past the food — this morning's weight is what yesterday's eating did — so the figure moves when you step on the scale. Food counts up to yesterday, because today isn't over.
+2026-09-13 — Step 7.10: how it's built and checked. The method is `lib/tdee.ts`, pure; each day's food is `totalsByDay` in `lib/meals.ts` (the same line sums as Today, read a page at a time); the card is `app/(tabs)/weight/tdee.tsx`, worked out on its own so the chart doesn't wait for it. Checked in the scratchpad: 17 hand-worked cases — the sign on a made-up losing week (0.1 kg a day on 2,000 kcal is 2,770, above intake) and a gaining one (1,615), a noisy week worked by hand to 2,742.5 ± 238.2, 40 days where only the latest 28 may count, a missed weigh-in stretching the window, food on a day without a weigh-in counting, an empty meal not counting, today's food ignored and this morning's weigh-in moving the figure, the accuracy edges, Mifflin–St Jeor for both sexes. Then the real screen against a throwaway database with products, a recipe (servings and pieces), 43 days of meals, an empty-meal day, a missed weigh-in and 5,000 kcal logged today: the card read 1,920 ± 40 · Reliable · 28 days, formula 2,422, You −502 — exactly what Postgres's own regression functions gave from the raw rows, independently of the app's code. Also: the same on every range, Rough at 9 days, "available in 2 days", nothing logged, a missing body figure, and both iPhone sizes.
+2026-09-13 — Step 7.10 small calls: **the figure is rounded to the nearest 10 and the ± too** (never shown below ± 10), as the plan's example writes it; "You" is worked out from the two numbers as shown, so the sum on screen adds up. **The accuracy tag is grey, not the mockup's amber**: amber means only an ageing backup (the plan's red-and-amber rule wins over the mockup on behaviour). **Food logged means food adding up to more than 0 kcal** — a day holding only an empty meal isn't a day of data and isn't in the average. **Before 7 days** the card says "TDEE available in N days" and, in small print, "A day counts when it has a weigh-in and food logged · 3 so far" — added so the count doesn't seem to stall on a day you missed. **The formula line shows even before TDEE does**, without "You". It uses the 7-day average weight ending today, like the goal line; with no weigh-in in the last 7 days it says it needs one; with any of height, birth year, sex or activity level missing it says so, with a link to Settings. Activity is written "sedentary", "light activity", "moderate activity", "very active". Age is this year minus the birth year (up to a year high before your birthday — about 5 kcal). The card doesn't follow the chart's range. On the iPhone SE the card's title wraps to two lines beside the tag.
 2026-09-13 — Step 7.6 small calls: the panel's bar follows the mockup, so a food taking half the total fills it (anything bigger is full too); calories and spend bars are Nutrition green, the nutrients their own colours. Grams under 10 show one decimal ("6.5 g") so a small amount isn't "0 g"; under 1% shows "<1%". The subtitle is the date row's own words: "Today, 13 Sep · 1,669 kcal total". "Show all" has no count and no "show fewer"; closing the panel resets it. Tapping the line under the fat bar opens saturated fat — the only place on Today that number is shown. The Day details figures aren't tappable: the plan lists the hero, the bars, the stats boxes and the chart bars. A past day with no meals says "Nothing logged for this day yet."; a food list with none of that nutrient says "None of it adds any fibre." A tapped number dims slightly while pressed, so a tap is visibly received.
 
 ## Deferred
@@ -739,6 +752,11 @@ of scope for the rewrite. **Done 2026-09-11:** Andrei ran the review himself; se
 - The export writes on a GET request (noted above). Phase 7 moves its button into
   Settings. It has to stay a button that fetches, never a link, or the browser could
   trigger an export just by prefetching the page.
+
+- Noticed while testing 7.10: the Weight list writes each weight with the digits as
+  stored, so a whole kilo reads "79 kg" beside "78.73 kg" and "79.8 kg". It always did
+  (and 7.9 kept it). Writing every weight with two decimals, or one, would line them up.
+  Left alone: not asked for, and a choice of how weights look.
 
 **Left out of phase 7 by Andrei's decision** (2026-09-11, the spec's Part 13, also listed
 in the plan). Where no reason is given, the reason is his decision in the review:

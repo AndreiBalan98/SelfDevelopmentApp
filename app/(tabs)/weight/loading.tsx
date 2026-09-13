@@ -4,7 +4,8 @@ import { PlusIcon } from "../icons";
 import { ChartBones } from "../chart-bones";
 
 // Nutrition → Weight while it loads: the header and its "+", the range pills
-// as they open (28), the goal line, then the chart and the weigh-ins.
+// as they open (28), the goal line, then the chart, the TDEE card and the
+// weigh-ins.
 export default function Loading() {
   return (
     <Screen
@@ -21,7 +22,7 @@ export default function Loading() {
       <div className="flex h-8 items-center">
         <Bone className="h-6 w-44" />
       </div>
-      <ChartBones />
+      <ChartBones card />
     </Screen>
   );
 }

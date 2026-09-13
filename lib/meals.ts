@@ -9,7 +9,7 @@
 // divided by its servings — none of which is stored anywhere.
 
 import { db } from "@/lib/supabase";
-import { allRows } from "@/lib/pages";
+import { allRows, everyRow } from "@/lib/pages";
 import {
   divideNutrition,
   mealTotals,
@@ -316,6 +316,54 @@ export async function recentMeals(limit: number): Promise<RecentMeal[]> {
   }
 
   return results;
+}
+
+// Each day's totals from `from` to `to`, for anything that looks across days
+// (TDEE's intake). Only days with a meal are in it; a day whose meals are empty
+// is in it with nothing added up. Read a page at a time (lib/pages.ts), since a
+// few weeks of meal lines can pass Supabase's 1,000 rows.
+export async function totalsByDay(
+  from: string,
+  to: string,
+): Promise<Map<string, { nutrition: Nutrition; cost: number }>> {
+  const supabase = db();
+
+  const [meals, catalogue] = await Promise.all([
+    everyRow((start, end) =>
+      supabase
+        .from("meals")
+        .select("id, day")
+        .gte("day", from)
+        .lte("day", to)
+        .order("id", { ascending: true })
+        .range(start, end),
+    ),
+    loadCatalogue(),
+  ]);
+
+  const items =
+    meals.length === 0
+      ? []
+      : ((await everyRow((start, end) =>
+          supabase
+            .from("meal_items")
+            .select("id, meal_id, product_id, recipe_id, quantity, quantity_unit, servings")
+            .in(
+              "meal_id",
+              meals.map((meal) => meal.id),
+            )
+            .order("id", { ascending: true })
+            .range(start, end),
+        )) as MealItemRow[]);
+
+  const dayOf = new Map(meals.map((meal) => [meal.id, meal.day]));
+  const linesByDay = new Map<string, MealLine[]>();
+  for (const meal of meals) linesByDay.set(meal.day, linesByDay.get(meal.day) ?? []);
+  for (const line of resolveLines(items, catalogue)) {
+    linesByDay.get(dayOf.get(line.mealId) as string)?.push(line.line);
+  }
+
+  return new Map([...linesByDay].map(([day, lines]) => [day, mealTotals(lines)]));
 }
 
 // What the day screen needs: every line of every meal on that day, grouped.
