@@ -4,15 +4,25 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Phase 7 step 7.12 (Sleep: chart view) is built and waiting for Andrei's phone test.**
-Steps 7.0–7.11 are done, tested on the phone and approved. Phases 1–6 are
+**Phase 7 step 7.13 (Stats, part 1) is next — its one open question is waiting on
+Andrei.** Steps 7.0–7.12 are done and approved (7.12 marked done at Andrei's word at the
+end of the 2026-09-13 session, before its phone test — see Waiting on me). Phases 1–6 are
 complete and the app has been in daily use since 2026-09-01. No library has been added
 in phase 7.
 
-Where phase 7 stands (estimated 2026-09-12; step count updated 2026-09-13): 14 of 21 steps
-done, 7.7b and 7.7c having been added; about 45% by code
-(about 4,350 lines written of an estimated 9,500) and about 40% by time (about 7 hours
-spent, 9–12 to go). The chart and stats steps — 7.8, 7.11, 7.13 — are the heavy ones.
+Where phase 7 stands (measured from git at the end of 2026-09-13): **17 of 21 steps done**
+(7.0–7.12); left: 7.13, 7.14, 7.15, 7.16. Code only — app, lib and config, not
+migrations, docs or `node_modules` — and comments counted apart:
+- **Written in phase 7:** about 7,200 lines of code and 1,250 of comments, including the
+  old screens rewritten (about 2,900 old lines replaced). The app went from 5,970 lines of
+  code / 630 of comments (72 files) to 10,190 / 1,640 (127 files).
+- **Left:** about 1,900–2,500 lines of code and 350–450 of comments (7.13 ~800–1,000,
+  7.14 ~450–600, 7.15 ~400–500, 7.16 ~250–400). So about 75% done by code.
+- **Time:** about 15 hours so far (about 3 for 7.0's plan rewrite, 12 building), from commit
+  times with each session's start guessed. About 4–6 hours left — the stats steps are
+  arithmetic-heavy and each gets checked by hand.
+- Migrations: one in phase 7 (0005). Dependencies: none added (still 4 for the app, 8 for
+  building it).
 
 ### How phase 7 got here
 
@@ -38,10 +48,13 @@ Don't design it or raise it.
 
 ## Waiting on me (Andrei)
 
-1. **Commit and push step 7.12, then test it on the phone** (what to test is in the step
-   report), and approve it or ask for changes.
+1. **Commit and push step 7.12** (suggested message in the step report: "Phase 7 step
+   7.12: Sleep chart view"). It was marked done before the phone test, so anything the
+   phone shows is a follow-up fix, not a reopened step.
 2. The small calls listed under Decisions for 7.12 (2026-09-13) — say if any should
    change.
+3. **The decision for 7.13:** is the weekly digest's "previous week" the seven days before
+   the last seven, or the previous calendar week (Monday–Sunday)?
 
 Migrations 0001–0005 have all been run. Steps 7.1, 7.2, 7.4 and 7.4b had no migration.
 
@@ -50,6 +63,11 @@ tracked here and doesn't need raising.
 
 ## Done
 
+- 2026-09-13 — **Phase 7 step 7.12 complete: the Sleep chart.** A switch beside the "+"
+  between the clock and a chart of bedtime and wake-up on a time axis running across
+  midnight, the band between them shaded, dashed averages, the rotate button; ranges only,
+  kept across the switch (`sleep-chart.tsx`, `timeAxis` in `lib/chart.ts`). Marked done
+  at Andrei's word at the end of the session, before the phone test.
 - 2026-09-13 — **Phase 7 step 7.11 complete: the Sleep clock.** Night view (one night's
   arc with its times, length, score and note; a big "+" for a missing night; arrows and a
   date picker), period view (a see-through arc per night, the average times on the rim,
@@ -249,7 +267,7 @@ stands, differs from it in four places:
 | 7.9 | Weight: dots chart, averages, invented points, goal line, list; restyle the entry form behind the "+" *(done)* |
 | 7.10 | TDEE estimate and the formula comparison *(done)* |
 | 7.11 | Sleep: the clock, night and period; restyle the entry form behind the "+" *(done)* |
-| 7.12 | Sleep: chart view *(built, waiting for the phone test)* |
+| 7.12 | Sleep: chart view *(done)* |
 | 7.13 | Stats, part 1: digest cards (with the weekly digest's content), food spend this month, range, average boxes, chart with metric buttons |
 | 7.14 | Stats, part 2: meals vs snacks, days on target |
 | 7.15 | Stats, part 3: timing card |
