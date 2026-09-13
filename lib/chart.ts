@@ -47,6 +47,45 @@ export function lineRuns(
   return runs;
 }
 
+// The unbroken runs of days that have a value, as lists of positions: [1, 2, null,
+// 4] gives [[0, 1], [3]]. For shading between two lines, which stops where
+// they do.
+export function runsOf(values: Array<number | null>): number[][] {
+  const runs: number[][] = [];
+  let run: number[] = [];
+  values.forEach((value, index) => {
+    if (value === null) {
+      if (run.length > 0) runs.push(run);
+      run = [];
+    } else {
+      run.push(index);
+    }
+  });
+  if (run.length > 0) runs.push(run);
+  return runs;
+}
+
+// A time-of-day axis that runs on across midnight, for minutes on one
+// continuous line (lib/sleep.ts): from the whole two hours below the earliest
+// time to the whole two hours above the latest, with at least a quarter of an
+// hour's room at each end — times of 23:30 to 09:30 give an axis of 22:00 to
+// 10:00. A label every two hours, or every three or four when the axis is too
+// long for that.
+export function timeAxis(values: number[]): { low: number; high: number; ticks: number[] } | null {
+  if (values.length === 0) return null;
+
+  const low = Math.floor((Math.min(...values) - 15) / 120) * 120;
+  const high = Math.ceil((Math.max(...values) + 15) / 120) * 120;
+
+  const hours = (high - low) / 60;
+  const step = (hours <= 16 ? 2 : hours <= 24 ? 3 : 4) * 60;
+
+  const ticks: number[] = [];
+  for (let minute = Math.ceil(low / step) * step; minute <= high; minute += step) ticks.push(minute);
+
+  return { low, high, ticks };
+}
+
 // The numbers up the side of a chart that runs from 0 to exactly `max`: 0, a
 // few round steps, and `max` itself — 0 · 5 · 10 · 13. A round step within the
 // top eighth of the axis is dropped, so its label doesn't sit on top of `max`'s.

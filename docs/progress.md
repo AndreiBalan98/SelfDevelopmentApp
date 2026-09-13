@@ -4,9 +4,8 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Phase 7 step 7.11 (Sleep: the clock, night and period; the entry form behind the "+")
-is built and waiting for Andrei's phone test.** Steps 7.0–7.10 are done, tested on the
-phone and approved. Phases 1–6 are
+**Phase 7 step 7.12 (Sleep: chart view) is built and waiting for Andrei's phone test.**
+Steps 7.0–7.11 are done, tested on the phone and approved. Phases 1–6 are
 complete and the app has been in daily use since 2026-09-01. No library has been added
 in phase 7.
 
@@ -39,9 +38,9 @@ Don't design it or raise it.
 
 ## Waiting on me (Andrei)
 
-1. **Commit and push step 7.11, then test it on the phone** (what to test is in the step
+1. **Commit and push step 7.12, then test it on the phone** (what to test is in the step
    report), and approve it or ask for changes.
-2. The small calls listed under Decisions for 7.11 (2026-09-13) — say if any should
+2. The small calls listed under Decisions for 7.12 (2026-09-13) — say if any should
    change.
 
 Migrations 0001–0005 have all been run. Steps 7.1, 7.2, 7.4 and 7.4b had no migration.
@@ -51,6 +50,12 @@ tracked here and doesn't need raising.
 
 ## Done
 
+- 2026-09-13 — **Phase 7 step 7.11 complete: the Sleep clock.** Night view (one night's
+  arc with its times, length, score and note; a big "+" for a missing night; arrows and a
+  date picker), period view (a see-through arc per night, the average times on the rim,
+  earliest / latest / average underneath), and the entry form behind the "+" at
+  `/sleep/night` (`lib/clock.ts`, `periodOf` in `lib/sleep.ts`). No list of nights.
+  Tested on the phone and approved, including the small calls under Decisions.
 - 2026-09-13 — **Phase 7 step 7.10 complete: the TDEE estimate.** The card under the
   weight chart: calories burned a day from the latest 28 days with a weigh-in and food,
   a trend line through the weigh-ins to this morning, one standard error as the ±, the
@@ -243,8 +248,8 @@ stands, differs from it in four places:
 | 7.8 | Smoking tab: the shared range control and the chart base with its rotate button, proven on the bar chart with its two averages, and the list; restyle the entry form behind the "+" *(done)* |
 | 7.9 | Weight: dots chart, averages, invented points, goal line, list; restyle the entry form behind the "+" *(done)* |
 | 7.10 | TDEE estimate and the formula comparison *(done)* |
-| 7.11 | Sleep: the clock, night and period; restyle the entry form behind the "+" *(built, waiting for the phone test)* |
-| 7.12 | Sleep: chart view |
+| 7.11 | Sleep: the clock, night and period; restyle the entry form behind the "+" *(done)* |
+| 7.12 | Sleep: chart view *(built, waiting for the phone test)* |
 | 7.13 | Stats, part 1: digest cards (with the weekly digest's content), food spend this month, range, average boxes, chart with metric buttons |
 | 7.14 | Stats, part 2: meals vs snacks, days on target |
 | 7.15 | Stats, part 3: timing card |
@@ -671,6 +676,8 @@ of scope for the rewrite. **Done 2026-09-11:** Andrei ran the review himself; se
 2026-09-13 — **The Sleep tab has no list of nights** (Andrei's decision, step 7.11), as the plan and mockups draw it: the clock only. A night is reached with the arrows, the calendar icon or the "+"; notes show only in the night view. Chosen over a list under the period view (against the plan's "no notes" there) and a list under both views (the most scrolling). The old screen's "Last 14 nights" list and its "Last 7 nights: … a night" line are gone; the period view replaces the average.
 2026-09-13 — Step 7.11: how it's built and checked. The clock is drawn on the server as SVG (`app/(tabs)/sleep/clock.tsx`), with where things go on the dial in `lib/clock.ts` and the times in `lib/sleep.ts` (`nightSpan`, `periodOf`, `clockTime`). The shared range control gained a "night" option (`lib/range.ts`); Sleep's pale blue for the chosen pill is `--accent-pale` on the Sleep tab. Checked in the scratchpad: 31 hand-worked cases — the mockup's own week coming out at its drawn 00:28 / 08:19 / 7h 51 / quality 7.4, 23:30 and 00:30 averaging to 00:00, untimed nights left out of the times but in the score, 12-hour-plus rings, small and large arcs, seven nights at the mockup's 0.28 and any count building to 90%, labels pushed apart; then the real screen at iPhone 13 and SE sizes against 30 made-up nights with last night missing, a night with only a score and note, one with only a bedtime and a 13-hour night — every state, every range, the red dot going and coming back, the big "+", the arrows, the calendar icon, the Night pill, a future night in the address, Custom backwards and past last night, a refused save keeping all four boxes and the score, saving and deleting from a night and from a period each returning where they should.
 2026-09-13 — Step 7.11 small calls: **the arrows step a night at a time**, landing on unlogged nights too — an older missing night shows the big "+" with "Log this night"; only last night's gets the red dot. **The calendar icon is the phone's own date picker**, not Today's heatmap sheet (that one counts all four logs). **The "+" always opens last night**, the one the dot asks for; tapping the clock opens the night showing. **Saving from a single night goes back to the night just saved** (the new arc says it worked); from a period, back to the period. **Times across midnight are averaged on one continuous line** — bedtimes counted from the noon before, wake-ups as bedtime plus the length — so 23:30 and 00:30 average to 00:00 and the average wake-up is exactly the average bedtime plus the average length; a bedtime from noon onwards counts as the evening before. **A night with only one of its times** is treated like one without times (no arc), but says which is missing ("Wake-up not logged") rather than "Times not logged". **The period's line counts nights logged** ("7–13 Sep · 6 of 7 nights logged", or "7 nights" when all are), and a small line under the card says when some had no times ("Times from 4 nights; 2 logged without them"). The clock's length is written "7h 55", as the mockups do; the form's live line keeps "7 h 55 m". Custom opens on the week ending the night showing. The entry form is its own screen, `/sleep/night`, titled "Night to 13 Sep", in the new look (a card: woke up on, went to bed, got up with the live length under them, the score as a row of ten, note); the old `/sleep?date=…` now opens that night on the clock rather than a form. The clock/chart switch in the header waits for 7.12, which builds the chart.
+2026-09-13 — Step 7.12: how it's built and checked. No question needed asking: the plan and the mockup settle the chart. It's `sleep/sleep-chart.tsx`, drawn on the server twice like the others and turned by `chart-frame.tsx`; the time axis and the unbroken runs of nights are `timeAxis` and `runsOf` in `lib/chart.ts`; the times are the continuous line from `lib/sleep.ts` that the clock's averages already use. The clock and chart-line icons were copied in from Tabler 3.19.0, like the rest. The range control learned to keep something else in the address (`keep`), so the pills and Custom don't drop `view=chart`; `sleep/back.ts` carries the view and range through the form and back. Checked in the scratchpad: 14 hand-worked cases — the mockup's week giving the mockup's own axis (22:00 to 10:00, a label every two hours), room at the ends, 3-hour labels on a long axis, runs across gaps, and the carried address refusing anything smuggled in — then the real screen at iPhone 13 and SE sizes against 30 made-up nights with gaps, a night without times and a 13-hour night: the switch both ways keeping the range, every pill and Custom keeping the chart, turning it, the "+" from the chart and saving back onto it with last night appearing, a range with no times and an empty one, and `range=night` on the chart falling back to 7.
+2026-09-13 — Step 7.12 small calls: **from a single night the chart opens on 7** (the mockup's pill); from a range it keeps the range, and the switch back keeps it too. **A missing night, or one without times, breaks both lines and the shading** rather than joining across it — the mockup's week has no gaps to show either way; nothing is drawn through a night with no times, and a line under the key says how many there were. A night on its own between gaps gets a narrow shaded bar so it still shows. **Dates along the bottom are written like the other charts** ("7 Sep", a few of them) rather than the mockup's bare day numbers, so all four charts read the same. Later is higher, as the mockup draws it: the wake-up line above the bedtime line. The axis leaves at least a quarter of an hour's room at each end. The shading is the plan's 18%. The skeleton that shows the moment you open the tab is the clock's even when the address asks for the chart — it can't read the address — and the chart's own skeleton takes over for any change made on the screen.
 2026-09-13 — Step 7.6 small calls: the panel's bar follows the mockup, so a food taking half the total fills it (anything bigger is full too); calories and spend bars are Nutrition green, the nutrients their own colours. Grams under 10 show one decimal ("6.5 g") so a small amount isn't "0 g"; under 1% shows "<1%". The subtitle is the date row's own words: "Today, 13 Sep · 1,669 kcal total". "Show all" has no count and no "show fewer"; closing the panel resets it. Tapping the line under the fat bar opens saturated fat — the only place on Today that number is shown. The Day details figures aren't tappable: the plan lists the hero, the bars, the stats boxes and the chart bars. A past day with no meals says "Nothing logged for this day yet."; a food list with none of that nutrient says "None of it adds any fibre." A tapped number dims slightly while pressed, so a tap is visibly received.
 
 ## Deferred

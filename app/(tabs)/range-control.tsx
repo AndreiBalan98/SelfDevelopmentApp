@@ -29,6 +29,7 @@ export function RangeControl({
   from,
   to,
   latest,
+  keep = "",
 }: {
   options: RangeKey[];
   chosen: RangeKey;
@@ -37,6 +38,9 @@ export function RangeControl({
   to: string;
   // The last day Custom can reach.
   latest: string;
+  // Anything else in the address that choosing a range mustn't lose — Sleep's
+  // "view=chart".
+  keep?: string;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -51,7 +55,7 @@ export function RangeControl({
     // Read forwards whichever way round they were typed.
     const [a, b] = start <= end ? [start, end] : [end, start];
     setOpen(false);
-    router.replace(`${pathname}?from=${a}&to=${b}`, { scroll: false });
+    router.replace(`${pathname}?from=${a}&to=${b}${keep ? `&${keep}` : ""}`, { scroll: false });
   }
 
   return (
@@ -78,7 +82,7 @@ export function RangeControl({
           ) : (
             <Link
               key={key}
-              href={`${pathname}?range=${key}`}
+              href={`${pathname}?range=${key}${keep ? `&${keep}` : ""}`}
               replace
               scroll={false}
               onClick={() => setOpen(false)}

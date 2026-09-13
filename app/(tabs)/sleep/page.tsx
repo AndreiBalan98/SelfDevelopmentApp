@@ -4,22 +4,33 @@ import { db } from "@/lib/supabase";
 import { allRows } from "@/lib/pages";
 import { dayFor, shiftDays } from "@/lib/day";
 import { rangeLabel, rangeQuery, resolveRange, shortDate, type Range, type RangeKey } from "@/lib/range";
+import { datesFrom } from "@/lib/chart";
 import { clockTime, nightSpan, periodOf } from "@/lib/sleep";
 import { HeaderAdd, TabHeader } from "../headers";
 import { RangeControl } from "../range-control";
+import { ChartFrame } from "../chart-frame";
+import { ChartBones } from "../chart-bones";
+import { ChartLineIcon, ClockIcon } from "../icons";
 import { EmptyDial, NightDial, PeriodDial, UntimedDial } from "./clock";
 import { NightRow } from "./night-row";
 import { ClockBones } from "./clock-bones";
+import { LANDSCAPE, PORTRAIT, SleepChart } from "./sleep-chart";
+import { sleepQuery } from "./back";
 
 export const dynamic = "force-dynamic";
 
-const OPTIONS: RangeKey[] = ["night", "7", "14", "28", "custom"];
+const CLOCK_OPTIONS: RangeKey[] = ["night", "7", "14", "28", "custom"];
+// The chart has no single night: ranges only.
+const CHART_OPTIONS: RangeKey[] = ["7", "14", "28", "custom"];
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
-// The Sleep tab: the clock. With Night chosen it shows one night — last night
-// unless another is asked for — and with 7 / 14 / 28 / Custom, every night in
-// the range on the same clock.
+// The Sleep tab: the clock, or the chart (`?view=chart`), switched with the
+// icon in the header.
+//
+// On the clock, Night shows one night — last night unless another is asked
+// for — and 7 / 14 / 28 / Custom put every night in the range on the same
+// clock. The chart shows a range's bedtimes and wake-ups day by day.
 //
 // A night is stored under the day you woke up, so last night is the row dated
 // today (by the 04:00 day), and every range ends with it. The "+" opens the
@@ -27,38 +38,163 @@ const DATE = /^\d{4}-\d{2}-\d{2}$/;
 export default async function SleepPage({ searchParams }: PageProps<"/sleep">) {
   const params = await searchParams;
   const now = dayFor(new Date());
+  const chart = params.view === "chart";
 
-  const range = resolveRange(params, { options: OPTIONS, fallback: "night", end: now, earliest: null });
+  // The chart opens on 7 when there's no range to carry over from the clock.
+  const range = resolveRange(params, {
+    options: chart ? CHART_OPTIONS : CLOCK_OPTIONS,
+    fallback: chart ? "7" : "night",
+    end: now,
+    earliest: null,
+  });
 
   // Night view's night: the one in the address, or last night. Nothing later.
   const asked = typeof params.date === "string" && DATE.test(params.date) ? params.date : now;
   const night = range.key === "night" ? (asked > now ? now : asked) : null;
 
-  // Carried to the entry form and back: "range=7" from a period, "" from a
-  // night (saving there shows the night saved).
-  const back = rangeQuery(params);
+  // Carried to the entry form and back: "range=7" from a period, with
+  // "view=chart" from the chart, "" from a night (saving there shows the night
+  // saved).
+  const back = sleepQuery(params);
+
+  // The switch keeps the range: 28 on the clock is 28 on the chart and back.
+  const ranged = night ? "" : rangeQuery(params) || `range=${range.key}`;
+  const toChart = `/sleep?${ranged ? `${ranged}&` : ""}view=chart`;
+  const toClock = ranged ? `/sleep?${ranged}` : "/sleep";
 
   return (
     <main className="flex-1 px-5 py-8 mx-auto w-full max-w-md flex flex-col gap-4">
       <TabHeader title="Sleep">
-        <HeaderAdd href={`/sleep/night${back ? `?${back}` : ""}`} label="Log a night" dot="sleepMissing" />
+        <div className="flex items-center gap-4">
+          {chart ? (
+            <Link href={toClock} aria-label="Show the clock" className="flex text-accent">
+              <ClockIcon size={23} />
+            </Link>
+          ) : (
+            <Link href={toChart} aria-label="Show the chart" className="flex text-muted">
+              <ChartLineIcon size={23} />
+            </Link>
+          )}
+          <HeaderAdd href={`/sleep/night${back ? `?${back}` : ""}`} label="Log a night" dot="sleepMissing" />
+        </div>
       </TabHeader>
 
       <RangeControl
-        options={OPTIONS}
+        options={chart ? CHART_OPTIONS : CLOCK_OPTIONS}
         chosen={range.key}
         // Custom opens on the week ending the night showing.
         from={night ? shiftDays(night, -6) : range.from}
         to={night ?? range.to}
         latest={now}
+        keep={chart ? "view=chart" : ""}
       />
 
-      {/* Keyed on what's showing, so another night or range swaps straight to
-          the skeleton while it loads, and the pills above stay put. */}
-      <Suspense key={night ?? `${range.from}:${range.to}`} fallback={<ClockBones night={night !== null} />}>
-        {night ? <NightView night={night} now={now} /> : <PeriodView range={range} now={now} />}
+      {/* Keyed on what's showing, so another night, range or view swaps
+          straight to the skeleton while it loads, and the pills above stay
+          put. */}
+      <Suspense
+        key={`${chart ? "chart" : "clock"}:${night ?? `${range.from}:${range.to}`}`}
+        fallback={chart ? <ChartBones rows={false} /> : <ClockBones night={night !== null} />}
+      >
+        {chart ? (
+          <ChartView range={range} now={now} />
+        ) : night ? (
+          <NightView night={night} now={now} />
+        ) : (
+          <PeriodView range={range} now={now} />
+        )}
       </Suspense>
     </main>
+  );
+}
+
+// A range's nights, read a page at a time (lib/pages.ts): a long Custom range
+// can pass Supabase's 1,000 rows.
+function readNights(range: Range) {
+  const supabase = db();
+  return allRows((from, to) =>
+    supabase
+      .from("sleep")
+      .select("date, bedtime, wake_time, quality")
+      .gte("date", range.from)
+      .lte("date", range.to)
+      .order("date", { ascending: true })
+      .order("id", { ascending: true })
+      .range(from, to),
+  );
+}
+
+// "4–10 Sep · 7 nights", or "· 5 of 7 nights logged" when some are missing.
+function nightsLabel(range: Range, logged: number, now: string): string {
+  const nights = (count: number) => `${count} ${count === 1 ? "night" : "nights"}`;
+  const count = logged === range.days ? nights(range.days) : `${logged} of ${nights(range.days)} logged`;
+  return `${rangeLabel(range.from, range.to, now)} · ${count}`;
+}
+
+async function ChartView({ range, now }: { range: Range; now: string }) {
+  const { data, error } = await readNights(range);
+
+  if (error) {
+    return <p className="rounded-xl bg-surface p-3.5 text-sm">Could not reach the database: {error.message}</p>;
+  }
+
+  const nights = data ?? [];
+  const label = nightsLabel(range, nights.length, now);
+  const period = periodOf(nights);
+
+  if (period.bed === null || period.wake === null) {
+    return (
+      <div className="flex flex-col gap-1">
+        <span className="text-xs text-faint tabular-nums">{label}</span>
+        <p className="py-6 text-center text-[13px] text-muted">
+          {nights.length === 0 ? "Nothing logged in these nights." : "No times logged in these nights."}
+        </p>
+      </div>
+    );
+  }
+
+  const dates = datesFrom(range.from, range.to);
+  const spans = new Map(nights.map((row) => [row.date, nightSpan(row.bedtime, row.wake_time)]));
+  const chart = {
+    dates,
+    beds: dates.map((date) => spans.get(date)?.bed ?? null),
+    wakes: dates.map((date) => spans.get(date)?.wake ?? null),
+    averageBed: period.bed.average,
+    averageWake: period.wake.average,
+  };
+
+  return (
+    <>
+      <ChartFrame
+        title="Sleep"
+        label={label}
+        portrait={<SleepChart {...chart} shape={PORTRAIT} />}
+        landscape={<SleepChart {...chart} shape={LANDSCAPE} className="h-full w-full" />}
+      />
+
+      <div className="-mt-2 flex flex-wrap gap-3 text-[11px] text-muted">
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-[3px] w-3.5 rounded-full bg-wake" />
+          Wake time
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-[3px] w-3.5 rounded-full bg-bedtime" />
+          Bedtime
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-2 w-3.5 rounded-[2px] bg-sleep/45" />
+          Asleep
+        </span>
+      </div>
+
+      {/* Said out loud when some nights had no times to draw. */}
+      {period.timed < nights.length && (
+        <p className="text-[11px] text-faint">
+          {nights.length - period.timed} {nights.length - period.timed === 1 ? "night" : "nights"} logged without
+          times {nights.length - period.timed === 1 ? "isn't" : "aren't"} on the chart.
+        </p>
+      )}
+    </>
   );
 }
 
@@ -123,32 +259,14 @@ function Night({
 }
 
 async function PeriodView({ range, now }: { range: Range; now: string }) {
-  const supabase = db();
-
-  // Read a page at a time (lib/pages.ts): a long Custom range can pass
-  // Supabase's 1,000 rows.
-  const { data, error } = await allRows((from, to) =>
-    supabase
-      .from("sleep")
-      .select("date, bedtime, wake_time, quality")
-      .gte("date", range.from)
-      .lte("date", range.to)
-      .order("date", { ascending: true })
-      .order("id", { ascending: true })
-      .range(from, to),
-  );
+  const { data, error } = await readNights(range);
 
   if (error) {
     return <p className="rounded-xl bg-surface p-3.5 text-sm">Could not reach the database: {error.message}</p>;
   }
 
   const nights = data ?? [];
-  // "4–10 Sep · 7 nights", or "· 5 of 7 nights logged" when some are missing.
-  const count =
-    nights.length === range.days
-      ? `${range.days} ${range.days === 1 ? "night" : "nights"}`
-      : `${nights.length} of ${range.days} ${range.days === 1 ? "night" : "nights"} logged`;
-  const label = `${rangeLabel(range.from, range.to, now)} · ${count}`;
+  const label = nightsLabel(range, nights.length, now);
 
   if (nights.length === 0) {
     return (

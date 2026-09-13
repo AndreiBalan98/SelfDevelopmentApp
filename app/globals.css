@@ -58,6 +58,9 @@
   /* The Weight chart's 4-day average, which the mockups draw in violet (its
      7-day one is the same coral as Smoking's). */
   --weight-average-4: #7f77dd;
+  /* The Sleep chart's two lines, as the mockups draw them. */
+  --bedtime: #7f77dd;
+  --wake: #ef9f27;
   /* Meals against snacks, in comparisons. */
   --meal: #639922;
   --snack: #d85a30;
@@ -111,6 +114,8 @@
   --color-average-4: var(--average-4);
   --color-average-7: var(--average-7);
   --color-weight-average-4: var(--weight-average-4);
+  --color-bedtime: var(--bedtime);
+  --color-wake: var(--wake);
   --color-meal: var(--meal);
   --color-snack: var(--snack);
   --color-meal-label: var(--meal-label);

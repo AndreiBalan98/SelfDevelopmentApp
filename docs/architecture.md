@@ -82,7 +82,8 @@ app/                 every screen, and the server code behind it
     weight/          Nutrition → Weight: the range, the goal line, the chart,
                      the TDEE card, the weigh-ins under it
       day/           one day's weigh-in and note — the form behind the "+"
-    sleep/           the Sleep tab: the clock — one night, or a range of them
+    sleep/           the Sleep tab: the clock — one night, or a range of them —
+                     and the chart
       night/         one night's times, score and note — the form behind the "+"
     smoking/         the Smoking tab: the range, the chart, the days under it
       day/           one day's count and note — the form behind the "+"
@@ -130,7 +131,8 @@ lib/
   range.ts           which days a range means ("28" = the 28 ending
                      yesterday on Smoking), and how its dates are written
   chart.ts           the arithmetic behind the charts: the days along the
-                     bottom, the moving averages, the numbers on each axis
+                     bottom, the moving averages, the numbers on each axis,
+                     and the Sleep chart's time axis across midnight
   weight.ts          the Weight chart's own: invented points on skipped days,
                      the tight kilo axis, how far the goal is, the difference
                      column
@@ -659,9 +661,9 @@ previous day is visible rather than surprising.
 
 ## Sleep
 
-The tab is a clock (step 7.11): a 12-hour face with the night on its rim, drawn by hand as
-SVG on the server like the charts. Under the title, the **range pills** — Night · 7 · 14 ·
-28 · Custom, opening on Night. There's no list of nights: you reach a night with the
+The tab is a clock (step 7.11), or a chart (step 7.12, below): the clock is a 12-hour
+face with the night on its rim, drawn by hand as SVG on the server like the charts. Under
+the title, the **range pills** — Night · 7 · 14 · 28 · Custom, opening on Night. There's no list of nights: you reach a night with the
 arrows, the calendar icon or the "+".
 
 **A night is stored under the day you woke up**, so last night is the row dated today by
@@ -694,10 +696,25 @@ bedtime plus the average length. The times and the length go by the nights with 
 times; the score by every night with one. This is `periodOf` in `lib/sleep.ts`; where
 things go on the dial is `lib/clock.ts`.
 
+**The chart** (step 7.12) is the other view, switched with the icon beside the "+": a
+chart-line icon on the clock, a blue clock icon on the chart. It lives in the address as
+`view=chart`, and the switch keeps the range — 28 on the clock is 28 on the chart and
+back; from a single night it opens on 7. The chart has no Night pill, only ranges. It's
+the days along the bottom and the time of day up the side, **running on across midnight**
+(the same continuous line the averages use), so 23:30 and 00:30 sit next to each other.
+Bedtime is a violet line, the wake-up an amber one above it, the band between them shaded
+light blue so its thickness is how long you slept, and a **dashed line at each average**,
+labelled on the right. A missing night, or one without times, breaks the lines and the
+shading — nothing is drawn through a night that has no times — and a line under the key
+says how many nights had no times. The axis runs from the whole two hours below the
+earliest bedtime to the whole two hours above the latest wake-up (`timeAxis` in
+`lib/chart.ts`). It has the rotate button, like every chart.
+
 **The "+"** in the header opens the entry form, `/sleep/night`, on last night, with a red
 dot while last night is missing (the same dot as on the tab icon). A logged night has
-**Delete this night** underneath. Saving or deleting goes back to the clock: to the period
-it was showing, or, from a single night, to the night just saved.
+**Delete this night** underneath. Saving or deleting goes back to where you were: the
+chart, the period, or, from a single night, the night just saved. What to go back to is
+carried through the form by `sleep/back.ts`.
 
 Nothing in the database points at a night, so every entry stays editable and deletable
 forever. Logging the same night twice updates it rather than failing, because the date is

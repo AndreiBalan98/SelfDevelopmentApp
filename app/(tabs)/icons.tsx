@@ -50,6 +50,24 @@ function Icon({ size, children }: { size: number; children: ReactNode }) {
   );
 }
 
+export function ClockIcon({ size = 24 }: { size?: number }) {
+  return (
+    <Icon size={size}>
+      <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />
+      <path d="M12 7v5l3 3" />
+    </Icon>
+  );
+}
+
+export function ChartLineIcon({ size = 24 }: { size?: number }) {
+  return (
+    <Icon size={size}>
+      <path d="M4 19l16 0" />
+      <path d="M4 15l4 -6l4 2l4 -5l4 4" />
+    </Icon>
+  );
+}
+
 export function MoonIcon({ size = 24 }: { size?: number }) {
   return (
     <Icon size={size}>

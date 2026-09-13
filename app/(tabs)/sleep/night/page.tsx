@@ -2,7 +2,8 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { db } from "@/lib/supabase";
 import { dayFor } from "@/lib/day";
-import { rangeQuery, shortDate } from "@/lib/range";
+import { shortDate } from "@/lib/range";
+import { sleepQuery } from "../back";
 import { asTimeField } from "@/lib/sleep";
 import { SleepForm } from "../sleep-form";
 import { DeleteButton } from "../delete-button";
@@ -20,8 +21,9 @@ export default async function SleepNightPage({ searchParams }: PageProps<"/sleep
   const now = dayFor(new Date());
   const selected = typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : now;
 
-  // A period's range, carried through so Back and Save return to it.
-  const back = rangeQuery(params);
+  // A period's range, or the chart, carried through so Back and Save return to
+  // it.
+  const back = sleepQuery(params);
 
   // Keyed on the night, so picking another one swaps straight to the skeleton
   // while it loads, rather than leaving the old night on screen.
