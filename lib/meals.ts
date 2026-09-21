@@ -12,6 +12,7 @@ import { db } from "@/lib/supabase";
 import { allRows, everyRow } from "@/lib/pages";
 import {
   divideNutrition,
+  emptyNutrition,
   mealTotals,
   recipeTotals,
   type CountableProduct,
@@ -318,52 +319,118 @@ export async function recentMeals(limit: number): Promise<RecentMeal[]> {
   return results;
 }
 
-// Each day's totals from `from` to `to`, for anything that looks across days
-// (TDEE's intake). Only days with a meal are in it; a day whose meals are empty
-// is in it with nothing added up. Read a page at a time (lib/pages.ts), since a
-// few weeks of meal lines can pass Supabase's 1,000 rows.
-export async function totalsByDay(
+// How many meals' ids go into one question for their lines. Supabase asks over
+// a URL, so the ids travel in the address; a few hundred keeps it well under
+// any length it could refuse.
+const MEALS_PER_QUESTION = 300;
+
+function chunks<T>(values: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let at = 0; at < values.length; at += size) out.push(values.slice(at, at + size));
+  return out;
+}
+
+// One day of eating, added up: what it contained, what it cost, how many meals
+// and how many snacks it was, and the foods themselves for the "where did it
+// come from?" panels.
+export type MealDay = {
+  date: string;
+  nutrition: Nutrition;
+  cost: number;
+  meals: number;
+  snacks: number;
+  foods: Array<{ href: string; name: string; line: MealLine }>;
+};
+
+// Every day with a meal on it from `from` to `to`, in date order — what
+// anything that looks across days needs (TDEE's intake, the stats section). A
+// day whose meals are all empty is in the list with nothing added up; a day
+// with no meal at all isn't in it, because that's a day not logged rather than
+// a day of eating nothing.
+//
+// Read a page at a time (lib/pages.ts): a few weeks of meal lines can pass
+// Supabase's 1,000 rows. The catalogue can be handed in, so two ranges read on
+// the same screen don't each fetch every product and recipe.
+export async function mealDaysIn(
   from: string,
   to: string,
-): Promise<Map<string, { nutrition: Nutrition; cost: number }>> {
+  shared?: Catalogue,
+): Promise<MealDay[]> {
   const supabase = db();
 
   const [meals, catalogue] = await Promise.all([
     everyRow((start, end) =>
       supabase
         .from("meals")
-        .select("id, day")
+        .select("id, day, type")
         .gte("day", from)
         .lte("day", to)
         .order("id", { ascending: true })
         .range(start, end),
     ),
-    loadCatalogue(),
+    shared ? Promise.resolve(shared) : loadCatalogue(),
   ]);
 
-  const items =
-    meals.length === 0
-      ? []
-      : ((await everyRow((start, end) =>
+  // The lines of those meals, asked for a few hundred meals at a time. A long
+  // Custom range can cover thousands of meals, and every id goes into the
+  // question itself — one question naming them all would eventually be too long
+  // to send, and a request that never arrives is the kind of failure that looks
+  // like an empty week rather than an error.
+  const batches: MealItemRow[][] = await Promise.all(
+    chunks(meals.map((meal) => meal.id), MEALS_PER_QUESTION).map(
+      (ids) =>
+        everyRow((start, end) =>
           supabase
             .from("meal_items")
             .select("id, meal_id, product_id, recipe_id, quantity, quantity_unit, servings")
-            .in(
-              "meal_id",
-              meals.map((meal) => meal.id),
-            )
+            .in("meal_id", ids)
             .order("id", { ascending: true })
             .range(start, end),
-        )) as MealItemRow[]);
+        ) as Promise<MealItemRow[]>,
+    ),
+  );
 
-  const dayOf = new Map(meals.map((meal) => [meal.id, meal.day]));
-  const linesByDay = new Map<string, MealLine[]>();
-  for (const meal of meals) linesByDay.set(meal.day, linesByDay.get(meal.day) ?? []);
-  for (const line of resolveLines(items, catalogue)) {
-    linesByDay.get(dayOf.get(line.mealId) as string)?.push(line.line);
+  const items = batches.flat();
+
+  const byDay = new Map<string, MealDay>();
+  const dayOf = new Map<number, string>();
+
+  for (const meal of meals) {
+    dayOf.set(meal.id, meal.day);
+
+    const day =
+      byDay.get(meal.day) ??
+      { date: meal.day, nutrition: emptyNutrition(), cost: 0, meals: 0, snacks: 0, foods: [] };
+
+    if (meal.type === "snack") day.snacks += 1;
+    else day.meals += 1;
+
+    byDay.set(meal.day, day);
   }
 
-  return new Map([...linesByDay].map(([day, lines]) => [day, mealTotals(lines)]));
+  for (const line of resolveLines(items, catalogue)) {
+    byDay.get(dayOf.get(line.mealId) as string)?.foods.push({
+      href: line.href,
+      name: line.name,
+      line: line.line,
+    });
+  }
+
+  return [...byDay.values()]
+    .map((day) => {
+      const totals = mealTotals(day.foods.map((food) => food.line));
+      return { ...day, nutrition: totals.nutrition, cost: totals.cost };
+    })
+    .sort((a, b) => a.date.localeCompare(b.date));
+}
+
+// The same, as TDEE reads it: each day's totals, by date.
+export async function totalsByDay(
+  from: string,
+  to: string,
+): Promise<Map<string, { nutrition: Nutrition; cost: number }>> {
+  const days = await mealDaysIn(from, to);
+  return new Map(days.map((day) => [day.date, { nutrition: day.nutrition, cost: day.cost }]));
 }
 
 // What the day screen needs: every line of every meal on that day, grouped.

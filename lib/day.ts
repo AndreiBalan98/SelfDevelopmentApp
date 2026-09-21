@@ -127,6 +127,27 @@ export function localTimestamp(date: string, time: string): string {
   return new Date(Math.max(first, second)).toISOString();
 }
 
+// The first day of the month a date falls in: "2026-09-21" → "2026-09-01".
+export function monthStart(date: string): string {
+  return `${date.slice(0, 7)}-01`;
+}
+
+// How many days that month has. Day 0 of the next month is the last day of this
+// one, which gets February right in a leap year without a rule for it.
+export function daysInMonth(date: string): number {
+  return new Date(
+    Date.UTC(Number(date.slice(0, 4)), Number(date.slice(5, 7)), 0),
+  ).getUTCDate();
+}
+
+// "September" — the month a date falls in, written out. Read at midday UTC,
+// like every other date here, so it can't slide either side of midnight.
+export function monthName(date: string): string {
+  return new Intl.DateTimeFormat("en-GB", { timeZone: "UTC", month: "long" }).format(
+    new Date(`${date}T12:00:00Z`),
+  );
+}
+
 // Which day a meal counts towards: its local date, unless it was before 04:00,
 // in which case the day before.
 export function dayFor(instant: Date): string {

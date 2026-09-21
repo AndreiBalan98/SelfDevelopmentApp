@@ -72,6 +72,11 @@ app/                 every screen, and the server code behind it
                      Today ("Day details") and one meal ("Meal details")
       sources.tsx    the "where did it come from?" panel, and what makes a
                      number open it
+      stats.tsx      the stats section under the day: the digest cards, the
+                     range control and the average boxes
+      digest-card.tsx  the weekly digest card and the sheet it opens
+      bones.tsx      the day's blocks and the stats' blocks, while they load
+      format.ts      how a number is written, shared by the boxes and the panels
       [id]/          one meal: what was in it, when, and how it was
     recipes/         Nutrition → Recipes: list and search, add, edit, replace
       new/           the add form — also the replace form, pre-filled
@@ -126,6 +131,9 @@ lib/
   targets.ts         the target rules: ceilings, ±10% zones, the fat ratio, and
                      where each part of a bar is drawn
   sources.ts         which foods a number is made of, biggest first
+  stats.ts           the stats section's arithmetic: the averages over a range,
+                     the weekly digest, the month's spend — and the rule that a
+                     day with no food logged is left out of all of them
   value.ts           lei per 30 g of protein and per 1,000 kcal, what counts
                      as "low protein" and "low calorie", and the two value sorts
   range.ts           which days a range means ("28" = the 28 ending
@@ -822,7 +830,7 @@ The fat bar is split into saturated and unsaturated, with a line underneath:
 **Each meal** is two lines: "Meal · 13:30 · Burritos   540 kcal · 6.34 lei", then the
 macros as coloured letters — P protein, C carbs, S added sugar, Fi fibre, Fa fat. Tap
 one to open it. **Day details** are the full label figures in EU order, "of which"
-lines indented, and the cost.
+lines indented, and the cost. **The stats section** (below) follows underneath.
 
 ### The target rules
 
@@ -875,7 +883,56 @@ link inside a row still goes to Settings.
 The panel's total is the same number as the one tapped, because both are added up from
 the same lines. All the grouping and sorting is in `lib/sources.ts`; the phone does it
 from the day's foods, which arrive with the screen, so opening a panel never waits on
-the server. The stats section reuses the same panel over a range of days (step 7.13).
+the server. The stats section uses the same panel over a range of days.
+
+### The stats section
+
+Under the day details: two digest cards, the range control, and the eight average
+boxes. (The chart with its metric buttons, meals vs snacks, days on target and timing
+are still to come — steps 7.13b to 7.15.)
+
+**It doesn't follow the day you're looking at.** Whichever day is on screen above, the
+stats cover the days ending yesterday. They answer "how have the last seven days
+been", which isn't a property of the day being read — and stepping back to fix a
+forgotten meal shouldn't re-point every average at a fortnight ago. The two halves
+carry each other's place in the address, so the day arrows keep the range and the
+range pills keep the day.
+
+**The two rules that keep these numbers honest** (`lib/stats.ts`):
+
+- **A day with no food logged is left out of every average, and of the count the
+  averages are said to be over** — "Averages over the 2 days logged". A forgotten day
+  is a day not logged, not a day of eating nothing; counted as zero it would drag every
+  average down and make a missed day look like a good one. Food logged means more than
+  0 kcal, the same rule TDEE uses, so a day holding only an empty meal doesn't count.
+- **Complete days only.** Every range ends yesterday, and Custom can't reach past it.
+  Today's half-finished numbers are already live at the top of the same screen.
+
+Totals are different from averages: a sum is the same whether or not the empty days
+are in it, so the month's spend and the week's spend simply add up what was spent.
+
+**The digest cards** are always the last seven days, whatever the range control below
+them says. The weekly digest opens a sheet with four lines — average sleep (over the
+nights that have both times), cigarettes a day with the change against the week
+before, the week's food spend, and average calories. **"The previous week" is the seven
+days before those seven**, not the previous calendar week: everything else here is a
+rolling window, any seven days in a row hold exactly one weekend, and it compares two
+full weeks whatever day the app is opened on. **Food spend · September** is a running
+total — the one number that does include today — against the daily spend target times
+the days in the month.
+
+**The eight boxes** are calories, spend, protein, carbs, added sugar, fibre, fat, and
+meals · snacks a day. Each opens its "where did it come from?" panel over the range;
+meals · snacks doesn't, because there's no list of foods behind it. The panel covers
+exactly the days the averages do, so a number and the foods behind it can never
+disagree.
+
+**Where the reading happens.** `mealDaysIn` in `lib/meals.ts` reads a range as days —
+totals, meal and snack counts, and the foods themselves. `totalsByDay`, which TDEE
+uses, is now the same read with the extras dropped. Both read a page at a time
+(`lib/pages.ts`), and the meals' lines are asked for a few hundred meals at a time:
+every id travels in the address, and a long Custom range covering thousands of meals
+would otherwise make a question too long to send.
 
 ### The calendar heatmap
 

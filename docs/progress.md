@@ -4,14 +4,14 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Phase 7 step 7.13 (Stats, part 1) is next — its one open question is waiting on
-Andrei.** Steps 7.0–7.12 are done and approved (7.12 marked done at Andrei's word at the
-end of the 2026-09-13 session, before its phone test — see Waiting on me). Phases 1–6 are
-complete and the app has been in daily use since 2026-09-01. No library has been added
-in phase 7.
+**Phase 7 step 7.13 (Stats, part 1) is built and waiting on Andrei's phone test.** It
+was split in two on 2026-09-21: 7.13 is the digest cards, food spend this month, the
+range control and the average boxes; **7.13b is the chart with its metric buttons**, and
+is next. Steps 7.0–7.12 are done and approved. Phases 1–6 are complete and the app has
+been in daily use since 2026-09-01. No library has been added in phase 7.
 
-Where phase 7 stands (measured from git at the end of 2026-09-13): **17 of 21 steps done**
-(7.0–7.12); left: 7.13, 7.14, 7.15, 7.16. Code only — app, lib and config, not
+Where phase 7 stands: **18 of 22 steps done** (7.0–7.12, and 7.13 pending its test);
+left: 7.13b, 7.14, 7.15, 7.16. Code only — app, lib and config, not
 migrations, docs or `node_modules` — and comments counted apart:
 - **Written in phase 7:** about 7,200 lines of code and 1,250 of comments, including the
   old screens rewritten (about 2,900 old lines replaced). The app went from 5,970 lines of
@@ -48,11 +48,11 @@ Don't design it or raise it.
 
 ## Waiting on me (Andrei)
 
-1. The small calls listed under Decisions for 7.12 (2026-09-13) — say if any should
-   change. 7.12 is committed and pushed (`359e274`), and was marked done before its
-   phone test, so anything the phone shows is a follow-up fix, not a reopened step.
-2. **The decision for 7.13:** is the weekly digest's "previous week" the seven days before
-   the last seven, or the previous calendar week (Monday–Sunday)?
+1. **Test 7.13 on the phone** — the stats section under Today's day details. What to
+   look at is in the step report: the two digest cards and the sheet, the range pills
+   and Custom, the eight boxes and their panels, and that stepping days keeps the range.
+2. The small calls listed under Decisions for 7.12 and 7.13 — say if any should change.
+3. Commit 7.13 (suggested message in the step report).
 
 Migrations 0001–0005 have all been run. Steps 7.1, 7.2, 7.4 and 7.4b had no migration.
 
@@ -61,6 +61,14 @@ tracked here and doesn't need raising.
 
 ## Done
 
+- 2026-09-21 — **Phase 7 step 7.13 built (awaiting the phone test): the stats section,
+  part 1.** Under Today's day details: the weekly digest card and its sheet, food spend
+  this month, the shared range control (4 · 7 · 14 · 28 · Custom, opening on 7), and the
+  eight average boxes, each opening its "where did it come from?" panel over the range.
+  The arithmetic is `lib/stats.ts`; the range read is `mealDaysIn` in `lib/meals.ts`,
+  which `totalsByDay` (TDEE) now goes through too. Checked in the scratchpad against
+  hand-worked numbers, against Postgres's own sums, and on the real screen at both
+  iPhone sizes.
 - 2026-09-13 — **Phase 7 step 7.12 complete: the Sleep chart.** A switch beside the "+"
   between the clock and a chart of bedtime and wake-up on a time axis running across
   midnight, the band between them shaded, dashed averages, the rotate button; ranges only,
@@ -266,7 +274,8 @@ stands, differs from it in four places:
 | 7.10 | TDEE estimate and the formula comparison *(done)* |
 | 7.11 | Sleep: the clock, night and period; restyle the entry form behind the "+" *(done)* |
 | 7.12 | Sleep: chart view *(done)* |
-| 7.13 | Stats, part 1: digest cards (with the weekly digest's content), food spend this month, range, average boxes, chart with metric buttons |
+| 7.13 | Stats, part 1: digest cards (with the weekly digest's content), food spend this month, range, average boxes *(split from the chart on 2026-09-21; built, awaiting the phone test)* |
+| 7.13b | Stats, part 1b: the chart with its metric buttons |
 | 7.14 | Stats, part 2: meals vs snacks, days on target |
 | 7.15 | Stats, part 3: timing card |
 | 7.16 | Milestones; restyle the PIN screen |
@@ -310,8 +319,9 @@ Not needed now, and written here so they aren't lost:
   ("Burritos"), not its ingredients. The mockups show it that way; confirm when
   building.~~ **Decided 2026-09-13: as a whole**, and each product version is its own
   row (see Decisions).
-- **Weekly digest (7.13):** is "the previous week" the seven days before the last
-  seven, or the previous calendar week?
+- **Weekly digest (7.13):** ~~is "the previous week" the seven days before the last
+  seven, or the previous calendar week?~~ **Decided 2026-09-21: the seven days before
+  the last seven** (see Decisions).
 - **Milestones (7.16):** Claude proposes the full list.
 
 One piece of context for TDEE: it wants three to four weeks of weight and food, and as
@@ -694,6 +704,17 @@ of scope for the rewrite. **Done 2026-09-11:** Andrei ran the review himself; se
 2026-09-13 — Step 7.11 small calls: **the arrows step a night at a time**, landing on unlogged nights too — an older missing night shows the big "+" with "Log this night"; only last night's gets the red dot. **The calendar icon is the phone's own date picker**, not Today's heatmap sheet (that one counts all four logs). **The "+" always opens last night**, the one the dot asks for; tapping the clock opens the night showing. **Saving from a single night goes back to the night just saved** (the new arc says it worked); from a period, back to the period. **Times across midnight are averaged on one continuous line** — bedtimes counted from the noon before, wake-ups as bedtime plus the length — so 23:30 and 00:30 average to 00:00 and the average wake-up is exactly the average bedtime plus the average length; a bedtime from noon onwards counts as the evening before. **A night with only one of its times** is treated like one without times (no arc), but says which is missing ("Wake-up not logged") rather than "Times not logged". **The period's line counts nights logged** ("7–13 Sep · 6 of 7 nights logged", or "7 nights" when all are), and a small line under the card says when some had no times ("Times from 4 nights; 2 logged without them"). The clock's length is written "7h 55", as the mockups do; the form's live line keeps "7 h 55 m". Custom opens on the week ending the night showing. The entry form is its own screen, `/sleep/night`, titled "Night to 13 Sep", in the new look (a card: woke up on, went to bed, got up with the live length under them, the score as a row of ten, note); the old `/sleep?date=…` now opens that night on the clock rather than a form. The clock/chart switch in the header waits for 7.12, which builds the chart.
 2026-09-13 — Step 7.12: how it's built and checked. No question needed asking: the plan and the mockup settle the chart. It's `sleep/sleep-chart.tsx`, drawn on the server twice like the others and turned by `chart-frame.tsx`; the time axis and the unbroken runs of nights are `timeAxis` and `runsOf` in `lib/chart.ts`; the times are the continuous line from `lib/sleep.ts` that the clock's averages already use. The clock and chart-line icons were copied in from Tabler 3.19.0, like the rest. The range control learned to keep something else in the address (`keep`), so the pills and Custom don't drop `view=chart`; `sleep/back.ts` carries the view and range through the form and back. Checked in the scratchpad: 14 hand-worked cases — the mockup's week giving the mockup's own axis (22:00 to 10:00, a label every two hours), room at the ends, 3-hour labels on a long axis, runs across gaps, and the carried address refusing anything smuggled in — then the real screen at iPhone 13 and SE sizes against 30 made-up nights with gaps, a night without times and a 13-hour night: the switch both ways keeping the range, every pill and Custom keeping the chart, turning it, the "+" from the chart and saving back onto it with last night appearing, a range with no times and an empty one, and `range=night` on the chart falling back to 7.
 2026-09-13 — Step 7.12 small calls: **from a single night the chart opens on 7** (the mockup's pill); from a range it keeps the range, and the switch back keeps it too. **A missing night, or one without times, breaks both lines and the shading** rather than joining across it — the mockup's week has no gaps to show either way; nothing is drawn through a night with no times, and a line under the key says how many there were. A night on its own between gaps gets a narrow shaded bar so it still shows. **Dates along the bottom are written like the other charts** ("7 Sep", a few of them) rather than the mockup's bare day numbers, so all four charts read the same. Later is higher, as the mockup draws it: the wake-up line above the bedtime line. The axis leaves at least a quarter of an hour's room at each end. The shading is the plan's 18%. The skeleton that shows the moment you open the tab is the clock's even when the address asks for the chart — it can't read the address — and the chart's own skeleton takes over for any change made on the screen.
+2026-09-21 — **The weekly digest's "previous week" is the seven days before the last seven**, not the previous calendar week (Andrei's decision). Everything else in the stats section is a rolling window ending yesterday, including the range control right underneath the digest; any seven days in a row hold exactly one Saturday and one Sunday, so the comparison is still like-for-like; and it always compares two full weeks, whatever day the app is opened on. A Monday–Sunday comparison would have made "this week" one day long on a Tuesday. (The streak's grace day stays per calendar week — that one is about weeks as they're lived, not about comparing two of them.)
+2026-09-21 — **The stats section does not follow the day being looked at** (Andrei's decision): whichever day is on screen above, the stats cover the days ending yesterday. They answer "how have the last seven days been", which isn't a property of the day being read, and stepping back to fix a forgotten meal shouldn't re-point every average at a fortnight ago. The two halves of the screen carry each other's place in the address instead: the day arrows, the calendar and "Back to today" keep `range=`, and the range pills and Custom keep `day=`.
+2026-09-21 — **The chart's seven metrics will all be drawn on the server and swapped on the phone** (Andrei's decision, for 7.13b): the tap is instant and no chart code is downloaded, at the cost of about 35 KB more HTML on the day screen (roughly 5 KB compressed). Chosen over drawing only the chosen metric and fetching the rest on tap, which would put a wait behind every button — the thing 7.1 was about.
+2026-09-21 — **Step 7.13 is split in two** (Andrei's decision), as 7.7 was: 7.13 is the digest cards, food spend this month, the range and the average boxes; 7.13b is the chart. The chart is the risky half — seven metrics, two kinds of target drawn on it, red overflow, red caps, the average line and the rotate button — and a problem in it shouldn't hold up the boxes.
+2026-09-21 — **A day with no food logged is left out of every stats average, and out of the count they're said to be over** ("Averages over the 2 days logged"), as the plan requires. "Food logged" is the same rule TDEE uses: more than 0 kcal, so a day holding only an empty meal doesn't count. Accepted consequence, and worth knowing: a day that cost money but added no calories — black coffee, a diet drink, and nothing else — is left out of the averages *including its spend*, while the week's and the month's spend totals still include it. Averages are about days of eating; totals are about money that was actually spent.
+2026-09-21 — Step 7.13: the arithmetic is `lib/stats.ts` (the averages, the digest, the month's budget), pure. The range read is the new `mealDaysIn` in `lib/meals.ts` — a range as days, with each day's totals, its meal and snack counts, and the foods themselves — and `totalsByDay`, which TDEE reads, is now that same function with the extras dropped, so the two can't disagree. **The meals' lines are asked for 300 meals at a time**: every meal id travels in the address Supabase is asked over, and a long Custom range covering thousands of meals would make one question too long to send. Proven in the scratchpad with the stand-in refusing any question naming more than 400 ids: the committed code fails on a month of 1,250 meals, the new code reads all 31 days and matches Postgres exactly.
+2026-09-21 — Step 7.13, how it was checked. 41 hand-worked cases on the pure arithmetic (the averages with an unlogged day in the middle, a day with cost but no calories, the digest with gaps and with no week before to compare, the month's budget, and the date helpers including February in a leap year). Then against a throwaway Postgres: every day's calories, protein, cost, meals and snacks compared with Postgres's own sums worked out from the raw rows, a day of empty meals still coming back, the range honoured at both ends, `totalsByDay` unchanged, and 14 Sep worked out by hand end to end. Then 1,250 meals and 2,500 lines across a month, for the 1,000-row paging and the chunked questions. Then the real screen at iPhone 13 and SE sizes: every box against hand arithmetic (protein 29.22, sugar 42.75, carbs 157.8, fibre 16.5, fat 17.25, spend 9.4331), the digest sheet, a panel over the range, the pills, Custom typed backwards and past yesterday, the calendar, the day arrows keeping the range and the pills keeping the day, an empty range, and nothing running off the side.
+2026-09-21 — **Found and fixed while testing 7.13:** moving `<main>` and the header out of the day's Suspense boundary — so the stats could load separately — silently stopped the day arrows showing their skeleton, which is approved behaviour from 7.1. Caught by running the same check against the code as committed (24 blocks there, 0 in the new version). The page went back to the 7.1 shape, with the stats section handed to the day screen as a child; the skeleton now shows again and covers the stats too. **Worth remembering: a keyed Suspense stops behaving when it stops being the thing that wraps the screen.**
+2026-09-21 — Step 7.13: **choosing a stats range doesn't show blocks where the boxes are** — the numbers simply change when they arrive. The day above is re-read at the same time and arrives with them, so nothing is left pending; on Smoking and Weight, whose pages wait on one quick question first, the blocks do show. Measured, not assumed. On the real connection this is a fraction of a second. Say if it feels unresponsive on the phone and the boundary can be forced to show them.
+2026-09-21 — Step 7.13 small calls: **the section follows the mockup and has no heading** — the digest cards sit straight under Day details. **Grams in the boxes are written the same way as in the panels** (whole numbers, one decimal under 10), so fibre reads "17 g" where the mockup draws 34.5; one rule everywhere beats matching an illustrative number. **The month's spend and the week's spend are whole lei** ("19 / 990 lei"), as the mockup writes the month; spend a day keeps its two decimals. **"Meals · snacks / day" opens no panel** — there's no list of foods behind it. **An empty range** shows "—" in every box and says "No meals logged in these days." **The loading blocks show the default 7 pill** whatever the address asks for: a loading screen is drawn before the address is read. **The digest cards don't reload when the range changes** — they're always the last seven days, so they're a boundary of their own.
+2026-09-21 — `monthName` in `lib/logging.ts` became `monthAndYear` ("September 2026", the calendar's heading), because `lib/day.ts` now has a `monthName` that takes a date and gives the month alone ("September", the spend card). Two functions with the same name and different inputs is how a wrong number reaches a screen, and this project has been bitten by a name that lied twice already.
 2026-09-13 — Step 7.6 small calls: the panel's bar follows the mockup, so a food taking half the total fills it (anything bigger is full too); calories and spend bars are Nutrition green, the nutrients their own colours. Grams under 10 show one decimal ("6.5 g") so a small amount isn't "0 g"; under 1% shows "<1%". The subtitle is the date row's own words: "Today, 13 Sep · 1,669 kcal total". "Show all" has no count and no "show fewer"; closing the panel resets it. Tapping the line under the fat bar opens saturated fat — the only place on Today that number is shown. The Day details figures aren't tappable: the plan lists the hero, the bars, the stats boxes and the chart bars. A past day with no meals says "Nothing logged for this day yet."; a food list with none of that nutrient says "None of it adds any fibre." A tapped number dims slightly while pressed, so a tap is visibly received.
 
 ## Deferred

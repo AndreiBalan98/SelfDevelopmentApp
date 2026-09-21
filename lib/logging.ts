@@ -106,8 +106,9 @@ export function shiftMonth(month: string, by: number): string {
   return `${moved.getUTCFullYear()}-${String(moved.getUTCMonth() + 1).padStart(2, "0")}`;
 }
 
-// "September 2026".
-export function monthName(month: string): string {
+// "September 2026", from a month ("2026-09") — the calendar's heading. The
+// month on its own, from a date, is monthName in lib/day.ts.
+export function monthAndYear(month: string): string {
   return new Intl.DateTimeFormat("en-GB", {
     timeZone: "UTC",
     month: "long",

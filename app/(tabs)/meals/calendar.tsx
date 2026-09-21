@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ALL_FOUR, monthGrid, monthName, shiftMonth } from "@/lib/logging";
+import { ALL_FOUR, monthAndYear, monthGrid, shiftMonth } from "@/lib/logging";
 import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon } from "../icons";
 
 const WEEKDAYS = ["M", "T", "W", "T", "F", "S", "S"];
@@ -22,6 +22,7 @@ export function Calendar({
   counts,
   streak,
   daysLogged,
+  keep,
 }: {
   // The day Today is showing.
   selected: string;
@@ -31,6 +32,8 @@ export function Calendar({
   counts: Record<string, number> | null;
   streak: number;
   daysLogged: number;
+  // The stats range showing below, so jumping to a day keeps it.
+  keep: string;
 }) {
   const [open, setOpen] = useState(false);
   const [month, setMonth] = useState(selected.slice(0, 7));
@@ -71,7 +74,7 @@ export function Calendar({
             <div className="mx-auto mb-3 h-1 w-[38px] rounded-full bg-border-strong" />
 
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-base font-semibold">{monthName(month)}</h2>
+              <h2 className="text-base font-semibold">{monthAndYear(month)}</h2>
               <span className="flex items-center gap-1 text-muted">
                 <button
                   type="button"
@@ -143,7 +146,11 @@ export function Calendar({
                     return (
                       <Link
                         key={date}
-                        href={date === today ? "/meals" : `/meals?day=${date}`}
+                        href={
+                          date === today
+                            ? `/meals${keep ? `?${keep}` : ""}`
+                            : `/meals?day=${date}${keep ? `&${keep}` : ""}`
+                        }
                         onClick={() => setOpen(false)}
                         aria-label={`${date}: ${logs} of ${ALL_FOUR} logs`}
                         className={`rounded-lg border py-[3px] tabular-nums ${

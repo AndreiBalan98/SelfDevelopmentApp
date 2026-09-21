@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { breakdown, type Metric, type SourceItem } from "@/lib/sources";
+import { grams, whole } from "./format";
 
 // "Where did it come from?" — tapping a number or a bar on Today opens a panel
 // from the bottom listing the foods it's made of, biggest first: the name, the
@@ -25,14 +26,8 @@ const METRICS: Record<Metric, { title: string; colour: string }> = {
   saturated_fat: { title: "Saturated fat", colour: "bg-saturated" },
 };
 
-// Grams get a decimal while they're small, so a food isn't listed as "0 g".
-function grams(value: number): string {
-  const shown = value < 10 ? Math.round(value * 10) / 10 : Math.round(value);
-  return `${shown.toLocaleString("en-GB")} g`;
-}
-
 function amount(value: number, metric: Metric): string {
-  if (metric === "calories") return `${Math.round(value).toLocaleString("en-GB")} kcal`;
+  if (metric === "calories") return `${whole(value)} kcal`;
   if (metric === "cost") return `${value.toFixed(2)} lei`;
   return grams(value);
 }
@@ -47,12 +42,16 @@ const Open = createContext<(metric: Metric) => void>(() => {});
 export function Sources({
   items,
   label,
+  empty = "Nothing logged for this day yet.",
   children,
 }: {
-  // Every food on the day, with what it added up to.
+  // Every food on the day — or, in the stats, in the range — with what it added
+  // up to.
   items: SourceItem[];
-  // What the panel's numbers cover: "Today, 12 Sep".
+  // What the panel's numbers cover: "Today, 12 Sep", "1–9 Sep · 9 days".
   label: string;
+  // What to say when there's no food at all behind the number.
+  empty?: string;
   children: ReactNode;
 }) {
   const [metric, setMetric] = useState<Metric | null>(null);
@@ -78,6 +77,7 @@ export function Sources({
           metric={metric}
           items={items}
           label={label}
+          empty={empty}
           all={all}
           onShowAll={() => setAll(true)}
           onClose={() => setMetric(null)}
@@ -91,6 +91,7 @@ function Panel({
   metric,
   items,
   label,
+  empty,
   all,
   onShowAll,
   onClose,
@@ -98,6 +99,7 @@ function Panel({
   metric: Metric;
   items: SourceItem[];
   label: string;
+  empty: string;
   all: boolean;
   onShowAll: () => void;
   onClose: () => void;
@@ -128,7 +130,7 @@ function Panel({
         {sources.length === 0 ? (
           <p className="pb-3 text-[13px] text-muted">
             {items.length === 0
-              ? "Nothing logged for this day yet."
+              ? empty
               : metric === "cost"
                 ? "None of it cost anything."
                 : `None of it adds any ${title.toLowerCase()}.`}

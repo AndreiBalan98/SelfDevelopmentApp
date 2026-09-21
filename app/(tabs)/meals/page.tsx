@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
 import { db } from "@/lib/supabase";
 import { dateRowLabel, dayFor, shiftDays, timeIn } from "@/lib/day";
 import { linesForMeals, recentMeals } from "@/lib/meals";
@@ -8,11 +8,13 @@ import { sourceItems } from "@/lib/sources";
 import { readTargets } from "@/lib/settings";
 import { readLogDates } from "@/lib/log-dates";
 import { daysLogged, logCounts, streak } from "@/lib/logging";
+import { rangeQuery } from "@/lib/range";
 import { Calendar } from "./calendar";
 import { AddMealButton } from "./add-meal-button";
 import { DayTotals } from "./day-totals";
 import { Sources } from "./sources";
 import { NutritionDetails } from "./nutrition-details";
+import { StatsSection } from "./stats";
 import Loading from "./loading";
 import { NutritionHeader } from "../headers";
 import { ChevronLeftIcon, ChevronRightIcon } from "../icons";
@@ -32,7 +34,8 @@ const MACROS: Array<{ key: Nutrient; letter: string; colour: string }> = [
 ];
 
 export default async function MealsPage({ searchParams }: PageProps<"/meals">) {
-  const { day } = await searchParams;
+  const params = await searchParams;
+  const { day } = params;
 
   // "Today" here means the day you're currently logging towards, not the
   // calendar date: at 02:00 you are still filling in yesterday.
@@ -40,17 +43,37 @@ export default async function MealsPage({ searchParams }: PageProps<"/meals">) {
   const selected =
     typeof day === "string" && /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : currentDay;
 
+  // The two halves of this screen carry each other's place in the address: the
+  // day arrows keep the stats range, and the range pills keep the day being
+  // looked at.
+  const keepRange = rangeQuery(params);
+  const keepDay = selected === currentDay ? "" : `day=${selected}`;
+
   // Keyed on the day, so stepping to another day swaps straight to the
   // skeleton while it loads, rather than leaving the old day on screen as if
-  // the tap hadn't registered.
+  // the tap hadn't registered. The stats section is handed in rather than
+  // fetched here: it has its own boundaries, and its range lives in the address
+  // beside the day.
   return (
     <Suspense key={selected} fallback={<Loading />}>
-      <Day selected={selected} currentDay={currentDay} />
+      <Day selected={selected} currentDay={currentDay} keep={keepRange}>
+        <StatsSection params={params} currentDay={currentDay} keep={keepDay} />
+      </Day>
     </Suspense>
   );
 }
 
-async function Day({ selected, currentDay }: { selected: string; currentDay: string }) {
+async function Day({
+  selected,
+  currentDay,
+  keep,
+  children,
+}: {
+  selected: string;
+  currentDay: string;
+  keep: string;
+  children: ReactNode;
+}) {
   // The targets, the recent list and the calendar's logs don't depend on which
   // meals are on this day, so they're asked for at the same time rather than
   // after.
@@ -89,7 +112,7 @@ async function Day({ selected, currentDay }: { selected: string; currentDay: str
       <div className="-mt-2 flex flex-col items-center gap-1">
         <div className="flex items-center justify-center gap-2 text-[13px] text-muted">
           <Link
-            href={`/meals?day=${shiftDays(selected, -1)}`}
+            href={`/meals?day=${shiftDays(selected, -1)}${keep ? `&${keep}` : ""}`}
             aria-label="The day before"
             className="flex p-1.5"
           >
@@ -100,7 +123,7 @@ async function Day({ selected, currentDay }: { selected: string; currentDay: str
 
           {selected < currentDay ? (
             <Link
-              href={`/meals?day=${shiftDays(selected, 1)}`}
+              href={`/meals?day=${shiftDays(selected, 1)}${keep ? `&${keep}` : ""}`}
               aria-label="The day after"
               className="flex p-1.5"
             >
@@ -118,11 +141,12 @@ async function Day({ selected, currentDay }: { selected: string; currentDay: str
             counts={counts}
             streak={counts === null ? 0 : streak(counts, currentDay)}
             daysLogged={counts === null ? 0 : daysLogged(counts, currentDay)}
+            keep={keep}
           />
         </div>
 
         {selected !== currentDay && (
-          <Link href="/meals" className="text-xs text-accent">
+          <Link href={`/meals${keep ? `?${keep}` : ""}`} className="text-xs text-accent">
             Back to today
           </Link>
         )}
@@ -215,6 +239,8 @@ async function Day({ selected, currentDay }: { selected: string; currentDay: str
           cost: meal.cost,
         }))}
       />
+
+      {children}
     </main>
   );
 }
