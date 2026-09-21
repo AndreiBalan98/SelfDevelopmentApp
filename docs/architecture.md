@@ -77,6 +77,7 @@ app/                 every screen, and the server code behind it
       stats-chart.tsx  the chart itself, drawn as SVG on the server
       chart-card.tsx   the metric buttons, and which chart is showing
       stats-cards.tsx  meals against snacks, and days on target
+      timing-card.tsx  when the eating happens, and the average day strip
       digest-card.tsx  the weekly digest card and the sheet it opens
       bones.tsx      the day's blocks and the stats' blocks, while they load
       format.ts      how a number is written, shared by the boxes and the panels
@@ -137,6 +138,9 @@ lib/
   stats.ts           the stats section's arithmetic: the averages over a range,
                      the weekly digest, the month's spend — and the rule that a
                      day with no food logged is left out of all of them
+  timing.ts          when the eating happens: first and last food, the eating
+                     window, the gap after waking, the small hours, and protein
+                     hour by hour, all on a day that runs 04:00 to 04:00
   value.ts           lei per 30 g of protein and per 1,000 kcal, what counts
                      as "low protein" and "low calorie", and the two value sorts
   range.ts           which days a range means ("28" = the 28 ending
@@ -891,8 +895,8 @@ the server. The stats section uses the same panel over a range of days.
 ### The stats section
 
 Under the day details: two digest cards, the range control, the eight average boxes,
-the chart, meals vs snacks, and days on target. (The timing card is still to come —
-step 7.15.)
+the chart, meals vs snacks, days on target, and the timing card. That completes the
+stats section.
 
 **It doesn't follow the day you're looking at.** Whichever day is on screen above, the
 stats cover the days ending yesterday. They answer "how have the last seven days
@@ -968,6 +972,25 @@ Worth knowing for anything built on them: `judge` answers **null** for a target 
 isn't set, and `!judge(…)?.red` quietly reads that as a hit — which is how, for a while,
 an unset target scored full marks every day. `lib/stats.ts` now turns null into "not
 measured" explicitly.
+
+**The timing card** says when the eating happens over the range: the gap from waking
+up to the first food (with the shortest and longest, when they differ), the average
+first and last food, the eating window, and what was eaten from 01:00 onwards. The
+wake-up time comes from the sleep log, and only days with both a wake-up and food
+count towards the gap — the card says how many those were.
+
+Under the numbers, **an average day drawn from 04:00 to 04:00**, the same boundary the
+rest of the app uses: the night in blue (two blocks, since a night crosses the
+boundary), the gap before the first food, the eating window in green, and above them
+the average protein in each hour — which is what shows up an empty afternoon. It has
+no rotate button: it is a fixed 24 hours wide whatever the range, so turning it would
+only show the same thing bigger.
+
+All of it is laid out in minutes counted from 04:00 (`lib/timing.ts`, with
+`minutesIntoDay` in `lib/day.ts`), so a meal at 02:00 sits at the far end of its own
+day rather than at the start of the next one, and nothing wraps around in the middle.
+A meal logged for a past day is saved at midday and taken at that time as it stands —
+the plan accepts this, because meals are rarely backfilled.
 
 **Where the reading happens.** `mealDaysIn` in `lib/meals.ts` reads a range as days —
 totals, meal and snack counts, and the foods themselves. `totalsByDay`, which TDEE

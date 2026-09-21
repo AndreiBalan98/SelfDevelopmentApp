@@ -132,6 +132,14 @@ export function BoxBones() {
         </div>
         <div className="h-[13rem] rounded-xl bg-surface" />
       </section>
+
+      <section className="flex flex-col gap-2">
+        <div>
+          <h2 className="text-sm font-semibold">Timing</h2>
+          <Bone className="mt-1 h-3 w-36" />
+        </div>
+        <div className="h-[19rem] rounded-xl bg-surface" />
+      </section>
     </>
   );
 }

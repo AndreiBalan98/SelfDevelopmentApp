@@ -9,6 +9,7 @@
 // divided by its servings — none of which is stored anywhere.
 
 import { db } from "@/lib/supabase";
+import { minutesIntoDay } from "@/lib/day";
 import { allRows, everyRow } from "@/lib/pages";
 import {
   divideNutrition,
@@ -330,12 +331,15 @@ function chunks<T>(values: T[], size: number): T[][] {
   return out;
 }
 
-// One meal or snack, added up on its own — what the stats compare the two by.
+// One meal or snack, added up on its own — what the stats compare the two by,
+// and when it was eaten, for the timing card.
 export type MealEntry = {
   type: "meal" | "snack";
   score: number | null;
   nutrition: Nutrition;
   cost: number;
+  // Minutes into its own day, counting from 04:00 (lib/day.ts).
+  minute: number;
 };
 
 // One day of eating, added up: what it contained, what it cost, how many meals
@@ -371,7 +375,7 @@ export async function mealDaysIn(
     everyRow((start, end) =>
       supabase
         .from("meals")
-        .select("id, day, type, score")
+        .select("id, day, type, score, eaten_at")
         .gte("day", from)
         .lte("day", to)
         .order("id", { ascending: true })
@@ -445,6 +449,7 @@ export async function mealDaysIn(
       score: meal.score,
       nutrition: totals.nutrition,
       cost: totals.cost,
+      minute: minutesIntoDay(new Date(meal.eaten_at)),
     });
   }
 

@@ -155,6 +155,30 @@ export function dayFor(instant: Date): string {
   return clock.hour < DAY_BOUNDARY_HOUR ? shiftDays(clock.date, -1) : clock.date;
 }
 
+// How far into its own day an instant falls, in minutes, counting from the
+// 04:00 boundary rather than from midnight: 04:00 is 0, 13:30 is 570, and
+// 02:00 — which still belongs to the day before — is 1,320, near the end of it.
+//
+// This is what lets the timing card lay a day out from 04:00 to 04:00 without
+// anything wrapping around in the middle.
+export function minutesIntoDay(instant: Date): number {
+  const clock = wallClockAt(instant);
+  const minutes = clock.hour * 60 + Number(clock.time.slice(3, 5));
+
+  return (minutes - DAY_BOUNDARY_HOUR * 60 + 24 * 60) % (24 * 60);
+}
+
+// The same, for a time typed on a form — "23:30" — rather than an instant.
+export function minutesIntoDayOf(time: string): number | null {
+  const match = /^(\d{2}):(\d{2})/.exec(time.trim());
+  if (!match) return null;
+
+  const minutes = Number(match[1]) * 60 + Number(match[2]);
+  if (minutes >= 24 * 60) return null;
+
+  return (minutes - DAY_BOUNDARY_HOUR * 60 + 24 * 60) % (24 * 60);
+}
+
 // The local time an instant happened, as "14:30".
 export function timeIn(instant: Date): string {
   return wallClockAt(instant).time;

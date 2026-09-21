@@ -18,11 +18,13 @@ import {
   type StatsDay,
 } from "@/lib/stats";
 import { calorieKind, type Kind } from "@/lib/targets";
+import { timingOf } from "@/lib/timing";
 import { RangeControl } from "../range-control";
 import { ChartCard, type Chart } from "./chart-card";
 import { DigestCard, type DigestRow } from "./digest-card";
 import { Sources, SourceTap } from "./sources";
 import { DaysOnTarget, MealsVsSnacks } from "./stats-cards";
+import { TimingCard } from "./timing-card";
 import { LANDSCAPE, PORTRAIT, StatsChart, columns, type Target } from "./stats-chart";
 import { BoxBones, DigestBones } from "./bones";
 import { grams, gramsValue, whole } from "./format";
@@ -216,9 +218,16 @@ async function AverageBoxes({
   label: string;
   currentDay: string;
 }) {
-  const [days, targets] = await Promise.all([
+  const [days, targets, nights] = await Promise.all([
     mealDaysIn(range.from, range.to),
     readTargets(),
+    // A night is stored under the date you woke up, so the range's nights are
+    // the range's own dates.
+    db()
+      .from("sleep")
+      .select("date, bedtime, wake_time, quality")
+      .gte("date", range.from)
+      .lte("date", range.to),
   ]);
 
   const averages = averagesOver(days);
@@ -289,6 +298,11 @@ async function AverageBoxes({
             dates={dates}
             label={label}
             swings={swings(logged)}
+          />
+
+          <TimingCard
+            timing={timingOf(days, nights.data ?? [])}
+            dates={rangeLabel(range.from, range.to, currentDay)}
           />
         </>
       )}
