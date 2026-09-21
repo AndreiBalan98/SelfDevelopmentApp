@@ -16,6 +16,7 @@ import { NightRow } from "./night-row";
 import { ClockBones } from "./clock-bones";
 import { LANDSCAPE, PORTRAIT, SleepChart } from "./sleep-chart";
 import { sleepQuery } from "./back";
+import { SleepMilestone } from "../milestone-card";
 
 export const dynamic = "force-dynamic";
 
@@ -78,6 +79,12 @@ export default async function SleepPage({ searchParams }: PageProps<"/sleep">) {
           <HeaderAdd href={`/sleep/night${back ? `?${back}` : ""}`} label="Log a night" dot="sleepMissing" />
         </div>
       </TabHeader>
+
+      {/* About the whole history rather than what's showing, so it loads on
+          its own and survives the clock/chart switch. */}
+      <Suspense fallback={null}>
+        <SleepMilestone today={now} />
+      </Suspense>
 
       <RangeControl
         options={chart ? CHART_OPTIONS : CLOCK_OPTIONS}

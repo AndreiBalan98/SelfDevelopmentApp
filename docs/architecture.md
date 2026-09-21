@@ -65,6 +65,8 @@ app/                 every screen, and the server code behind it
     chart-frame.tsx  what every chart sits in: the line saying what it covers,
                      and the rotate button that lays it sideways
     chart-bones.tsx  a chart and its list while they load (Smoking, Weight)
+    milestone-card.tsx  the milestone line on Weight, Smoking and Sleep, and
+                     the reading behind each one
     loading.tsx      (in each screen folder) that screen's skeleton — what shows
                      the instant you tap, while its data loads
     meals/           Nutrition → Today: one day at a time, with the day's totals
@@ -135,6 +137,8 @@ lib/
   targets.ts         the target rules: ceilings, ±10% zones, the fat ratio, and
                      where each part of a bar is drawn
   sources.ts         which foods a number is made of, biggest first
+  milestones.ts      what counts as a milestone on each tab, and when it has
+                     just happened
   stats.ts           the stats section's arithmetic: the averages over a range,
                      the weekly digest, the month's spend — and the rule that a
                      day with no food logged is left out of all of them
@@ -280,6 +284,49 @@ their forms open on, and what counts as "a future date". At 00:30 it's still
 yesterday, so no sleep dot goes up for a night that hasn't been slept. The Smoking form
 opens on yesterday, the day its dot asks for.
 
+## Milestones
+
+A single line at the top of Weight, Smoking or Sleep when something worth noticing has
+happened — "Lowest since you started · 79.8 kg", "Your lowest week yet · 35
+cigarettes", "Your best week of sleep · 8 h a night". No badge, no icon, no number
+going up: the plan rules those out, and the sentence is the whole of it.
+
+**Nothing is stored.** A milestone is worked out from what's logged every time the
+screen is drawn, which means there is no record of what has already fired — so each
+one is defined as *an event with a date*, and shows for the week after it happened.
+One rule for all of them, nothing to reconcile, and nothing that can go stale.
+
+The six, in `lib/milestones.ts`:
+
+| Tab | What fires |
+|---|---|
+| Weight | The 7-day average is the lowest in three months — or the lowest ever, once there is more than three months of history |
+| Weight | Passing another whole kilo below the highest 7-day average you've been |
+| Smoking | The last seven days' total is the lowest seven-day total you've logged |
+| Smoking | The first day with none at all — then, after that, how many there have been this month |
+| Sleep | The highest 7-night average you've logged |
+
+Three rules they follow:
+
+- **Never about a missed target.** The streak is on logging and never on hitting a
+  number, and milestones stay on the same side of that line: they are about weight,
+  cigarettes and sleep, never about whether a day was "good". That is also why there
+  are none on Nutrition — every one worth writing there would be about targets.
+- **Nothing fires until there are four weeks of that kind of log.** In the first weeks
+  every day is a record, and a card that appears every morning is wallpaper.
+- **One per tab**, the strongest that's true. On Smoking a first day with none outranks
+  a record week, since the two usually come together and the first is rarer.
+
+Weight goes by the 7-day average, not a single weigh-in, so one dehydrated morning
+doesn't set off a record. Smoking compares weekly *totals*, and only between weeks that
+are fully logged — a total with a day missing isn't comparable. Sleep compares an
+average per night, which is fair even with a gap, so long as at least five of the seven
+nights have times.
+
+The card is read on its own, outside the range's boundary: it is about the whole
+history, so choosing another range leaves it alone. A question the database can't
+answer shows no card at all, the same rule the red dots follow.
+
 ## The PIN gate
 
 One file, `proxy.ts`, runs before every request that reaches the app. If the request
@@ -288,6 +335,11 @@ screen instead. Because the check sits there rather than inside each page, every
 screen built from now on is protected without anyone having to remember to protect
 it. That includes the JSON export in phase 3, which is the one URL that would hand
 over everything.
+
+**The screen itself** is the app's title and one box, in the new look since 7.16: a
+rounded surface like every other card, the digits large and spaced out. It submits
+itself the moment the sixth digit lands — no button to reach for one-handed — and a
+wrong PIN clears the box and says how many tries are left, never in red.
 
 Three things are deliberately left reachable without the PIN: the app icons and the
 manifest. iOS fetches those the moment you add the app to your home screen, which is

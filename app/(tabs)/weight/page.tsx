@@ -14,6 +14,7 @@ import { ChartFrame } from "../chart-frame";
 import { ChartBones } from "../chart-bones";
 import { LANDSCAPE, PORTRAIT, WeightChart } from "./weight-chart";
 import { TdeeBones, TdeeCard } from "./tdee";
+import { WeightMilestone } from "../milestone-card";
 
 export const dynamic = "force-dynamic";
 
@@ -64,6 +65,13 @@ export default async function WeightPage({ searchParams }: PageProps<"/weight">)
       <NutritionHeader active="weight">
         <HeaderAdd href={`/weight/day${back ? `?${back}` : ""}`} label="Log a weigh-in" dot="weightMissing" />
       </NutritionHeader>
+
+      {/* Not part of the range's boundary: a milestone is about the whole
+          history, not the days showing, so it doesn't reload when a pill is
+          tapped. Nothing shows in its place while it loads. */}
+      <Suspense fallback={null}>
+        <WeightMilestone today={now} />
+      </Suspense>
 
       <RangeControl options={OPTIONS} chosen={range.key} from={range.from} to={range.to} latest={now} />
 

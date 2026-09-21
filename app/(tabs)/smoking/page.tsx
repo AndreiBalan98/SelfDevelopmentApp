@@ -10,6 +10,7 @@ import { RangeControl } from "../range-control";
 import { ChartFrame } from "../chart-frame";
 import { ChartBones } from "../chart-bones";
 import { LANDSCAPE, PORTRAIT, SmokingChart } from "./smoking-chart";
+import { SmokingMilestone } from "../milestone-card";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +49,12 @@ export default async function SmokingPage({ searchParams }: PageProps<"/smoking"
       <TabHeader title="Smoking">
         <HeaderAdd href={`/smoking/day${back ? `?${back}` : ""}`} label="Log a day" dot="smokingMissing" />
       </TabHeader>
+
+      {/* About the whole history rather than the range, so it loads on its
+          own and stays put when a pill is tapped. */}
+      <Suspense fallback={null}>
+        <SmokingMilestone today={now} />
+      </Suspense>
 
       <RangeControl options={OPTIONS} chosen={range.key} from={range.from} to={range.to} latest={yesterday} />
 

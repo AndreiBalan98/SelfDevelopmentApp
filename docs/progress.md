@@ -4,24 +4,25 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Phase 7 step 7.15 (the timing card) is built and waiting on Andrei's phone test.**
-With it the stats section is complete. 7.13, 7.13b and 7.14 were tested and approved on
-2026-09-21. Phases 1–6 are complete and the app has been in daily use since 2026-09-01.
-No library has been added in phase 7 — the charts are still drawn by hand.
+**Phase 7 step 7.16 (milestones, and the PIN screen restyled) is built and waiting on
+Andrei's phone test. It is the last step of phase 7** — once it's approved, the whole
+phase is done. 7.13 to 7.15 were tested and approved on 2026-09-21. Phases 1–6 are
+complete and the app has been in daily use since 2026-09-01. No library was added in
+phase 7 at all: the charts are drawn by hand and the icons are copied in.
 
-Where phase 7 stands: **21 of 22 steps done** (7.0–7.14, and 7.15 pending its test);
-left: 7.16 — milestones, and restyling the PIN screen. Code only — app, lib and config, not
-migrations, docs or `node_modules` — and comments counted apart:
-- **Written in phase 7:** about 7,200 lines of code and 1,250 of comments, including the
-  old screens rewritten (about 2,900 old lines replaced). The app went from 5,970 lines of
-  code / 630 of comments (72 files) to 10,190 / 1,640 (127 files).
-- **Left:** about 1,900–2,500 lines of code and 350–450 of comments (7.13 ~800–1,000,
-  7.14 ~450–600, 7.15 ~400–500, 7.16 ~250–400). So about 75% done by code.
-- **Time:** about 15 hours so far (about 3 for 7.0's plan rewrite, 12 building), from commit
-  times with each session's start guessed. About 4–6 hours left — the stats steps are
-  arithmetic-heavy and each gets checked by hand.
-- Migrations: one in phase 7 (0005). Dependencies: none added (still 4 for the app, 8 for
-  building it).
+Where phase 7 stands: **22 of 22 steps built**, 21 tested and approved; 7.16 pending
+its test. After that: phase 8 (gym), which is deliberately parked and not to be
+designed or raised.
+
+Size, measured after 7.16 — code only (app, lib and config, not migrations, docs or
+`node_modules`), comments counted apart:
+
+- The app is **137 files, about 12,050 lines of code and 2,035 of comments**. It began
+  phase 7 at 5,970 / 630 across 72 files, so phase 7 roughly doubled it — around 9,000
+  lines written, counting the old screens it replaced.
+- Migrations: one in phase 7 (0005). **Dependencies: none added in the whole phase** —
+  still 4 for the app and 8 for building it. The charts are drawn by hand and the
+  icons are copied in as SVG.
 
 ### How phase 7 got here
 
@@ -47,11 +48,13 @@ Don't design it or raise it.
 
 ## Waiting on me (Andrei)
 
-1. **Test 7.15 on the phone** — the timing card at the bottom of the stats. What to
-   look at is in the step report: the five numbers, and the average-day strip with its
-   sleep blocks, the gap before the first food, the eating window and the protein bars.
-2. The small calls listed under Decisions for 7.15 — say if any should change.
-3. Commit 7.15 (suggested message in the step report).
+1. **Test 7.16 on the phone** — the milestone line on Weight, Smoking and Sleep, and
+   the PIN screen (you'll see that one next time the session expires, or in a private
+   tab). With about three weeks of logging, expect **no milestones yet**: nothing fires
+   until there are four weeks of that kind of log. That is the correct behaviour, not a
+   bug — say if you'd rather see them sooner.
+2. The small calls listed under Decisions for 7.16 — say if any should change.
+3. Commit 7.16 (suggested message in the step report). **That closes phase 7.**
 
 Migrations 0001–0005 have all been run. Steps 7.1, 7.2, 7.4 and 7.4b had no migration.
 
@@ -60,8 +63,17 @@ tracked here and doesn't need raising.
 
 ## Done
 
-- 2026-09-21 — **Phase 7 step 7.15 built (awaiting the phone test): the timing card,
-  and with it the whole stats section.** Wake to first food (with the shortest and
+- 2026-09-21 — **Phase 7 step 7.16 built (awaiting the phone test): milestones, and the
+  PIN screen in the new look.** Six milestones, agreed with Andrei from a proposal:
+  lowest weight in three months (or ever, past three months of history), a whole kilo
+  below your highest, the lowest week of cigarettes yet, the first day with none (then
+  how many this month), and the best week of sleep. One line at the top of the tab it
+  belongs to, in the tab's colour; nothing stored, nothing fires under four weeks of
+  history, and nothing on Nutrition because every nutrition milestone would be about
+  targets (`lib/milestones.ts`, `milestone-card.tsx`). The PIN screen keeps every bit of
+  its behaviour and gets the new look.
+- 2026-09-21 — **Phase 7 step 7.15 complete: the timing card, and with it the whole
+  stats section.** Tested on the phone and approved. Wake to first food (with the shortest and
   longest when they differ), the average first and last food, the eating window, and
   what was eaten from 01:00 onwards. Under them an average day drawn from 04:00 to
   04:00: the night in two blocks, the gap before the first food, the eating window, and
@@ -303,8 +315,8 @@ stands, differs from it in four places:
 | 7.13 | Stats, part 1: digest cards (with the weekly digest's content), food spend this month, range, average boxes *(split from the chart on 2026-09-21; done)* |
 | 7.13b | Stats, part 1b: the chart with its metric buttons *(done)* |
 | 7.14 | Stats, part 2: meals vs snacks, days on target *(done)* |
-| 7.15 | Stats, part 3: timing card *(built, awaiting the phone test)* |
-| 7.16 | Milestones; restyle the PIN screen |
+| 7.15 | Stats, part 3: timing card *(done)* |
+| 7.16 | Milestones; restyle the PIN screen *(built, awaiting the phone test — the last step of phase 7)* |
 
 ### Restyling the screens that still have the old look — decided 2026-09-12
 
@@ -348,7 +360,9 @@ Not needed now, and written here so they aren't lost:
 - **Weekly digest (7.13):** ~~is "the previous week" the seven days before the last
   seven, or the previous calendar week?~~ **Decided 2026-09-21: the seven days before
   the last seven** (see Decisions).
-- **Milestones (7.16):** Claude proposes the full list.
+- **Milestones (7.16):** ~~Claude proposes the full list.~~ **Proposed and decided
+  2026-09-21** (see Decisions): six of them, relative rather than fixed thresholds, and
+  none on Nutrition.
 
 One piece of context for TDEE: it wants three to four weeks of weight and food, and as
 of 2026-09-11 there is roughly ten days of real logging. By step 7.10 there should
@@ -754,6 +768,14 @@ of scope for the rewrite. **Done 2026-09-11:** Andrei ran the review himself; se
 2026-09-21 — Step 7.14 small calls: **grams in the comparison keep a decimal** ("81.4 g", "8.3 g"), unlike the boxes above, which round to whole numbers — these are per-meal figures, and a snack's 5.5 g of protein shown as 6 g loses the point of the row. **The comparison's line doesn't repeat the day count** ("14–20 Sep · 6 meals · 3 snacks"), as the mockup writes it; the day count is already under the pills and on Days on target. **A day is written in red on the "targets hit" row when it hit a quarter of its targets or fewer** — two out of eight, exactly as the mockup draws it, and it scales if fewer targets are set. **The swing is the sample standard deviation** (divided by one less than the count), as the mockup works it out, and needs two logged days before it shows. **Ranges longer than 31 days** drop the squares and keep the counts, and say so. **With no targets set at all**, the card says so and points at Settings.
 2026-09-21 — Step 7.15: **the timing card lays everything out on a day that runs 04:00 to 04:00**, the same boundary the rest of the app uses, with times counted in minutes from 04:00 (`minutesIntoDay` in `lib/day.ts`). That is what lets a meal at 02:00 sit at the far end of its own day instead of at the start of the next one, and it means nothing on the strip has to wrap around in the middle. The night comes out as two blocks, one at each end, which is correct rather than a drawing trick.
 2026-09-21 — Step 7.15 small calls: **"Eaten after 01:00" counts meals and snacks, not foods** — "1 meal · 300 kcal" — because the useful figure is how often you ate in the small hours; the plan's word was "items". **The shortest and longest are only written when they differ**, so a single day reads "5 h" rather than "5 h (5 h–5 h)". **The card says how many days had a wake-up time** when it isn't all of them, the same honesty rule as everywhere else. **A first meal earlier than that morning's logged wake-up is left out of the gap** rather than counted as negative — that's a mistyped time. **The strip has no rotate button**: it is a fixed 24 hours wide whatever the range, so turning it would show the same thing bigger, and the mockup draws none. **Protein by hour is spread over every logged day**, not over the days that happened to have something in that hour — an empty afternoon is the thing the bars are for.
+2026-09-21 — **The six milestones, decided from a proposal** (Andrei chose "the six", and relative rather than a fixed 40). Weight: the 7-day average is the lowest in three months, or the lowest ever once there is more than three months of history; and passing another whole kilo below your highest 7-day average. Smoking: the lowest seven-day total yet; and the first day with none, then how many this month. Sleep: the best 7-night average yet. One per tab, the strongest that's true.
+2026-09-21 — **"First week under 40 cigarettes" became "your lowest week yet"** (Andrei's decision). A hard-coded 40 is right for about a month and then either never fires again or needs the code edited, and there is no cigarette limit in Settings to read it from — one was deliberately excluded from phase 7. Accepted cost: no card for crossing a particular number. If that's ever wanted it goes in Settings, not in the code.
+2026-09-21 — **No milestones on Nutrition** (Andrei's decision, on Claude's recommendation). Every nutrition milestone worth writing — most days on target, highest-protein week — is about hitting targets, and the plan is deliberate that the streak is on logging and never on targets, because you control what you write down and not what you ate. Milestones stay on the same side of that line.
+2026-09-21 — Step 7.16: **nothing is stored, so a milestone is an event with a date and shows for the week after it happened.** There is no record of what has already fired, so this is the one rule that works for all six: it can't go stale, it can't fire twice for the same thing, and it disappears on its own. Accepted cost: open the tab more than a week later and you've missed it.
+2026-09-21 — Step 7.16: **nothing fires until there are four weeks of that kind of log.** In the first weeks every day is a record; a card that appeared every morning would be wallpaper. Consequence worth knowing: with three weeks of real logging there are no milestones yet, and Weight needs more than three months before "lowest since you started" can appear at all.
+2026-09-21 — Step 7.16 small calls: **weight goes by the 7-day average**, not a single weigh-in, so one dehydrated morning isn't a record — the same figure the goal line uses. **Smoking compares weekly totals and only between fully logged weeks**; a week with a day missing can't be totalled, so it's skipped rather than flattered. **Sleep compares an average per night**, which is fair with a gap, provided at least five of the seven nights have times. **A first day with none outranks a record week**, since the two usually come together and the first is rarer. **The card is plain text in the tab's colour** — no icon, since the plan rules out badges and an icon would read as one. **It sits above the range pills** and is read outside the range's boundary, so choosing another range leaves it alone.
+2026-09-21 — Step 7.16: the PIN screen is restyled and **behaves exactly as it did**: six digits submit themselves, a wrong PIN clears the box and says how many tries are left, and it is still the one form deliberately left on React's form `action` (7.7c) so that clearing happens. Checked end to end against a throwaway hash: wrong PIN refused and cleared, right PIN through to Today.
+2026-09-21 — **Noticed while testing 7.16, and true of the whole app rather than this step:** a control that has just streamed onto the screen is drawn before React has attached its handler, so a tap landing in that fraction of a second does nothing and has to be repeated. It showed up as an occasional missed tap on the Weekly digest card in testing (about one run in four on a slow machine). It has always been so — the "+" hold, the calendar and the rotate button share it — and it hasn't been noticed in daily use. Left alone; worth remembering if a tap ever seems to go missing on the phone. The scratchpad checks now tap again if nothing opens, as a person would.
 2026-09-13 — Step 7.6 small calls: the panel's bar follows the mockup, so a food taking half the total fills it (anything bigger is full too); calories and spend bars are Nutrition green, the nutrients their own colours. Grams under 10 show one decimal ("6.5 g") so a small amount isn't "0 g"; under 1% shows "<1%". The subtitle is the date row's own words: "Today, 13 Sep · 1,669 kcal total". "Show all" has no count and no "show fewer"; closing the panel resets it. Tapping the line under the fat bar opens saturated fat — the only place on Today that number is shown. The Day details figures aren't tappable: the plan lists the hero, the bars, the stats boxes and the chart bars. A past day with no meals says "Nothing logged for this day yet."; a food list with none of that nutrient says "None of it adds any fibre." A tapped number dims slightly while pressed, so a tap is visibly received.
 
 ## Deferred
