@@ -37,7 +37,14 @@ function share(value: number): string {
   return rounded < 1 ? "<1%" : `${rounded}%`;
 }
 
-const Open = createContext<(metric: Metric) => void>(() => {});
+// What a tap opens: a metric, and — when the thing tapped stands for something
+// narrower than the screen it's on, as a bar on the stats chart stands for one
+// day — that day's own foods and what to call them.
+type Chosen = { metric: Metric; items: SourceItem[]; label: string };
+
+const Open = createContext<(metric: Metric, only?: { items: SourceItem[]; label: string }) => void>(
+  () => {},
+);
 
 export function Sources({
   items,
@@ -54,33 +61,33 @@ export function Sources({
   empty?: string;
   children: ReactNode;
 }) {
-  const [metric, setMetric] = useState<Metric | null>(null);
+  const [chosen, setChosen] = useState<Chosen | null>(null);
   const [all, setAll] = useState(false);
 
   useEffect(() => {
-    if (!metric) return;
-    const close = (event: KeyboardEvent) => event.key === "Escape" && setMetric(null);
+    if (!chosen) return;
+    const close = (event: KeyboardEvent) => event.key === "Escape" && setChosen(null);
     window.addEventListener("keydown", close);
     return () => window.removeEventListener("keydown", close);
-  }, [metric]);
+  }, [chosen]);
 
-  function open(chosen: Metric) {
+  function open(metric: Metric, only?: { items: SourceItem[]; label: string }) {
     setAll(false);
-    setMetric(chosen);
+    setChosen({ metric, items: only?.items ?? items, label: only?.label ?? label });
   }
 
   return (
     <Open.Provider value={open}>
       {children}
-      {metric && (
+      {chosen && (
         <Panel
-          metric={metric}
-          items={items}
-          label={label}
+          metric={chosen.metric}
+          items={chosen.items}
+          label={chosen.label}
           empty={empty}
           all={all}
           onShowAll={() => setAll(true)}
-          onClose={() => setMetric(null)}
+          onClose={() => setChosen(null)}
         />
       )}
     </Open.Provider>
@@ -177,16 +184,25 @@ function Panel({
 
 // A number or a bar that opens its panel when tapped. A link inside it — "set
 // a target" — still goes where it says instead.
+//
+// `only` narrows what the panel shows: a bar on the stats chart is one day, so
+// it passes that day's foods rather than the whole range's.
 export function SourceTap({
   metric,
+  only,
+  label,
   className = "",
   children,
 }: {
   metric: Metric;
+  only?: SourceItem[];
+  // What to call what `only` covers: "Tuesday, 15 Sep".
+  label?: string;
   className?: string;
   children: ReactNode;
 }) {
   const open = useContext(Open);
+  const show = () => open(metric, only && label ? { items: only, label } : undefined);
 
   return (
     <div
@@ -195,13 +211,13 @@ export function SourceTap({
       aria-haspopup="dialog"
       onClick={(event) => {
         if ((event.target as HTMLElement).closest("a")) return;
-        open(metric);
+        show();
       }}
       onKeyDown={(event) => {
         if (event.target !== event.currentTarget) return;
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          open(metric);
+          show();
         }
       }}
       className={`cursor-pointer [-webkit-tap-highlight-color:transparent] active:opacity-70 ${className}`}

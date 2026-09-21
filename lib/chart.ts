@@ -103,6 +103,23 @@ export function countTicks(max: number): number[] {
   return ticks;
 }
 
+// A bar chart's axis: zero up to a round number that everything fits under —
+// the tallest day, and the target or the top of its zone. Three numbers up the
+// side, as the mockups draw them: nothing, half way, and the top.
+//
+// Unlike the Smoking chart, which stops at exactly the highest count because
+// that number is the point, these bars are read against a target, so the axis
+// is a round number with the target comfortably on it.
+export function barAxis(highest: number): { max: number; ticks: number[] } {
+  if (!(highest > 0)) return { max: 1, ticks: [0, 0.5, 1] };
+
+  const power = 10 ** Math.floor(Math.log10(highest));
+  const steps = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10];
+  const max = (steps.find((step) => step * power >= highest) ?? 10) * power;
+
+  return { max, ticks: [0, max / 2, max] };
+}
+
 // Which days get a date written under them, when there are too many to label
 // them all: the first, then every so many — 2 or 3 days, a week, a fortnight,
 // four weeks, and so on — and the last. If the last would land too close to the

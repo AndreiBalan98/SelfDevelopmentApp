@@ -73,6 +73,30 @@ export function sourceItems(lines: Array<{ href: string; name: string; line: Mea
   return [...byKey.values()];
 }
 
+// Several days' foods added together, for a panel that covers a range. The
+// same food on different days becomes one row, exactly as it does within a
+// day.
+export function mergeItems(days: SourceItem[][]): SourceItem[] {
+  const byKey = new Map<string, SourceItem>();
+
+  for (const items of days) {
+    for (const item of items) {
+      const found = byKey.get(item.key);
+
+      if (!found) {
+        byKey.set(item.key, { ...item, nutrition: { ...item.nutrition } });
+        continue;
+      }
+
+      found.nutrition = addNutrition(found.nutrition, item.nutrition);
+      found.cost += item.cost;
+      found.weight += item.weight;
+    }
+  }
+
+  return [...byKey.values()];
+}
+
 function amountOf(item: SourceItem, metric: Metric): number {
   return metric === "cost" ? item.cost : item.nutrition[metric];
 }

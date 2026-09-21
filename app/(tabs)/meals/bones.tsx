@@ -89,16 +89,34 @@ const BOXES = [
   "Meals · snacks / day",
 ];
 
+const METRICS = ["Calories", "Spend", "Protein", "Carbs", "Sugar", "Fibre", "Fat"];
+
+// The eight boxes and the chart under them: everything the range governs, so
+// they arrive together and the page doesn't shuffle as they do.
 export function BoxBones() {
   return (
-    <div className="grid grid-cols-2 gap-2">
-      {BOXES.map((label) => (
-        <div key={label} className={BOX}>
-          <p className="text-[11px] text-faint">{label}</p>
-          <Bone className="mt-1 h-4 w-16" />
+    <>
+      <div className="grid grid-cols-2 gap-2">
+        {BOXES.map((label) => (
+          <div key={label} className={BOX}>
+            <p className="text-[11px] text-faint">{label}</p>
+            <Bone className="mt-1 h-4 w-16" />
+          </div>
+        ))}
+      </div>
+
+      <section className="flex flex-col gap-2">
+        <h2 className="text-sm font-semibold">Over time</h2>
+        <Pills labels={METRICS} chosen="Calories" />
+        <div className="flex flex-col gap-1">
+          <div className="flex h-[26px] items-center">
+            <Bone className="h-3 w-32" />
+          </div>
+          <Bone className="aspect-[320/210] w-full rounded-lg" />
         </div>
-      ))}
-    </div>
+        <Bone className="h-3 w-56" />
+      </section>
+    </>
   );
 }
 

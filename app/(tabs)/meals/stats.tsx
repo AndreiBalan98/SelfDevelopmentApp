@@ -1,17 +1,21 @@
 import { Suspense } from "react";
 import { db } from "@/lib/supabase";
-import { daysInMonth, monthName, monthStart, shiftDays } from "@/lib/day";
+import { datesFrom } from "@/lib/chart";
+import { dateRowLabel, daysInMonth, monthName, monthStart, shiftDays } from "@/lib/day";
 import { loadCatalogue, mealDaysIn } from "@/lib/meals";
 import { rangeLabel, resolveRange, type Range, type RangeKey, type RangeParams } from "@/lib/range";
-import { readTargets } from "@/lib/settings";
+import { readTargets, type Targets } from "@/lib/settings";
 import { clockDuration } from "@/lib/sleep";
-import { sourceItems, type Metric } from "@/lib/sources";
-import { averagesOver, digestOf, isLogged, monthSpend } from "@/lib/stats";
+import { mergeItems, sourceItems, type Metric, type SourceItem } from "@/lib/sources";
+import { averagesOver, digestOf, isLogged, monthSpend, type StatsDay } from "@/lib/stats";
+import { calorieKind, type Kind } from "@/lib/targets";
 import { RangeControl } from "../range-control";
+import { ChartCard, type Chart } from "./chart-card";
 import { DigestCard, type DigestRow } from "./digest-card";
 import { Sources, SourceTap } from "./sources";
+import { LANDSCAPE, PORTRAIT, StatsChart, columns, type Target } from "./stats-chart";
 import { BoxBones, DigestBones } from "./bones";
-import { grams, whole } from "./format";
+import { grams, gramsValue, whole } from "./format";
 
 // The stats section, under the day details on Nutrition → Today.
 //
@@ -77,7 +81,7 @@ export function StatsSection({
       </div>
 
       <Suspense key={`${range.from}:${range.to}`} fallback={<BoxBones />}>
-        <AverageBoxes range={range} label={label} />
+        <AverageBoxes range={range} label={label} currentDay={currentDay} />
       </Suspense>
     </section>
   );
@@ -193,13 +197,29 @@ const AVERAGES: Array<{ label: string; colour: string; metric: Metric }> = [
   { label: "Fat / day", colour: "text-fat", metric: "fat" },
 ];
 
-async function AverageBoxes({ range, label }: { range: Range; label: string }) {
-  const days = await mealDaysIn(range.from, range.to);
-  const averages = averagesOver(days);
+async function AverageBoxes({
+  range,
+  label,
+  currentDay,
+}: {
+  range: Range;
+  label: string;
+  currentDay: string;
+}) {
+  const [days, targets] = await Promise.all([
+    mealDaysIn(range.from, range.to),
+    readTargets(),
+  ]);
 
-  // The panels cover exactly the days the averages do, so a number and the
-  // foods behind it can't disagree.
-  const items = sourceItems(days.filter(isLogged).flatMap((day) => day.foods));
+  const averages = averagesOver(days);
+  const logged = days.filter(isLogged);
+
+  // Each day's foods, kept apart so that tapping one bar on the chart can show
+  // that day alone; the boxes' panels are all of them added together. Both
+  // cover exactly the days the averages do, so a number and the foods behind
+  // it can't disagree.
+  const byDate = new Map(logged.map((day) => [day.date, sourceItems(day.foods)]));
+  const items = mergeItems([...byDate.values()]);
 
   const value = (metric: Metric) => {
     if (averages === null) return "—";
@@ -238,6 +258,192 @@ async function AverageBoxes({ range, label }: { range: Range; label: string }) {
           </p>
         )
       )}
+
+      {averages !== null && (
+        <ChartCard
+          charts={CHARTS.map((chart) =>
+            drawChart(chart, {
+              dates: datesFrom(range.from, range.to),
+              logged,
+              byDate,
+              averages,
+              targets,
+              currentDay,
+            }),
+          )}
+        />
+      )}
     </Sources>
   );
+}
+
+// ---------------------------------------------------------------------------
+// The chart, and its seven metrics
+// ---------------------------------------------------------------------------
+
+type ChartMetric = {
+  key: string;
+  // On the button. "Sugar" rather than "Added sugar", as the plan and the
+  // mockup write it; the bar tracks added sugar, as it does on Today.
+  label: string;
+  metric: Metric;
+  colour: string;
+  unit: string;
+  of: (day: { nutrition: StatsDay["nutrition"]; cost: number }) => number;
+  target: (targets: Targets) => Target;
+  // A number up the side of the chart, and one written out in the footer.
+  tick: (value: number) => string;
+  write: (value: number) => string;
+};
+
+const nutrient = (
+  key: string,
+  label: string,
+  metric: Metric & keyof StatsDay["nutrition"],
+  colour: string,
+  target: (targets: Targets) => Target,
+): ChartMetric => ({
+  key,
+  label,
+  metric,
+  colour,
+  unit: "g",
+  of: (day) => day.nutrition[metric],
+  target,
+  tick: (value) => String(Math.round(value)),
+  // The unit is written once by the footer, so not here too.
+  write: gramsValue,
+});
+
+const zone = (value: number | null): Target =>
+  value === null || value <= 0 ? null : { value, kind: "zone" as Kind };
+const ceiling = (value: number | null): Target =>
+  value === null || value <= 0 ? null : { value, kind: "ceiling" as Kind };
+
+const CHARTS: ChartMetric[] = [
+  {
+    key: "calories",
+    label: "Calories",
+    metric: "calories",
+    colour: "fill-nutrition",
+    unit: "kcal",
+    of: (day) => day.nutrition.calories,
+    // Calories are a ceiling on a cut and a zone on maintain or bulk. With no
+    // goal picked there's no rule to draw, so nothing is drawn.
+    target: (targets) => {
+      const kind = calorieKind(targets.goal_phase);
+      return kind === null || targets.calorie_target === null
+        ? null
+        : { value: targets.calorie_target, kind };
+    },
+    tick: whole,
+    write: whole,
+  },
+  {
+    key: "spend",
+    label: "Spend",
+    metric: "cost",
+    colour: "fill-nutrition",
+    unit: "lei",
+    of: (day) => day.cost,
+    target: (targets) => ceiling(targets.daily_budget),
+    tick: (value) => String(Math.round(value)),
+    write: (value) => value.toFixed(2),
+  },
+  nutrient("protein", "Protein", "protein", "fill-protein", (targets) => zone(targets.protein_target)),
+  nutrient("carbs", "Carbs", "carbs", "fill-carbs", (targets) => zone(targets.carbs_target)),
+  nutrient("sugar", "Sugar", "sugars_added", "fill-added-sugar", (targets) =>
+    ceiling(targets.added_sugar_max),
+  ),
+  nutrient("fibre", "Fibre", "fibre", "fill-fibre", (targets) => zone(targets.fibre_target)),
+  nutrient("fat", "Fat", "fat", "fill-fat", (targets) => zone(targets.fat_target)),
+];
+
+function drawChart(
+  chart: ChartMetric,
+  {
+    dates,
+    logged,
+    byDate,
+    averages,
+    targets,
+    currentDay,
+  }: {
+    dates: string[];
+    logged: StatsDay[];
+    byDate: Map<string, SourceItem[]>;
+    averages: { nutrition: StatsDay["nutrition"]; cost: number };
+    targets: Targets;
+    currentDay: string;
+  },
+): Chart {
+  const values = new Map(logged.map((day) => [day.date, chart.of(day)]));
+  const target = chart.target(targets);
+
+  // The dashed line is worked out from the same average the box above shows,
+  // so the two can't read differently.
+  const average = chart.of(averages);
+
+  const drawing = (shape: typeof PORTRAIT, className?: string) => (
+    <StatsChart
+      dates={dates}
+      values={values}
+      target={target}
+      average={average}
+      colour={chart.colour}
+      tick={chart.tick}
+      title={`${chart.label} a day, against the target`}
+      shape={shape}
+      className={className}
+    />
+  );
+
+  const edges = columns(PORTRAIT);
+
+  return {
+    key: chart.key,
+    label: chart.label,
+    footer:
+      `average ${chart.write(average)} ${chart.unit} (dashed) · ` +
+      (target === null
+        ? "no target set"
+        : `target ${chart.tick(target.value)} ${chart.unit} ${
+            target.kind === "ceiling" ? "max" : "±10% (green band)"
+          }`),
+    portrait: (
+      <div className="relative">
+        {drawing(PORTRAIT)}
+
+        {/* A column per logged day, laid over the bars: tapping one opens
+            "where did it come from?" for that day alone. A day with no bar
+            isn't tappable — there would be nothing to list. */}
+        <div className="absolute inset-y-0" style={{ left: edges.left, right: edges.right }}>
+          {dates.map((date, index) =>
+            values.has(date) ? (
+              <div
+                key={date}
+                className="absolute inset-y-0"
+                style={{
+                  left: `${(index / dates.length) * 100}%`,
+                  width: `${100 / dates.length}%`,
+                }}
+              >
+                <SourceTap
+                  metric={chart.metric}
+                  only={byDate.get(date) ?? []}
+                  label={dateRowLabel(date, currentDay)}
+                  className="h-full w-full"
+                >
+                  <span className="sr-only">
+                    {chart.label} on {dateRowLabel(date, currentDay)}
+                  </span>
+                </SourceTap>
+              </div>
+            ) : null,
+          )}
+        </div>
+      </div>
+    ),
+    landscape: drawing(LANDSCAPE, "h-full w-full"),
+  };
 }

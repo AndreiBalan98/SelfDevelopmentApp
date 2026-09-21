@@ -73,7 +73,9 @@ app/                 every screen, and the server code behind it
       sources.tsx    the "where did it come from?" panel, and what makes a
                      number open it
       stats.tsx      the stats section under the day: the digest cards, the
-                     range control and the average boxes
+                     range control, the average boxes and the chart
+      stats-chart.tsx  the chart itself, drawn as SVG on the server
+      chart-card.tsx   the metric buttons, and which chart is showing
       digest-card.tsx  the weekly digest card and the sheet it opens
       bones.tsx      the day's blocks and the stats' blocks, while they load
       format.ts      how a number is written, shared by the boxes and the panels
@@ -887,9 +889,9 @@ the server. The stats section uses the same panel over a range of days.
 
 ### The stats section
 
-Under the day details: two digest cards, the range control, and the eight average
-boxes. (The chart with its metric buttons, meals vs snacks, days on target and timing
-are still to come — steps 7.13b to 7.15.)
+Under the day details: two digest cards, the range control, the eight average boxes
+and the chart. (Meals vs snacks, days on target and timing are still to come — steps
+7.14 and 7.15.)
 
 **It doesn't follow the day you're looking at.** Whichever day is on screen above, the
 stats cover the days ending yesterday. They answer "how have the last seven days
@@ -926,6 +928,23 @@ meals · snacks a day. Each opens its "where did it come from?" panel over the r
 meals · snacks doesn't, because there's no list of foods behind it. The panel covers
 exactly the days the averages do, so a number and the foods behind it can never
 disagree.
+
+**The chart** is one chart with seven buttons — calories, spend, protein, carbs,
+sugar, fibre, fat. All seven are drawn on the server, upright and sideways, and
+tapping a button simply shows another one: nothing is fetched and nothing is drawn on
+the phone. A bar a day, from zero; a day with no food logged has no bar.
+
+The target is drawn by the same rules Today's bars follow (`lib/targets.ts`), so the
+two can't disagree: a ceiling is a plain line, a ±10% target is a green band with the
+line through it. The part of a bar past the limit is red, and a day short of a zone
+gets a thin red cap — every day here is finished, since the range ends yesterday.
+A dashed line marks the average, which is the same number as the box above, and the
+footer says both: `average 2,101 kcal (dashed) · target 2,000 kcal max`.
+
+**Tapping a bar opens that day**, not the range — one bar is one day, and the useful
+question about a tall bar is which meal made it. The line above the chart names the
+metric rather than the days, because the range is already written once under the
+pills.
 
 **Where the reading happens.** `mealDaysIn` in `lib/meals.ts` reads a range as days —
 totals, meal and snack counts, and the foods themselves. `totalsByDay`, which TDEE
