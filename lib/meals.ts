@@ -330,15 +330,24 @@ function chunks<T>(values: T[], size: number): T[][] {
   return out;
 }
 
+// One meal or snack, added up on its own — what the stats compare the two by.
+export type MealEntry = {
+  type: "meal" | "snack";
+  score: number | null;
+  nutrition: Nutrition;
+  cost: number;
+};
+
 // One day of eating, added up: what it contained, what it cost, how many meals
-// and how many snacks it was, and the foods themselves for the "where did it
-// come from?" panels.
+// and how many snacks it was, each of them on its own, and the foods themselves
+// for the "where did it come from?" panels.
 export type MealDay = {
   date: string;
   nutrition: Nutrition;
   cost: number;
   meals: number;
   snacks: number;
+  entries: MealEntry[];
   foods: Array<{ href: string; name: string; line: MealLine }>;
 };
 
@@ -362,7 +371,7 @@ export async function mealDaysIn(
     everyRow((start, end) =>
       supabase
         .from("meals")
-        .select("id, day, type")
+        .select("id, day, type, score")
         .gte("day", from)
         .lte("day", to)
         .order("id", { ascending: true })
@@ -394,13 +403,25 @@ export async function mealDaysIn(
 
   const byDay = new Map<string, MealDay>();
   const dayOf = new Map<number, string>();
+  // Each meal's own lines, so a meal can be added up on its own as well as
+  // into its day.
+  const linesOf = new Map<number, MealLine[]>();
 
   for (const meal of meals) {
     dayOf.set(meal.id, meal.day);
+    linesOf.set(meal.id, []);
 
     const day =
       byDay.get(meal.day) ??
-      { date: meal.day, nutrition: emptyNutrition(), cost: 0, meals: 0, snacks: 0, foods: [] };
+      {
+        date: meal.day,
+        nutrition: emptyNutrition(),
+        cost: 0,
+        meals: 0,
+        snacks: 0,
+        entries: [],
+        foods: [],
+      };
 
     if (meal.type === "snack") day.snacks += 1;
     else day.meals += 1;
@@ -413,6 +434,17 @@ export async function mealDaysIn(
       href: line.href,
       name: line.name,
       line: line.line,
+    });
+    linesOf.get(line.mealId)?.push(line.line);
+  }
+
+  for (const meal of meals) {
+    const totals = mealTotals(linesOf.get(meal.id) ?? []);
+    byDay.get(meal.day)?.entries.push({
+      type: meal.type,
+      score: meal.score,
+      nutrition: totals.nutrition,
+      cost: totals.cost,
     });
   }
 

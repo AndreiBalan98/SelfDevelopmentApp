@@ -76,6 +76,7 @@ app/                 every screen, and the server code behind it
                      range control, the average boxes and the chart
       stats-chart.tsx  the chart itself, drawn as SVG on the server
       chart-card.tsx   the metric buttons, and which chart is showing
+      stats-cards.tsx  meals against snacks, and days on target
       digest-card.tsx  the weekly digest card and the sheet it opens
       bones.tsx      the day's blocks and the stats' blocks, while they load
       format.ts      how a number is written, shared by the boxes and the panels
@@ -889,9 +890,9 @@ the server. The stats section uses the same panel over a range of days.
 
 ### The stats section
 
-Under the day details: two digest cards, the range control, the eight average boxes
-and the chart. (Meals vs snacks, days on target and timing are still to come — steps
-7.14 and 7.15.)
+Under the day details: two digest cards, the range control, the eight average boxes,
+the chart, meals vs snacks, and days on target. (The timing card is still to come —
+step 7.15.)
 
 **It doesn't follow the day you're looking at.** Whichever day is on screen above, the
 stats cover the days ending yesterday. They answer "how have the last seven days
@@ -945,6 +946,28 @@ footer says both: `average 2,101 kcal (dashed) · target 2,000 kcal max`.
 question about a tall bar is which meal made it. The line above the chart names the
 metric rather than the days, because the range is already written once under the
 pills.
+
+**Meals vs snacks** compares the two side by side over the range: average calories,
+protein, fibre, added sugar and cost per meal, protein for each leu spent, the average
+score, and three split bars for the shares of calories, spending and added sugar.
+Averages here are **per meal, not per day** — "the average snack" is every snack in the
+range divided by how many there were. Scores are optional, so that row is over the ones
+that were given one, and the card says when none were.
+
+**Days on target** is one row per target that is set — a target that isn't set has no
+row, because there is nothing to be on or off. Each row is a square a day: green hit,
+red missed, grey not logged, with the count beside it (`4/5`, counted over the logged
+days only). Under the grid, the day numbers and how many targets each day hit, written
+in red when a day hit a quarter of them or fewer. A range longer than 31 days drops the
+squares and keeps the counts. At the bottom, the swing line — the standard deviation of
+the daily calories and protein — which says how steady the eating has been rather than
+how high.
+
+The hits come from `lib/targets.ts`, the same rules Today's bars and the chart use.
+Worth knowing for anything built on them: `judge` answers **null** for a target that
+isn't set, and `!judge(…)?.red` quietly reads that as a hit — which is how, for a while,
+an unset target scored full marks every day. `lib/stats.ts` now turns null into "not
+measured" explicitly.
 
 **Where the reading happens.** `mealDaysIn` in `lib/meals.ts` reads a range as days —
 totals, meal and snack counts, and the foods themselves. `totalsByDay`, which TDEE

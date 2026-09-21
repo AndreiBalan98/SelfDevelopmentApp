@@ -4,13 +4,13 @@ Status board for Life Tracker. Short by design. See `life-tracker-plan.md` for t
 
 ## Now
 
-**Phase 7 step 7.13b (the stats chart) is built and waiting on Andrei's phone test.**
-7.13 was tested and approved on 2026-09-21. Steps 7.0–7.13 are done. Phases 1–6 are
+**Phase 7 step 7.14 (meals vs snacks, days on target) is built and waiting on Andrei's
+phone test.** 7.13 and 7.13b were tested and approved on 2026-09-21. Phases 1–6 are
 complete and the app has been in daily use since 2026-09-01. No library has been added
 in phase 7 — the charts are still drawn by hand.
 
-Where phase 7 stands: **19 of 22 steps done** (7.0–7.13, and 7.13b pending its test);
-left: 7.14, 7.15, 7.16. Code only — app, lib and config, not
+Where phase 7 stands: **20 of 22 steps done** (7.0–7.13b, and 7.14 pending its test);
+left: 7.15, 7.16. Code only — app, lib and config, not
 migrations, docs or `node_modules` — and comments counted apart:
 - **Written in phase 7:** about 7,200 lines of code and 1,250 of comments, including the
   old screens rewritten (about 2,900 old lines replaced). The app went from 5,970 lines of
@@ -47,12 +47,11 @@ Don't design it or raise it.
 
 ## Waiting on me (Andrei)
 
-1. **Test 7.13b on the phone** — the chart under the average boxes. What to look at is
-   in the step report: the seven metric buttons, the target line or green band, the red
-   parts, the rotate button, and tapping a bar.
-2. The small calls listed under Decisions for 7.12, 7.13 and 7.13b — say if any should
-   change.
-3. Commit 7.13 and 7.13b (suggested messages in the step reports).
+1. **Test 7.14 on the phone** — the two cards under the chart. What to look at is in
+   the step report: the meals-vs-snacks rows and its three split bars, and the
+   days-on-target grid, its counts, the targets-hit row and the swing line.
+2. The small calls listed under Decisions for 7.14 — say if any should change.
+3. Commit 7.14 (suggested message in the step report).
 
 Migrations 0001–0005 have all been run. Steps 7.1, 7.2, 7.4 and 7.4b had no migration.
 
@@ -61,8 +60,16 @@ tracked here and doesn't need raising.
 
 ## Done
 
-- 2026-09-21 — **Phase 7 step 7.13b built (awaiting the phone test): the stats chart.**
-  One chart with seven metric buttons (calories, spend, protein, carbs, sugar, fibre,
+- 2026-09-21 — **Phase 7 step 7.14 built (awaiting the phone test): meals vs snacks,
+  and days on target.** The comparison card — averages per meal and per snack for
+  calories, protein, fibre, added sugar and cost, protein for each leu, the average
+  score, and split bars for the shares of calories, spending and added sugar. Then the
+  target grid: a square a day per target that is set, green hit, red missed, grey not
+  logged, with counts, the day numbers, how many targets each day hit, and the swing
+  line (`lib/stats.ts`, `stats-cards.tsx`). Each meal is now added up on its own in
+  `mealDaysIn`. Checked against hand-worked numbers, on the phone-sized screen.
+- 2026-09-21 — **Phase 7 step 7.13b complete: the stats chart.** Tested on the phone and
+  approved. One chart with seven metric buttons (calories, spend, protein, carbs, sugar, fibre,
   fat), a bar a day from zero, the target drawn by the phase 7 rules — a ceiling line
   or a ±10% green band — the part past the limit in red, a thin red cap on a day short
   of its zone, a dashed average line, the footer, and the rotate button. Tapping a bar
@@ -285,8 +292,8 @@ stands, differs from it in four places:
 | 7.11 | Sleep: the clock, night and period; restyle the entry form behind the "+" *(done)* |
 | 7.12 | Sleep: chart view *(done)* |
 | 7.13 | Stats, part 1: digest cards (with the weekly digest's content), food spend this month, range, average boxes *(split from the chart on 2026-09-21; done)* |
-| 7.13b | Stats, part 1b: the chart with its metric buttons *(built, awaiting the phone test)* |
-| 7.14 | Stats, part 2: meals vs snacks, days on target |
+| 7.13b | Stats, part 1b: the chart with its metric buttons *(done)* |
+| 7.14 | Stats, part 2: meals vs snacks, days on target *(built, awaiting the phone test)* |
 | 7.15 | Stats, part 3: timing card |
 | 7.16 | Milestones; restyle the PIN screen |
 
@@ -732,6 +739,10 @@ of scope for the rewrite. **Done 2026-09-11:** Andrei ran the review himself; se
 2026-09-21 — Step 7.13b small calls: **the button says "Sugar"** as the plan and mockup write it, though the bar tracks added sugar (the panel it opens is still titled "Added sugar"). **The line above the chart names the metric, not the days** — the range is already written once under the pills, and repeating it put the same sentence on screen twice. **The footer follows the mockup**: "average 1,372 kcal (dashed) · target 2,000 kcal max", with "±10% (green band)" for a zone. The average in it is the same number as the box above, worked out from the same figure so they can't differ. **A range with nothing logged has no chart at all** — the boxes already say so. **Days with no food logged have no bar**, the same rule the averages follow.
 2026-09-21 — **Found by testing 7.13b:** the footer read "average 67 g g" — the shared `grams` helper already writes the unit and the footer added it again. `format.ts` now has `gramsValue` (the number alone) beside `grams` (the number and its unit), so each place says the unit exactly once.
 2026-09-21 — Worth knowing for any future check of this screen: **the chart's hidden labels for the bar taps contain the date** ("Calories on Yesterday, 20 Sep"), so a test that waits for a date as loose text can match the chart instead of the date row and race ahead of the navigation. Wait on the address, or match the date row exactly.
+2026-09-21 — **Found by testing 7.14, and the worst kind of bug this project keeps catching:** `judge` in `lib/targets.ts` answers **null** for a target that isn't set, and the first version of Days on target asked `!judge(…)?.red` — which reads null as `undefined`, and `!undefined` is `true`. Every target Andrei hadn't set scored a perfect hit every single day, and the card looked entirely plausible. `lib/stats.ts` now turns null into "not measured" explicitly, and a target with no row at all is the visible result. Caught by a hand-worked case that set only some of the targets. **Anything else built on `judge` must not treat its null as a pass.**
+2026-09-21 — Step 7.14: **the comparison's averages are per meal, not per day** — "the average snack" is every snack in the range divided by how many there were, which is what makes the card worth having. Only days with food logged are counted, as everywhere else in the stats. A day that cost money but added no calories is left out with its meals, the same rule as the boxes.
+2026-09-21 — Step 7.14: **a target that isn't set has no row in Days on target**, as the plan says. Calories lose their row when no goal phase is picked, since there's no rule to measure them by — the same reason Today doesn't measure them either. A day that wasn't logged is a grey square and doesn't count towards the row's total, so "4/5" means four of the five days that were logged.
+2026-09-21 — Step 7.14 small calls: **grams in the comparison keep a decimal** ("81.4 g", "8.3 g"), unlike the boxes above, which round to whole numbers — these are per-meal figures, and a snack's 5.5 g of protein shown as 6 g loses the point of the row. **The comparison's line doesn't repeat the day count** ("14–20 Sep · 6 meals · 3 snacks"), as the mockup writes it; the day count is already under the pills and on Days on target. **A day is written in red on the "targets hit" row when it hit a quarter of its targets or fewer** — two out of eight, exactly as the mockup draws it, and it scales if fewer targets are set. **The swing is the sample standard deviation** (divided by one less than the count), as the mockup works it out, and needs two logged days before it shows. **Ranges longer than 31 days** drop the squares and keep the counts, and say so. **With no targets set at all**, the card says so and points at Settings.
 2026-09-13 — Step 7.6 small calls: the panel's bar follows the mockup, so a food taking half the total fills it (anything bigger is full too); calories and spend bars are Nutrition green, the nutrients their own colours. Grams under 10 show one decimal ("6.5 g") so a small amount isn't "0 g"; under 1% shows "<1%". The subtitle is the date row's own words: "Today, 13 Sep · 1,669 kcal total". "Show all" has no count and no "show fewer"; closing the panel resets it. Tapping the line under the fat bar opens saturated fat — the only place on Today that number is shown. The Day details figures aren't tappable: the plan lists the hero, the bars, the stats boxes and the chart bars. A past day with no meals says "Nothing logged for this day yet."; a food list with none of that nutrient says "None of it adds any fibre." A tapped number dims slightly while pressed, so a tap is visibly received.
 
 ## Deferred

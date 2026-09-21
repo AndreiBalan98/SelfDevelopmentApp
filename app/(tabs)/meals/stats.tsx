@@ -7,12 +7,22 @@ import { rangeLabel, resolveRange, type Range, type RangeKey, type RangeParams }
 import { readTargets, type Targets } from "@/lib/settings";
 import { clockDuration } from "@/lib/sleep";
 import { mergeItems, sourceItems, type Metric, type SourceItem } from "@/lib/sources";
-import { averagesOver, digestOf, isLogged, monthSpend, type StatsDay } from "@/lib/stats";
+import {
+  averagesOver,
+  compare,
+  daysOnTarget,
+  digestOf,
+  isLogged,
+  monthSpend,
+  swing,
+  type StatsDay,
+} from "@/lib/stats";
 import { calorieKind, type Kind } from "@/lib/targets";
 import { RangeControl } from "../range-control";
 import { ChartCard, type Chart } from "./chart-card";
 import { DigestCard, type DigestRow } from "./digest-card";
 import { Sources, SourceTap } from "./sources";
+import { DaysOnTarget, MealsVsSnacks } from "./stats-cards";
 import { LANDSCAPE, PORTRAIT, StatsChart, columns, type Target } from "./stats-chart";
 import { BoxBones, DigestBones } from "./bones";
 import { grams, gramsValue, whole } from "./format";
@@ -221,6 +231,11 @@ async function AverageBoxes({
   const byDate = new Map(logged.map((day) => [day.date, sourceItems(day.foods)]));
   const items = mergeItems([...byDate.values()]);
 
+  // The days themselves, for Days on target, and the range's dates, shared by
+  // the chart and that card so they can't line up differently.
+  const dayByDate = new Map(days.map((day) => [day.date, day]));
+  const dates = datesFrom(range.from, range.to);
+
   const value = (metric: Metric) => {
     if (averages === null) return "—";
     if (metric === "calories") return whole(averages.nutrition.calories);
@@ -260,18 +275,22 @@ async function AverageBoxes({
       )}
 
       {averages !== null && (
-        <ChartCard
-          charts={CHARTS.map((chart) =>
-            drawChart(chart, {
-              dates: datesFrom(range.from, range.to),
-              logged,
-              byDate,
-              averages,
-              targets,
-              currentDay,
-            }),
-          )}
-        />
+        <>
+          <ChartCard
+            charts={CHARTS.map((chart) =>
+              drawChart(chart, { dates, logged, byDate, averages, targets, currentDay }),
+            )}
+          />
+
+          <MealsVsSnacks comparison={compare(days)} dates={rangeLabel(range.from, range.to, currentDay)} />
+
+          <DaysOnTarget
+            rows={daysOnTarget(dates, dayByDate, targets)}
+            dates={dates}
+            label={label}
+            swings={swings(logged)}
+          />
+        </>
       )}
     </Sources>
   );
@@ -446,4 +465,15 @@ function drawChart(
     ),
     landscape: drawing(LANDSCAPE, "h-full w-full"),
   };
+}
+
+// "Calories swing ±391 kcal · Protein swing ±23 g" — how much the daily
+// figures move about over the range. Null until there are two days to compare.
+function swings(logged: StatsDay[]): string | null {
+  const calories = swing(logged.map((day) => day.nutrition.calories));
+  const protein = swing(logged.map((day) => day.nutrition.protein));
+
+  if (calories === null || protein === null) return null;
+
+  return `Calories swing ±${whole(calories)} kcal · Protein swing ±${whole(protein)} g`;
 }

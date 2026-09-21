@@ -22,7 +22,10 @@
 
 import type { DayValue } from "@/lib/series";
 import { addNutrition, divideNutrition, emptyNutrition, type Nutrition } from "@/lib/nutrition";
+import type { MealEntry } from "@/lib/meals";
+import type { Targets } from "@/lib/settings";
 import { periodOf, type Night } from "@/lib/sleep";
+import { calorieKind, fatSplit, judge, type Kind } from "@/lib/targets";
 
 // One day of eating, as the stats read it (lib/meals.ts fills these in).
 export type StatsDay = {
@@ -31,6 +34,7 @@ export type StatsDay = {
   cost: number;
   meals: number;
   snacks: number;
+  entries: MealEntry[];
 };
 
 // A day counts once it has food on it. Calories are required on every product,
@@ -145,4 +149,226 @@ export function monthSpend(
     spent: days.reduce((sum, day) => sum + day.cost, 0),
     budget: dailyBudget === null || dailyBudget <= 0 ? null : dailyBudget * monthLength,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Meals against snacks
+// ---------------------------------------------------------------------------
+//
+// Averages here are per meal, not per day: "the average snack" is every snack
+// in the range added up and divided by how many there were. Only days with food
+// logged are counted, the same as everywhere else in this section.
+
+export type Side = {
+  count: number;
+  // Per meal (or per snack). Null when there were none.
+  calories: number | null;
+  protein: number | null;
+  fibre: number | null;
+  sugar: number | null;
+  cost: number | null;
+  // Grams of protein for each leu spent. Null when they cost nothing.
+  proteinPerLeu: number | null;
+  // Over the ones that were given a score, which is optional.
+  score: number | null;
+  scored: number;
+  // Totals, for the share bars.
+  calorieTotal: number;
+  costTotal: number;
+  sugarTotal: number;
+};
+
+export type Comparison = { meals: Side; snacks: Side };
+
+function sideOf(entries: MealEntry[]): Side {
+  const count = entries.length;
+  const sum = (of: (entry: MealEntry) => number) =>
+    entries.reduce((total, entry) => total + of(entry), 0);
+
+  const calorieTotal = sum((entry) => entry.nutrition.calories);
+  const costTotal = sum((entry) => entry.cost);
+  const sugarTotal = sum((entry) => entry.nutrition.sugars_added);
+  const proteinTotal = sum((entry) => entry.nutrition.protein);
+
+  const scores = entries.flatMap((entry) => (entry.score === null ? [] : [entry.score]));
+  const per = (total: number) => (count === 0 ? null : total / count);
+
+  return {
+    count,
+    calories: per(calorieTotal),
+    protein: per(proteinTotal),
+    fibre: per(sum((entry) => entry.nutrition.fibre)),
+    sugar: per(sugarTotal),
+    cost: per(costTotal),
+    proteinPerLeu: costTotal > 0 ? proteinTotal / costTotal : null,
+    score: scores.length === 0 ? null : scores.reduce((a, b) => a + b, 0) / scores.length,
+    scored: scores.length,
+    calorieTotal,
+    costTotal,
+    sugarTotal,
+  };
+}
+
+export function compare(days: StatsDay[]): Comparison {
+  const entries = days.filter(isLogged).flatMap((day) => day.entries);
+
+  return {
+    meals: sideOf(entries.filter((entry) => entry.type === "meal")),
+    snacks: sideOf(entries.filter((entry) => entry.type === "snack")),
+  };
+}
+
+// The meals' share of a total, 0 to 100. Null when there's nothing to share
+// out — no calories at all, say.
+export function shareOfMeals(meals: number, snacks: number): number | null {
+  const total = meals + snacks;
+  return total > 0 ? (meals / total) * 100 : null;
+}
+
+// ---------------------------------------------------------------------------
+// Days on target
+// ---------------------------------------------------------------------------
+
+export type TargetRow = {
+  key: string;
+  label: string;
+  // The nutrient's colour, as a Tailwind class.
+  colour: string;
+  // One per day in the range: true hit, false missed, null not logged. A day
+  // that wasn't logged is neither, and doesn't count towards the total.
+  days: Array<boolean | null>;
+  hit: number;
+  counted: number;
+};
+
+// Every target that is set, measured day by day. A target that isn't set has no
+// row at all — there is nothing to be on or off.
+export function daysOnTarget(
+  dates: string[],
+  byDate: Map<string, StatsDay>,
+  targets: Targets,
+): TargetRow[] {
+  const calories = calorieKind(targets.goal_phase);
+
+  // A target that isn't set can't be hit or missed. `judge` says so by
+  // answering null — and `!judge(…)?.red` would quietly turn that into a hit,
+  // which is how an unset target once scored full marks every day.
+  const by = (value: number, target: number | null, kind: Kind): boolean | null => {
+    const judgement = judge(value, target, kind, true);
+    return judgement === null ? null : !judgement.red;
+  };
+
+  const rows: Array<{
+    key: string;
+    label: string;
+    colour: string;
+    hits: (day: StatsDay) => boolean | null;
+  }> = [
+    {
+      key: "calories",
+      label: "Calories",
+      colour: "text-muted",
+      // With no goal picked there's no rule to measure calories by, so they
+      // aren't measured at all — the same as on Today.
+      hits: (day) =>
+        calories === null ? null : by(day.nutrition.calories, targets.calorie_target, calories),
+    },
+    {
+      key: "spend",
+      label: "Spend",
+      colour: "text-muted",
+      hits: (day) => by(day.cost, targets.daily_budget, "ceiling"),
+    },
+    {
+      key: "protein",
+      label: "Protein",
+      colour: "text-protein",
+      hits: (day) => by(day.nutrition.protein, targets.protein_target, "zone"),
+    },
+    {
+      key: "carbs",
+      label: "Carbs",
+      colour: "text-carbs",
+      hits: (day) => by(day.nutrition.carbs, targets.carbs_target, "zone"),
+    },
+    {
+      key: "sugar",
+      label: "Added sugar",
+      colour: "text-added-sugar",
+      hits: (day) => by(day.nutrition.sugars_added, targets.added_sugar_max, "ceiling"),
+    },
+    {
+      key: "fibre",
+      label: "Fibre",
+      colour: "text-fibre",
+      hits: (day) => by(day.nutrition.fibre, targets.fibre_target, "zone"),
+    },
+    {
+      key: "fat",
+      label: "Fat",
+      colour: "text-fat",
+      hits: (day) => by(day.nutrition.fat, targets.fat_target, "zone"),
+    },
+    {
+      key: "ratio",
+      label: "Fat ratio",
+      colour: "text-fat",
+      hits: (day) =>
+        targets.unsat_per_sat === null || targets.unsat_per_sat <= 0
+          ? null
+          : !fatSplit(day.nutrition.fat, day.nutrition.saturated_fat, targets.unsat_per_sat).over,
+    },
+  ];
+
+  return rows.flatMap((row) => {
+    // `judge` answers null for a target that isn't set, which `!null` would
+    // turn into a hit. A row is only kept when some day could actually be
+    // measured.
+    const measured = dates.some((date) => {
+      const day = byDate.get(date);
+      return day !== undefined && isLogged(day) && row.hits(day) !== null;
+    });
+
+    if (!measured) return [];
+
+    const days = dates.map((date) => {
+      const day = byDate.get(date);
+      if (day === undefined || !isLogged(day)) return null;
+      return row.hits(day);
+    });
+
+    const counted = days.filter((hit) => hit !== null).length;
+
+    return [
+      {
+        key: row.key,
+        label: row.label,
+        colour: row.colour,
+        days,
+        hit: days.filter((hit) => hit === true).length,
+        counted,
+      },
+    ];
+  });
+}
+
+// How many of the day's targets were hit, for the row under the grid. Null on a
+// day that wasn't logged.
+export function targetsHit(rows: TargetRow[], index: number): number | null {
+  if (rows.length === 0 || rows[0].days[index] === null) return null;
+  return rows.filter((row) => row.days[index] === true).length;
+}
+
+// How much the daily figures move about: the standard deviation over the days
+// with food logged, written as "±391 kcal". Two days at least, or there's
+// nothing to spread.
+export function swing(values: number[]): number | null {
+  if (values.length < 2) return null;
+
+  const mean = values.reduce((a, b) => a + b, 0) / values.length;
+  const squares = values.reduce((total, value) => total + (value - mean) ** 2, 0);
+
+  // Divided by one less than the count, as the mockup works it out: these days
+  // are a sample of how the eating goes, not the whole of it.
+  return Math.sqrt(squares / (values.length - 1));
 }
