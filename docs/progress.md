@@ -48,12 +48,10 @@ Don't design it or raise it.
 
 ## Waiting on me (Andrei)
 
-1. **Commit and push step 7.12** (suggested message in the step report: "Phase 7 step
-   7.12: Sleep chart view"). It was marked done before the phone test, so anything the
-   phone shows is a follow-up fix, not a reopened step.
-2. The small calls listed under Decisions for 7.12 (2026-09-13) — say if any should
-   change.
-3. **The decision for 7.13:** is the weekly digest's "previous week" the seven days before
+1. The small calls listed under Decisions for 7.12 (2026-09-13) — say if any should
+   change. 7.12 is committed and pushed (`359e274`), and was marked done before its
+   phone test, so anything the phone shows is a follow-up fix, not a reopened step.
+2. **The decision for 7.13:** is the weekly digest's "previous week" the seven days before
    the last seven, or the previous calendar week (Monday–Sunday)?
 
 Migrations 0001–0005 have all been run. Steps 7.1, 7.2, 7.4 and 7.4b had no migration.
